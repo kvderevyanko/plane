@@ -1,0 +1,29 @@
+project:
+  name: LR1600
+  units: mm
+
+wing:
+  span: 1600
+  root_chord: 250
+  tip_chord: 200
+  airfoil: clark_y
+  washout_deg: -1.5
+  dihedral_deg: 2.0
+
+spar:
+  type: carbon_tube
+  outer_diameter: 14
+  inner_diameter: 12
+  chord_position: 0.30
+
+materials:
+  skin_foam_mm: 3
+  rib_foam_mm: 5
+  plywood_structural_mm:
+    - 1.5
+    - 2.0
+    - 3.0
+
+aircraft:
+  target_mass_g: 2400
+  design_load_factor_g: 4.0

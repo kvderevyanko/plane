@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="330.000mm" height="880.000mm" viewBox="0 0 330.000 880.000">
+  <title>LR1600 one-panel plan view</title>
+  <g fill="none" stroke="#000" stroke-width="0.2"><path d="M 40.000,40.000 L 65.000,840.000 L 265.000,840.000 L 290.000,40.000 Z"/><line x1="40.000" y1="40.000" x2="290.000" y2="40.000"/><line x1="43.125" y1="140.000" x2="286.875" y2="140.000"/><line x1="46.250" y1="240.000" x2="283.750" y2="240.000"/><line x1="49.375" y1="340.000" x2="280.625" y2="340.000"/><line x1="52.500" y1="440.000" x2="277.500" y2="440.000"/><line x1="55.625" y1="540.000" x2="274.375" y2="540.000"/><line x1="58.750" y1="640.000" x2="271.250" y2="640.000"/><line x1="61.875" y1="740.000" x2="268.125" y2="740.000"/><line x1="65.000" y1="840.000" x2="265.000" y2="840.000"/></g>
+  <line x1="237.312" y1="190.000" x2="221.688" y2="690.000" stroke="#d00" stroke-width="0.4"/>
+  <text x="5" y="15" font-size="7">One removable panel — 800 mm; red: proposed aileron hinge line</text>
+</svg>

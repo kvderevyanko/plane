@@ -1,0 +1,31 @@
+# Local tools and optional dependencies
+.tools/
+.local/
+vendor/
+node_modules/
+
+# Caches and build output
+.cache/
+tmp/
+temp/
+dist/
+build/
+coverage/
+__pycache__/
+*.py[cod]
+
+# Machine-specific configuration and secrets
+.env
+.env.*
+!.env.example
+*.local
+*.log
+
+# Editor and operating-system files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Project-local toolchains
+.tools/
