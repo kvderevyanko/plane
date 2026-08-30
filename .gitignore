@@ -1,5 +1,9 @@
 # Local tools and optional dependencies
 .tools/
+
+# User-provided agent installer and temporary extraction directory
+lr1600-codex-agents-gpt56.zip
+.tmp-agent-install.*/
 .local/
 vendor/
 node_modules/
