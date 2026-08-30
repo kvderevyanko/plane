@@ -1,13 +1,47 @@
+from dataclasses import asdict
+import json
+import math
 from pathlib import Path
 
 import pytest
 
 from scripts.config import ConfigurationError, load_aircraft_config
-from scripts.generate_wing import chord_at, generate, wing_parameters_from_config
+from scripts.generate_wing import (
+    chord_at,
+    generate,
+    washout_at,
+    wing_parameters_from_config,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG_PATH = ROOT / "config" / "aircraft.yaml"
+SNAPSHOT_FLOAT_ABS_TOLERANCE = 1e-12
+
+
+def assert_complete_snapshot_matches_model(actual: object, expected: object) -> None:
+    """Compare every JSON snapshot value with the typed generator model.
+
+    ``parameters.json`` is deliberately checked as a complete, flat serialized
+    dataclass rather than as a hand-picked subset.  The very small absolute
+    tolerance only covers JSON's representation of Python floats; all values
+    currently originate directly from the typed model.
+    """
+    assert isinstance(actual, dict)
+    assert isinstance(expected, dict)
+    assert set(actual) == set(expected)
+    for key, expected_value in expected.items():
+        actual_value = actual[key]
+        if isinstance(expected_value, float):
+            assert isinstance(actual_value, (int, float))
+            assert math.isclose(
+                actual_value,
+                expected_value,
+                rel_tol=0.0,
+                abs_tol=SNAPSHOT_FLOAT_ABS_TOLERANCE,
+            ), key
+        else:
+            assert actual_value == expected_value, key
 
 
 def test_repository_aircraft_yaml_loads_and_has_expected_planform():
@@ -30,6 +64,52 @@ def test_yaml_values_map_directly_to_wing_generator(tmp_path: Path):
     assert (tmp_path / "generated" / "rib_manifest.csv").exists()
     assert not (tmp_path / "generated" / "wing_parameters.json").exists()
     assert not (ROOT / "design" / "wing_parameters.json").exists()
+
+
+def test_generated_parameters_snapshot_is_complete_typed_yaml_model(tmp_path: Path):
+    """The full generated snapshot is serialized only from the YAML model."""
+    config = load_aircraft_config(CONFIG_PATH)
+    output = tmp_path / "generated"
+    generated_model = generate(CONFIG_PATH, output)
+
+    snapshot = json.loads((output / "parameters.json").read_text(encoding="utf-8"))
+    expected_model = asdict(wing_parameters_from_config(config))
+
+    # This also confirms generate() used the same common-loader model.
+    assert_complete_snapshot_matches_model(asdict(generated_model), expected_model)
+    assert_complete_snapshot_matches_model(snapshot, expected_model)
+
+
+def test_corrupted_snapshot_is_ignored_and_regenerated_from_yaml(tmp_path: Path):
+    """A stale or edited snapshot cannot affect a subsequent generation."""
+    output = tmp_path / "generated"
+    expected_model = wing_parameters_from_config(load_aircraft_config(CONFIG_PATH))
+    generate(CONFIG_PATH, output)
+
+    snapshot_path = output / "parameters.json"
+    corrupted_snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
+    corrupted_snapshot.update({
+        "span_mm": 9999.0,
+        "root_chord_mm": 999.0,
+        "tip_chord_mm": 111.0,
+        "tip_washout_deg": 9.0,
+    })
+    snapshot_path.write_text(json.dumps(corrupted_snapshot, indent=2) + "\n", encoding="utf-8")
+
+    regenerated_model = generate(CONFIG_PATH, output)
+    restored_snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
+
+    assert_complete_snapshot_matches_model(asdict(regenerated_model), asdict(expected_model))
+    assert_complete_snapshot_matches_model(restored_snapshot, asdict(expected_model))
+
+    # Check geometry-bearing quantities from the actual regenerated model, not
+    # merely the replacement snapshot: YAML values win over the corrupt data.
+    assert chord_at(0.0, regenerated_model) == expected_model.root_chord_mm
+    assert chord_at(regenerated_model.panel_span_mm, regenerated_model) == expected_model.tip_chord_mm
+    assert washout_at(regenerated_model.panel_span_mm, regenerated_model) == expected_model.tip_washout_deg
+    assert chord_at(0.0, regenerated_model) != corrupted_snapshot["root_chord_mm"]
+    assert chord_at(regenerated_model.panel_span_mm, regenerated_model) != corrupted_snapshot["tip_chord_mm"]
+    assert washout_at(regenerated_model.panel_span_mm, regenerated_model) != corrupted_snapshot["tip_washout_deg"]
 
 
 def test_changed_temporary_yaml_changes_generator_geometry(tmp_path: Path):
