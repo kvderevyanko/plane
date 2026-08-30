@@ -2,6 +2,7 @@
   "span_mm": 1600.0,
   "root_chord_mm": 250.0,
   "tip_chord_mm": 200.0,
+  "airfoil": "clark_y",
   "dihedral_deg_per_panel": 2.0,
   "tip_washout_deg": -1.5,
   "twist_axis_fraction": 0.25,

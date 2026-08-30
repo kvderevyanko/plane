@@ -7,27 +7,17 @@ import sys
 from pathlib import Path
 
 import ezdxf
-import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from cad.common.calibration_coupon import HEIGHT_MM, WIDTH_MM, generate
+from scripts.config import load_aircraft_config
 
 
 def require(condition: bool, message: str) -> None:
     if not condition:
         raise ValueError(message)
-
-
-def load_and_validate_config(path: Path) -> dict:
-    config = yaml.safe_load(path.read_text(encoding="utf-8"))
-    require(config["project"]["units"] == "mm", "Project units must be mm")
-    require(config["wing"]["span"] > 0, "Wing span must be positive")
-    require(config["wing"]["root_chord"] > 0 and config["wing"]["tip_chord"] > 0, "Wing chords must be positive")
-    require(0 < config["spar"]["chord_position"] < 1, "Spar position must be a chord fraction")
-    require(config["spar"]["outer_diameter"] > config["spar"]["inner_diameter"] > 0, "Invalid spar diameters")
-    return config
 
 
 def dxf_bounds_mm(path: Path) -> tuple[float, float, float, float]:
@@ -63,11 +53,11 @@ def validate_coupon_svg(path: Path) -> None:
 
 
 def main() -> None:
-    config = load_and_validate_config(ROOT / "config" / "aircraft.yaml")
+    config = load_aircraft_config(ROOT / "config" / "aircraft.yaml")
     paths = generate(ROOT / "build")
     validate_coupon_dxf(paths["dxf"])
     validate_coupon_svg(paths["svg"])
-    print(f"{config['project']['name']}: CAD build passed; calibration coupon is 100.000 × 50.000 mm.")
+    print(f"{config.project.name}: CAD build passed; calibration coupon is 100.000 × 50.000 mm.")
     for kind, path in paths.items():
         print(f"  {kind}: {path.relative_to(ROOT)} ({path.stat().st_size} bytes)")
 

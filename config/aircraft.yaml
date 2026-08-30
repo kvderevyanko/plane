@@ -9,16 +9,23 @@ wing:
   airfoil: clark_y
   washout_deg: -1.5
   dihedral_deg: 2.0
+  twist_axis_fraction: 0.25
+  rib_pitch_mm: 100
+  aileron_span_mm: 500
+  aileron_chord_mm: 48
+  aileron_inboard_offset_mm: 150
 
 spar:
   type: carbon_tube
   outer_diameter: 14
   inner_diameter: 12
   chord_position: 0.30
+  hole_clearance_mm: 0.25
 
 materials:
   skin_foam_mm: 3
   rib_foam_mm: 5
+  root_rib_plywood_mm: 2.0
   plywood_structural_mm:
     - 1.5
     - 2.0
@@ -27,3 +34,4 @@ materials:
 aircraft:
   target_mass_g: 2400
   design_load_factor_g: 4.0
+  gravity_m_s2: 9.80665

@@ -8,48 +8,54 @@ before cutting structural parts.
 
 from __future__ import annotations
 
+import argparse
 import csv
 import json
 import math
 from dataclasses import asdict, dataclass
+from functools import lru_cache
 from pathlib import Path
 from typing import Iterable
 
+try:  # Supports both `python scripts/generate_wing.py` and pytest imports.
+    from config import DEFAULT_CONFIG_PATH, AircraftConfig, load_aircraft_config
+except ImportError:
+    from scripts.config import DEFAULT_CONFIG_PATH, AircraftConfig, load_aircraft_config
+
 
 ROOT = Path(__file__).resolve().parents[1]
-AIRFOIL_FILE = ROOT / "data" / "airfoils" / "clarky.dat"
-PARAMETERS_FILE = ROOT / "design" / "wing_parameters.json"
 OUTPUT = ROOT / "generated"
 
 
 @dataclass(frozen=True)
 class WingParameters:
     # Planform
-    span_mm: float = 1600.0
-    root_chord_mm: float = 250.0
-    tip_chord_mm: float = 200.0
-    dihedral_deg_per_panel: float = 2.0
-    tip_washout_deg: float = -1.5
-    twist_axis_fraction: float = 0.25
+    span_mm: float
+    root_chord_mm: float
+    tip_chord_mm: float
+    airfoil: str
+    dihedral_deg_per_panel: float
+    tip_washout_deg: float
+    twist_axis_fraction: float
 
     # Structure
-    skin_thickness_mm: float = 3.0
-    ordinary_rib_thickness_mm: float = 5.0
-    root_rib_thickness_mm: float = 2.0
-    rib_pitch_mm: float = 100.0
-    spar_fraction: float = 0.30
-    spar_outer_diameter_mm: float = 14.0
-    spar_hole_clearance_mm: float = 0.25
+    skin_thickness_mm: float
+    ordinary_rib_thickness_mm: float
+    root_rib_thickness_mm: float
+    rib_pitch_mm: float
+    spar_fraction: float
+    spar_outer_diameter_mm: float
+    spar_hole_clearance_mm: float
 
     # Controls (reference geometry; not cut into the rib at this stage)
-    aileron_span_mm: float = 500.0
-    aileron_chord_mm: float = 48.0
-    aileron_inboard_offset_mm: float = 150.0
+    aileron_span_mm: float
+    aileron_chord_mm: float
+    aileron_inboard_offset_mm: float
 
     # Flight loads
-    aircraft_mass_kg: float = 2.4
-    design_load_factor_g: float = 4.0
-    gravity_m_s2: float = 9.80665
+    aircraft_mass_kg: float
+    design_load_factor_g: float
+    gravity_m_s2: float
 
     @property
     def panel_span_mm(self) -> float:
@@ -57,19 +63,32 @@ class WingParameters:
         return self.span_mm / 2.0
 
 
-def load_parameters(path: Path = PARAMETERS_FILE) -> WingParameters:
-    """Load user-editable values while retaining defaults for omitted fields."""
-    defaults = asdict(WingParameters())
-    if path.exists():
-        supplied = json.loads(path.read_text(encoding="utf-8"))
-        unknown = set(supplied) - set(defaults)
-        if unknown:
-            raise ValueError(f"Unknown wing parameters in {path}: {sorted(unknown)}")
-        defaults.update(supplied)
-    return WingParameters(**defaults)
+def wing_parameters_from_config(config: AircraftConfig) -> WingParameters:
+    """Map the common typed configuration to the generator's complete model."""
+    return WingParameters(
+        span_mm=config.wing.span_mm,
+        root_chord_mm=config.wing.root_chord_mm,
+        tip_chord_mm=config.wing.tip_chord_mm,
+        airfoil=config.wing.airfoil,
+        dihedral_deg_per_panel=config.wing.dihedral_deg_per_panel,
+        tip_washout_deg=config.wing.washout_deg,
+        twist_axis_fraction=config.wing.twist_axis_fraction,
+        skin_thickness_mm=config.materials.skin_foam_mm,
+        ordinary_rib_thickness_mm=config.materials.rib_foam_mm,
+        root_rib_thickness_mm=config.materials.root_rib_plywood_mm,
+        rib_pitch_mm=config.wing.rib_pitch_mm,
+        spar_fraction=config.spar.chord_position,
+        spar_outer_diameter_mm=config.spar.outer_diameter_mm,
+        spar_hole_clearance_mm=config.spar.hole_clearance_mm,
+        aileron_span_mm=config.wing.aileron_span_mm,
+        aileron_chord_mm=config.wing.aileron_chord_mm,
+        aileron_inboard_offset_mm=config.wing.aileron_inboard_offset_mm,
+        aircraft_mass_kg=config.aircraft.target_mass_kg,
+        design_load_factor_g=config.aircraft.design_load_factor_g,
+        gravity_m_s2=config.aircraft.gravity_m_s2,
+    )
 
 
-P = load_parameters()
 Point = tuple[float, float]
 
 
@@ -112,7 +131,16 @@ def read_airfoil(path: Path) -> list[Point]:
     return points
 
 
-AIRFOIL = read_airfoil(AIRFOIL_FILE)
+AIRFOIL_FILES = {"clark_y": ROOT / "data" / "airfoils" / "clarky.dat"}
+
+
+@lru_cache(maxsize=None)
+def airfoil_points(name: str) -> tuple[Point, ...]:
+    """Resolve the airfoil explicitly selected in aircraft.yaml."""
+    try:
+        return tuple(read_airfoil(AIRFOIL_FILES[name]))
+    except KeyError as error:
+        raise ValueError(f"No airfoil file is registered for {name!r}") from error
 
 
 def signed_area(points: list[Point]) -> float:
@@ -154,11 +182,11 @@ def offset_inward(points: list[Point], distance: float) -> list[Point]:
     return result
 
 
-def chord_at(span_station_mm: float, p: WingParameters = P) -> float:
+def chord_at(span_station_mm: float, p: WingParameters) -> float:
     return p.root_chord_mm + (p.tip_chord_mm - p.root_chord_mm) * span_station_mm / p.panel_span_mm
 
 
-def washout_at(span_station_mm: float, p: WingParameters = P) -> float:
+def washout_at(span_station_mm: float, p: WingParameters) -> float:
     return p.tip_washout_deg * span_station_mm / p.panel_span_mm
 
 
@@ -170,22 +198,21 @@ def rotate(point: Point, degrees: float, origin: Point) -> Point:
             origin[1] + x * sine + z * cosine)
 
 
-def airfoil_at_chord(chord_mm: float, twist_deg: float = 0.0,
-                     p: WingParameters = P) -> list[Point]:
+def airfoil_at_chord(chord_mm: float, twist_deg: float, p: WingParameters) -> list[Point]:
     """Scale the exact normalized Clark Y coordinates to a chord and twist it."""
-    scaled = [(x * chord_mm, z * chord_mm) for x, z in AIRFOIL]
+    scaled = [(x * chord_mm, z * chord_mm) for x, z in airfoil_points(p.airfoil)]
     axis = (p.twist_axis_fraction * chord_mm, 0.0)
     return [rotate(point, twist_deg, axis) for point in scaled]
 
 
-def rib_contour(station_mm: float, p: WingParameters = P) -> list[Point]:
+def rib_contour(station_mm: float, p: WingParameters) -> list[Point]:
     """Return the rib outside contour, i.e. the inside face of the 3 mm skins."""
     chord = chord_at(station_mm, p)
     theoretical = airfoil_at_chord(chord, washout_at(station_mm, p), p)
     return offset_inward(theoretical, p.skin_thickness_mm)
 
 
-def camber_z_at(x: float, chord_mm: float, twist_deg: float, p: WingParameters = P) -> float:
+def camber_z_at(x: float, chord_mm: float, twist_deg: float, p: WingParameters) -> float:
     """Linearly interpolate the mean line, after profile scaling and twist."""
     profile = airfoil_at_chord(chord_mm, twist_deg, p)
     # The reordered polygon runs upper TE -> LE -> lower TE. Find intersections
@@ -201,14 +228,14 @@ def camber_z_at(x: float, chord_mm: float, twist_deg: float, p: WingParameters =
     return (min(crossings) + max(crossings)) / 2.0
 
 
-def spar_center(station_mm: float, p: WingParameters = P) -> Point:
+def spar_center(station_mm: float, p: WingParameters) -> Point:
     chord = chord_at(station_mm, p)
     twist = washout_at(station_mm, p)
     x = p.spar_fraction * chord
     return x, camber_z_at(x, chord, twist, p)
 
 
-def rib_stations(p: WingParameters = P) -> list[float]:
+def rib_stations(p: WingParameters) -> list[float]:
     bays = round(p.panel_span_mm / p.rib_pitch_mm)
     if not math.isclose(bays * p.rib_pitch_mm, p.panel_span_mm, abs_tol=1e-6):
         raise ValueError("panel_span_mm must be an integer multiple of rib_pitch_mm")
@@ -221,7 +248,7 @@ def svg_path(points: Iterable[Point]) -> str:
 
 
 def write_svg(path: Path, outline: list[Point], spar: Point, title: str,
-              p: WingParameters = P) -> None:
+              p: WingParameters) -> None:
     xs, zs = zip(*outline)
     radius = p.spar_outer_diameter_mm / 2.0 + p.spar_hole_clearance_mm
     margin = 12.0
@@ -247,7 +274,7 @@ def dxf_polyline(points: list[Point], layer: str = "CUT") -> str:
     return "".join(pairs)
 
 
-def write_dxf(path: Path, outline: list[Point], spar: Point, p: WingParameters = P) -> None:
+def write_dxf(path: Path, outline: list[Point], spar: Point, p: WingParameters) -> None:
     radius = p.spar_outer_diameter_mm / 2.0 + p.spar_hole_clearance_mm
     body = dxf_polyline(outline)
     body += f"0\nCIRCLE\n8\nCUT\n10\n{spar[0]:.5f}\n20\n{-spar[1]:.5f}\n40\n{radius:.5f}\n"
@@ -255,7 +282,7 @@ def write_dxf(path: Path, outline: list[Point], spar: Point, p: WingParameters =
     path.write_text(header + "0\nSECTION\n2\nENTITIES\n" + body + "0\nENDSEC\n0\nEOF\n", encoding="ascii")
 
 
-def write_plan_svg(path: Path, stations: list[float], p: WingParameters = P) -> None:
+def write_plan_svg(path: Path, stations: list[float], p: WingParameters) -> None:
     margin = 40.0
     width, height = p.root_chord_mm + 2 * margin, p.panel_span_mm + 2 * margin
     root_x = margin
@@ -283,7 +310,7 @@ def write_plan_svg(path: Path, stations: list[float], p: WingParameters = P) -> 
 ''', encoding="utf-8")
 
 
-def write_manifest(path: Path, stations: list[float], p: WingParameters = P) -> None:
+def write_manifest(path: Path, stations: list[float], p: WingParameters) -> None:
     with path.open("w", newline="", encoding="utf-8") as output:
         writer = csv.DictWriter(output, fieldnames=["id", "station_mm", "chord_mm", "washout_deg", "dihedral_z_mm", "spar_x_mm", "spar_z_mm", "material", "thickness_mm"])
         writer.writeheader()
@@ -300,7 +327,7 @@ def write_manifest(path: Path, stations: list[float], p: WingParameters = P) -> 
             })
 
 
-def write_wing_stations(path: Path, stations: list[float], p: WingParameters = P) -> None:
+def write_wing_stations(path: Path, stations: list[float], p: WingParameters) -> None:
     """Write the full-wing reference geometry; y and z are relative to centreline."""
     with path.open("w", newline="", encoding="utf-8") as output:
         writer = csv.DictWriter(output, fieldnames=["panel", "rib_id", "y_mm", "z_dihedral_mm", "chord_mm", "washout_deg", "leading_edge_x_mm", "spar_x_mm", "spar_z_mm"])
@@ -319,28 +346,39 @@ def write_wing_stations(path: Path, stations: list[float], p: WingParameters = P
                 })
 
 
-def main() -> None:
-    OUTPUT.mkdir(exist_ok=True)
+def generate(config_path: Path = DEFAULT_CONFIG_PATH, output: Path = OUTPUT) -> WingParameters:
+    """Generate wing artifacts from YAML and return the exact model used."""
+    parameters = wing_parameters_from_config(load_aircraft_config(config_path))
+    output.mkdir(parents=True, exist_ok=True)
     # Delete only generator-owned detail files, so a changed rib pitch cannot
     # leave stale laser files alongside the rebuilt set.
     for pattern in ("rib_*.svg", "rib_*.dxf"):
-        for old_file in OUTPUT.glob(pattern):
+        for old_file in output.glob(pattern):
             old_file.unlink()
-    stations = rib_stations(P)
+    stations = rib_stations(parameters)
     for index, station in enumerate(stations):
-        contour = rib_contour(station, P)
-        spar = spar_center(station, P)
-        chord = chord_at(station, P)
-        twist = washout_at(station, P)
+        contour = rib_contour(station, parameters)
+        spar = spar_center(station, parameters)
+        chord = chord_at(station, parameters)
+        twist = washout_at(station, parameters)
         suffix = "root" if index == 0 else "tip" if index == len(stations) - 1 else f"station_{station:03.0f}"
         title = f"LR1600 R{index:02d} {suffix}: chord {chord:.1f} mm, twist {twist:.3f} deg"
-        write_svg(OUTPUT / f"rib_{index:02d}_{suffix}.svg", contour, spar, title, P)
-        write_dxf(OUTPUT / f"rib_{index:02d}_{suffix}.dxf", contour, spar, P)
-    write_plan_svg(OUTPUT / "panel_plan.svg", stations, P)
-    write_manifest(OUTPUT / "rib_manifest.csv", stations, P)
-    write_wing_stations(OUTPUT / "wing_stations.csv", stations, P)
-    (OUTPUT / "parameters.json").write_text(json.dumps(asdict(P), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(f"Generated {len(stations)} ribs in {OUTPUT.relative_to(ROOT)}/")
+        write_svg(output / f"rib_{index:02d}_{suffix}.svg", contour, spar, title, parameters)
+        write_dxf(output / f"rib_{index:02d}_{suffix}.dxf", contour, spar, parameters)
+    write_plan_svg(output / "panel_plan.svg", stations, parameters)
+    write_manifest(output / "rib_manifest.csv", stations, parameters)
+    write_wing_stations(output / "wing_stations.csv", stations, parameters)
+    (output / "parameters.json").write_text(json.dumps(asdict(parameters), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return parameters
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Generate LR1600 wing artifacts from aircraft.yaml")
+    parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG_PATH)
+    parser.add_argument("--output", type=Path, default=OUTPUT)
+    args = parser.parse_args()
+    parameters = generate(args.config, args.output)
+    print(f"Generated {len(rib_stations(parameters))} ribs in {args.output}/")
 
 
 if __name__ == "__main__":

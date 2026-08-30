@@ -1,16 +1,17 @@
 from pathlib import Path
 
 from cad.common.calibration_coupon import generate
-from scripts.build import dxf_bounds_mm, load_and_validate_config, validate_coupon_dxf, validate_coupon_svg
+from scripts.build import dxf_bounds_mm, validate_coupon_dxf, validate_coupon_svg
+from scripts.config import load_aircraft_config
 
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_aircraft_parameters_are_millimetres():
-    config = load_and_validate_config(ROOT / "config" / "aircraft.yaml")
-    assert config["project"]["units"] == "mm"
-    assert config["wing"]["span"] == 1600
+    config = load_aircraft_config(ROOT / "config" / "aircraft.yaml")
+    assert config.project.units == "mm"
+    assert config.wing.span_mm == 1600
 
 
 def test_coupon_exports_and_scale(tmp_path: Path):
