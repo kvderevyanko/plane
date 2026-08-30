@@ -10,6 +10,7 @@
 | LightBurn | 1.7.08 | `.tools/apps/LightBurn-Linux64-v1.7.08.AppImage`; `./tools/lightburn.sh` |
 | LibreCAD | 2.2.1.5 | `.tools/apps/LibreCAD-v2.2.1.5-x86_64.AppImage`; `./tools/librecad.sh` |
 | FreeCAD | 1.1.3 target | official AppImage download attempted but rejected on SHA-256 mismatch; not installed |
+| XFOIL | 6.99.dfsg+1-3 (amd64) | `.tools/apps/xfoil/usr/bin/xfoil`; `bash ./tools/bootstrap-xfoil.sh` |
 
 The project uses a local prefix rather than system Python. It is created from
 `environment/environment.yml` by Miniforge/mamba; no `conda init` or global
@@ -17,6 +18,12 @@ The project uses a local prefix rather than system Python. It is created from
 
 `build/` and `.tools/` are ignored by Git. They are reproducible or optional;
 all source, configuration and documentation are committed.
+
+XFOIL is bootstrapped without root or system-package changes from Debian's
+[`xfoil_6.99.dfsg+1-3_amd64.deb`](https://deb.debian.org/debian/pool/main/x/xfoil/xfoil_6.99.dfsg+1-3_amd64.deb); the script validates SHA-256
+`8bd7d984111901e76f5466c31f30fc12fa8de283ed39a24d9a80f43b1440b6d1` before
+extracting only under `.tools/apps/xfoil`. It is intentionally amd64/Debian
+package specific. Run `bash ./tools/bootstrap-xfoil.sh` on a fresh checkout.
 
 ## System applications
 

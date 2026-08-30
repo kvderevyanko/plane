@@ -1,0 +1,1161 @@
+{
+  "schema": "lr1600-airfoil-analysis-v1",
+  "generated_utc": "2026-08-30T22:18:43.879822+00:00",
+  "aircraft_typed_yaml_snapshot": {
+    "project": {
+      "name": "LR1600",
+      "units": "mm"
+    },
+    "wing": {
+      "span_mm": 1600.0,
+      "root_chord_mm": 250.0,
+      "tip_chord_mm": 200.0,
+      "airfoil": "clark_y",
+      "washout_deg": -1.5,
+      "dihedral_deg_per_panel": 2.0,
+      "twist_axis_fraction": 0.25,
+      "rib_pitch_mm": 100.0,
+      "aileron_span_mm": 500.0,
+      "aileron_chord_mm": 48.0,
+      "aileron_inboard_offset_mm": 150.0
+    },
+    "spar": {
+      "type": "carbon_tube",
+      "outer_diameter_mm": 14.0,
+      "inner_diameter_mm": 12.0,
+      "chord_position": 0.3,
+      "hole_clearance_mm": 0.25
+    },
+    "materials": {
+      "skin_foam_mm": 3.0,
+      "rib_foam_mm": 5.0,
+      "root_rib_plywood_mm": 2.0,
+      "plywood_structural_mm": [
+        1.5,
+        2.0,
+        3.0
+      ]
+    },
+    "aircraft": {
+      "target_mass_g": 2400.0,
+      "design_load_factor_g": 4.0,
+      "gravity_m_s2": 9.80665
+    }
+  },
+  "atmosphere": {
+    "model": "ISA sea level baseline",
+    "rho_kg_m3": 1.225,
+    "mu_pa_s": 1.789e-05
+  },
+  "airfoil": {
+    "path": "data/airfoils/clarky.dat",
+    "sha256": "bd1822f02d71bf66357774ec58279ff26f75f911414cded2fb34cafd15935f13",
+    "coordinates": 122
+  },
+  "tool": {
+    "binary": ".tools/apps/xfoil/usr/bin/xfoil",
+    "banner": "XFOIL Version 6.99"
+  },
+  "xfoil_inputs": {
+    "alpha_deg": {
+      "start": -6.0,
+      "end": 18.0,
+      "step": 0.25
+    },
+    "reynolds_cases": [
+      120000,
+      150000,
+      200000,
+      214862,
+      300000,
+      430000,
+      480000
+    ],
+    "ncrit": {
+      "clean": 9.0,
+      "realistic_model": 5.0
+    }
+  },
+  "reynolds_mac": {
+    "35_km_h": 150403.29908195257,
+    "50_km_h": 214861.85583136082,
+    "70_km_h": 300806.59816390515,
+    "100_km_h": 429723.71166272165
+  },
+  "two_d_cases": [
+    {
+      "reynolds": 120000,
+      "scenario": "clean",
+      "ncrit": 9.0,
+      "sweep": "forward",
+      "raw_polar": "analysis/aero/raw/clarky_re120000_clean.polar",
+      "input": "analysis/aero/raw/clarky_re120000_clean.in",
+      "log": "analysis/aero/raw/clarky_re120000_clean.log",
+      "parsed_csv": "analysis/aero/parsed/clarky_re120000_clean.csv",
+      "metrics": {
+        "points": 96,
+        "missing_alpha_deg": [
+          -0.75
+        ],
+        "last_converged_alpha_deg": 18.0,
+        "warnings": [
+          "1 requested alpha points absent; no values inferred"
+        ],
+        "clmax_2d_converged": 1.3696,
+        "clmax_alpha_deg": 12.75,
+        "clmax_is_lower_bound": false,
+        "cdmin": 0.01491,
+        "cdmin_alpha_deg": 2.25,
+        "best_ld": 58.16091954022988,
+        "best_ld_cl": 1.0626,
+        "best_ld_alpha_deg": 6.5,
+        "best_ld_cm": -0.0725,
+        "reliable_pre_peak_clmax": 1.3696,
+        "reliable_pre_peak_alpha_deg": 12.75,
+        "post_peak_points_excluded_from_stall": 21
+      }
+    },
+    {
+      "reynolds": 150000,
+      "scenario": "clean",
+      "ncrit": 9.0,
+      "sweep": "forward",
+      "raw_polar": "analysis/aero/raw/clarky_re150000_clean.polar",
+      "input": "analysis/aero/raw/clarky_re150000_clean.in",
+      "log": "analysis/aero/raw/clarky_re150000_clean.log",
+      "parsed_csv": "analysis/aero/parsed/clarky_re150000_clean.csv",
+      "metrics": {
+        "points": 94,
+        "missing_alpha_deg": [
+          -5.75,
+          -5.25,
+          -3.75
+        ],
+        "last_converged_alpha_deg": 18.0,
+        "warnings": [
+          "3 requested alpha points absent; no values inferred"
+        ],
+        "clmax_2d_converged": 1.3807,
+        "clmax_alpha_deg": 12.75,
+        "clmax_is_lower_bound": false,
+        "cdmin": 0.01245,
+        "cdmin_alpha_deg": 1.0,
+        "best_ld": 64.65529010238909,
+        "best_ld_cl": 0.9472,
+        "best_ld_alpha_deg": 5.25,
+        "best_ld_cm": -0.0765,
+        "reliable_pre_peak_clmax": 1.3807,
+        "reliable_pre_peak_alpha_deg": 12.75,
+        "post_peak_points_excluded_from_stall": 21
+      }
+    },
+    {
+      "reynolds": 200000,
+      "scenario": "clean",
+      "ncrit": 9.0,
+      "sweep": "forward",
+      "raw_polar": "analysis/aero/raw/clarky_re200000_clean.polar",
+      "input": "analysis/aero/raw/clarky_re200000_clean.in",
+      "log": "analysis/aero/raw/clarky_re200000_clean.log",
+      "parsed_csv": "analysis/aero/parsed/clarky_re200000_clean.csv",
+      "metrics": {
+        "points": 96,
+        "missing_alpha_deg": [
+          1.25
+        ],
+        "last_converged_alpha_deg": 18.0,
+        "warnings": [
+          "1 requested alpha points absent; no values inferred"
+        ],
+        "clmax_2d_converged": 1.3965,
+        "clmax_alpha_deg": 12.5,
+        "clmax_is_lower_bound": false,
+        "cdmin": 0.01016,
+        "cdmin_alpha_deg": -0.25,
+        "best_ld": 73.14378554021121,
+        "best_ld_cl": 0.9004,
+        "best_ld_alpha_deg": 4.75,
+        "best_ld_cm": -0.0779,
+        "reliable_pre_peak_clmax": 1.3965,
+        "reliable_pre_peak_alpha_deg": 12.5,
+        "post_peak_points_excluded_from_stall": 22
+      }
+    },
+    {
+      "reynolds": 214862,
+      "scenario": "clean",
+      "ncrit": 9.0,
+      "sweep": "forward",
+      "raw_polar": "analysis/aero/raw/clarky_re214862_clean.polar",
+      "input": "analysis/aero/raw/clarky_re214862_clean.in",
+      "log": "analysis/aero/raw/clarky_re214862_clean.log",
+      "parsed_csv": "analysis/aero/parsed/clarky_re214862_clean.csv",
+      "metrics": {
+        "points": 96,
+        "missing_alpha_deg": [
+          6.5
+        ],
+        "last_converged_alpha_deg": 18.0,
+        "warnings": [
+          "1 requested alpha points absent; no values inferred"
+        ],
+        "clmax_2d_converged": 1.3993,
+        "clmax_alpha_deg": 12.5,
+        "clmax_is_lower_bound": false,
+        "cdmin": 0.00969,
+        "cdmin_alpha_deg": -0.25,
+        "best_ld": 75.34763948497854,
+        "best_ld_cl": 0.8778,
+        "best_ld_alpha_deg": 4.5,
+        "best_ld_cm": -0.079,
+        "reliable_pre_peak_clmax": 1.3993,
+        "reliable_pre_peak_alpha_deg": 12.5,
+        "post_peak_points_excluded_from_stall": 22
+      }
+    },
+    {
+      "reynolds": 300000,
+      "scenario": "clean",
+      "ncrit": 9.0,
+      "sweep": "forward",
+      "raw_polar": "analysis/aero/raw/clarky_re300000_clean.polar",
+      "input": "analysis/aero/raw/clarky_re300000_clean.in",
+      "log": "analysis/aero/raw/clarky_re300000_clean.log",
+      "parsed_csv": "analysis/aero/parsed/clarky_re300000_clean.csv",
+      "metrics": {
+        "points": 96,
+        "missing_alpha_deg": [
+          5.75
+        ],
+        "last_converged_alpha_deg": 18.0,
+        "warnings": [
+          "1 requested alpha points absent; no values inferred"
+        ],
+        "clmax_2d_converged": 1.4064,
+        "clmax_alpha_deg": 13.0,
+        "clmax_is_lower_bound": false,
+        "cdmin": 0.00808,
+        "cdmin_alpha_deg": -0.5,
+        "best_ld": 84.8659384309831,
+        "best_ld_cl": 0.8546,
+        "best_ld_alpha_deg": 4.25,
+        "best_ld_cm": -0.0798,
+        "reliable_pre_peak_clmax": 1.4064,
+        "reliable_pre_peak_alpha_deg": 13.0,
+        "post_peak_points_excluded_from_stall": 20
+      }
+    },
+    {
+      "reynolds": 430000,
+      "scenario": "clean",
+      "ncrit": 9.0,
+      "sweep": "forward",
+      "raw_polar": "analysis/aero/raw/clarky_re430000_clean.polar",
+      "input": "analysis/aero/raw/clarky_re430000_clean.in",
+      "log": "analysis/aero/raw/clarky_re430000_clean.log",
+      "parsed_csv": "analysis/aero/parsed/clarky_re430000_clean.csv",
+      "metrics": {
+        "points": 97,
+        "missing_alpha_deg": [],
+        "last_converged_alpha_deg": 18.0,
+        "warnings": [],
+        "clmax_2d_converged": 1.4211,
+        "clmax_alpha_deg": 13.5,
+        "clmax_is_lower_bound": false,
+        "cdmin": 0.0069,
+        "cdmin_alpha_deg": -0.25,
+        "best_ld": 94.749430523918,
+        "best_ld_cl": 0.8319,
+        "best_ld_alpha_deg": 4.0,
+        "best_ld_cm": -0.0809,
+        "reliable_pre_peak_clmax": 1.4211,
+        "reliable_pre_peak_alpha_deg": 13.5,
+        "post_peak_points_excluded_from_stall": 18
+      }
+    },
+    {
+      "reynolds": 480000,
+      "scenario": "clean",
+      "ncrit": 9.0,
+      "sweep": "forward",
+      "raw_polar": "analysis/aero/raw/clarky_re480000_clean.polar",
+      "input": "analysis/aero/raw/clarky_re480000_clean.in",
+      "log": "analysis/aero/raw/clarky_re480000_clean.log",
+      "parsed_csv": "analysis/aero/parsed/clarky_re480000_clean.csv",
+      "metrics": {
+        "points": 93,
+        "missing_alpha_deg": [
+          -3.25,
+          0.25,
+          5.75,
+          6.75
+        ],
+        "last_converged_alpha_deg": 18.0,
+        "warnings": [
+          "4 requested alpha points absent; no values inferred"
+        ],
+        "clmax_2d_converged": 1.4288,
+        "clmax_alpha_deg": 13.0,
+        "clmax_is_lower_bound": false,
+        "cdmin": 0.00658,
+        "cdmin_alpha_deg": 0.0,
+        "best_ld": 97.72946859903384,
+        "best_ld_cl": 0.8092,
+        "best_ld_alpha_deg": 3.75,
+        "best_ld_cm": -0.0819,
+        "reliable_pre_peak_clmax": 1.4288,
+        "reliable_pre_peak_alpha_deg": 13.0,
+        "post_peak_points_excluded_from_stall": 20
+      }
+    },
+    {
+      "reynolds": 120000,
+      "scenario": "realistic_model",
+      "ncrit": 5.0,
+      "sweep": "combined_direct",
+      "raw_polar": "analysis/aero/raw/clarky_re120000_realistic_model.polar",
+      "input": "analysis/aero/raw/clarky_re120000_realistic_model.in",
+      "log": "analysis/aero/raw/clarky_re120000_realistic_model.log",
+      "parsed_csv": "analysis/aero/parsed/clarky_re120000_realistic_model_combined.csv",
+      "metrics": {
+        "points": 96,
+        "missing_alpha_deg": [
+          11.5
+        ],
+        "last_converged_alpha_deg": 18.0,
+        "warnings": [],
+        "clmax_2d_converged": 1.3514,
+        "clmax_alpha_deg": 13.25,
+        "clmax_is_lower_bound": false,
+        "cdmin": 0.01235,
+        "cdmin_alpha_deg": -0.25,
+        "best_ld": 58.417874396135275,
+        "best_ld_cl": 0.9674,
+        "best_ld_alpha_deg": 5.75,
+        "best_ld_cm": -0.0698,
+        "reliable_pre_peak_clmax": 1.3514,
+        "reliable_pre_peak_alpha_deg": 13.25,
+        "post_peak_points_excluded_from_stall": 19,
+        "combined_direct_points": 96,
+        "reverse_only_points": 2
+      },
+      "source_raw_polars": [
+        "analysis/aero/raw/clarky_re120000_realistic_model.polar",
+        "analysis/aero/raw/clarky_re120000_realistic_model_reverse.polar"
+      ],
+      "source_inputs": [
+        "analysis/aero/raw/clarky_re120000_realistic_model.in",
+        "analysis/aero/raw/clarky_re120000_realistic_model_reverse.in"
+      ],
+      "source_logs": [
+        "analysis/aero/raw/clarky_re120000_realistic_model.log",
+        "analysis/aero/raw/clarky_re120000_realistic_model_reverse.log"
+      ],
+      "forward_metrics": {
+        "points": 94,
+        "missing_alpha_deg": [
+          -6.0,
+          6.0,
+          11.5
+        ],
+        "last_converged_alpha_deg": 18.0,
+        "warnings": [
+          "3 requested alpha points absent; no values inferred"
+        ],
+        "clmax_2d_converged": 1.3514,
+        "clmax_alpha_deg": 13.25,
+        "clmax_is_lower_bound": false,
+        "cdmin": 0.01235,
+        "cdmin_alpha_deg": -0.25,
+        "best_ld": 58.417874396135275,
+        "best_ld_cl": 0.9674,
+        "best_ld_alpha_deg": 5.75,
+        "best_ld_cm": -0.0698,
+        "reliable_pre_peak_clmax": 1.3514,
+        "reliable_pre_peak_alpha_deg": 13.25,
+        "post_peak_points_excluded_from_stall": 19
+      }
+    },
+    {
+      "reynolds": 150000,
+      "scenario": "realistic_model",
+      "ncrit": 5.0,
+      "sweep": "combined_direct",
+      "raw_polar": "analysis/aero/raw/clarky_re150000_realistic_model.polar",
+      "input": "analysis/aero/raw/clarky_re150000_realistic_model.in",
+      "log": "analysis/aero/raw/clarky_re150000_realistic_model.log",
+      "parsed_csv": "analysis/aero/parsed/clarky_re150000_realistic_model_combined.csv",
+      "metrics": {
+        "points": 97,
+        "missing_alpha_deg": [],
+        "last_converged_alpha_deg": 18.0,
+        "warnings": [],
+        "clmax_2d_converged": 1.3674,
+        "clmax_alpha_deg": 12.75,
+        "clmax_is_lower_bound": false,
+        "cdmin": 0.01098,
+        "cdmin_alpha_deg": 0.0,
+        "best_ld": 63.482920294708634,
+        "best_ld_cl": 0.9478,
+        "best_ld_alpha_deg": 5.5,
+        "best_ld_cm": -0.0712,
+        "reliable_pre_peak_clmax": 1.3674,
+        "reliable_pre_peak_alpha_deg": 12.75,
+        "post_peak_points_excluded_from_stall": 21,
+        "combined_direct_points": 97,
+        "reverse_only_points": 2
+      },
+      "source_raw_polars": [
+        "analysis/aero/raw/clarky_re150000_realistic_model.polar",
+        "analysis/aero/raw/clarky_re150000_realistic_model_reverse.polar"
+      ],
+      "source_inputs": [
+        "analysis/aero/raw/clarky_re150000_realistic_model.in",
+        "analysis/aero/raw/clarky_re150000_realistic_model_reverse.in"
+      ],
+      "source_logs": [
+        "analysis/aero/raw/clarky_re150000_realistic_model.log",
+        "analysis/aero/raw/clarky_re150000_realistic_model_reverse.log"
+      ],
+      "forward_metrics": {
+        "points": 95,
+        "missing_alpha_deg": [
+          -1.75,
+          5.25
+        ],
+        "last_converged_alpha_deg": 18.0,
+        "warnings": [
+          "2 requested alpha points absent; no values inferred"
+        ],
+        "clmax_2d_converged": 1.3674,
+        "clmax_alpha_deg": 12.75,
+        "clmax_is_lower_bound": false,
+        "cdmin": 0.01098,
+        "cdmin_alpha_deg": 0.0,
+        "best_ld": 63.482920294708634,
+        "best_ld_cl": 0.9478,
+        "best_ld_alpha_deg": 5.5,
+        "best_ld_cm": -0.0712,
+        "reliable_pre_peak_clmax": 1.3674,
+        "reliable_pre_peak_alpha_deg": 12.75,
+        "post_peak_points_excluded_from_stall": 21
+      }
+    },
+    {
+      "reynolds": 200000,
+      "scenario": "realistic_model",
+      "ncrit": 5.0,
+      "sweep": "combined_direct",
+      "raw_polar": "analysis/aero/raw/clarky_re200000_realistic_model.polar",
+      "input": "analysis/aero/raw/clarky_re200000_realistic_model.in",
+      "log": "analysis/aero/raw/clarky_re200000_realistic_model.log",
+      "parsed_csv": "analysis/aero/parsed/clarky_re200000_realistic_model_combined.csv",
+      "metrics": {
+        "points": 95,
+        "missing_alpha_deg": [
+          5.0,
+          9.5
+        ],
+        "last_converged_alpha_deg": 18.0,
+        "warnings": [],
+        "clmax_2d_converged": 1.3716,
+        "clmax_alpha_deg": 12.25,
+        "clmax_is_lower_bound": false,
+        "cdmin": 0.00962,
+        "cdmin_alpha_deg": 0.0,
+        "best_ld": 69.5895816890292,
+        "best_ld_cl": 0.8817,
+        "best_ld_alpha_deg": 4.75,
+        "best_ld_cm": -0.0743,
+        "reliable_pre_peak_clmax": 1.3716,
+        "reliable_pre_peak_alpha_deg": 12.25,
+        "post_peak_points_excluded_from_stall": 23,
+        "combined_direct_points": 95,
+        "reverse_only_points": 0
+      },
+      "source_raw_polars": [
+        "analysis/aero/raw/clarky_re200000_realistic_model.polar",
+        "analysis/aero/raw/clarky_re200000_realistic_model_reverse.polar"
+      ],
+      "source_inputs": [
+        "analysis/aero/raw/clarky_re200000_realistic_model.in",
+        "analysis/aero/raw/clarky_re200000_realistic_model_reverse.in"
+      ],
+      "source_logs": [
+        "analysis/aero/raw/clarky_re200000_realistic_model.log",
+        "analysis/aero/raw/clarky_re200000_realistic_model_reverse.log"
+      ],
+      "forward_metrics": {
+        "points": 95,
+        "missing_alpha_deg": [
+          5.0,
+          9.5
+        ],
+        "last_converged_alpha_deg": 18.0,
+        "warnings": [
+          "2 requested alpha points absent; no values inferred"
+        ],
+        "clmax_2d_converged": 1.3716,
+        "clmax_alpha_deg": 12.25,
+        "clmax_is_lower_bound": false,
+        "cdmin": 0.00962,
+        "cdmin_alpha_deg": 0.0,
+        "best_ld": 69.5895816890292,
+        "best_ld_cl": 0.8817,
+        "best_ld_alpha_deg": 4.75,
+        "best_ld_cm": -0.0743,
+        "reliable_pre_peak_clmax": 1.3716,
+        "reliable_pre_peak_alpha_deg": 12.25,
+        "post_peak_points_excluded_from_stall": 23
+      }
+    },
+    {
+      "reynolds": 214862,
+      "scenario": "realistic_model",
+      "ncrit": 5.0,
+      "sweep": "combined_direct",
+      "raw_polar": "analysis/aero/raw/clarky_re214862_realistic_model.polar",
+      "input": "analysis/aero/raw/clarky_re214862_realistic_model.in",
+      "log": "analysis/aero/raw/clarky_re214862_realistic_model.log",
+      "parsed_csv": "analysis/aero/parsed/clarky_re214862_realistic_model_combined.csv",
+      "metrics": {
+        "points": 96,
+        "missing_alpha_deg": [
+          5.75
+        ],
+        "last_converged_alpha_deg": 18.0,
+        "warnings": [],
+        "clmax_2d_converged": 1.3719,
+        "clmax_alpha_deg": 12.0,
+        "clmax_is_lower_bound": false,
+        "cdmin": 0.00935,
+        "cdmin_alpha_deg": 0.25,
+        "best_ld": 71.20258272800646,
+        "best_ld_cl": 0.8822,
+        "best_ld_alpha_deg": 4.75,
+        "best_ld_cm": -0.0744,
+        "reliable_pre_peak_clmax": 1.3719,
+        "reliable_pre_peak_alpha_deg": 12.0,
+        "post_peak_points_excluded_from_stall": 24,
+        "combined_direct_points": 96,
+        "reverse_only_points": 0
+      },
+      "source_raw_polars": [
+        "analysis/aero/raw/clarky_re214862_realistic_model.polar",
+        "analysis/aero/raw/clarky_re214862_realistic_model_reverse.polar"
+      ],
+      "source_inputs": [
+        "analysis/aero/raw/clarky_re214862_realistic_model.in",
+        "analysis/aero/raw/clarky_re214862_realistic_model_reverse.in"
+      ],
+      "source_logs": [
+        "analysis/aero/raw/clarky_re214862_realistic_model.log",
+        "analysis/aero/raw/clarky_re214862_realistic_model_reverse.log"
+      ],
+      "forward_metrics": {
+        "points": 96,
+        "missing_alpha_deg": [
+          5.75
+        ],
+        "last_converged_alpha_deg": 18.0,
+        "warnings": [
+          "1 requested alpha points absent; no values inferred"
+        ],
+        "clmax_2d_converged": 1.3719,
+        "clmax_alpha_deg": 12.0,
+        "clmax_is_lower_bound": false,
+        "cdmin": 0.00935,
+        "cdmin_alpha_deg": 0.25,
+        "best_ld": 71.20258272800646,
+        "best_ld_cl": 0.8822,
+        "best_ld_alpha_deg": 4.75,
+        "best_ld_cm": -0.0744,
+        "reliable_pre_peak_clmax": 1.3719,
+        "reliable_pre_peak_alpha_deg": 12.0,
+        "post_peak_points_excluded_from_stall": 24
+      }
+    },
+    {
+      "reynolds": 300000,
+      "scenario": "realistic_model",
+      "ncrit": 5.0,
+      "sweep": "combined_direct",
+      "raw_polar": "analysis/aero/raw/clarky_re300000_realistic_model.polar",
+      "input": "analysis/aero/raw/clarky_re300000_realistic_model.in",
+      "log": "analysis/aero/raw/clarky_re300000_realistic_model.log",
+      "parsed_csv": "analysis/aero/parsed/clarky_re300000_realistic_model_combined.csv",
+      "metrics": {
+        "points": 97,
+        "missing_alpha_deg": [],
+        "last_converged_alpha_deg": 18.0,
+        "warnings": [],
+        "clmax_2d_converged": 1.3958,
+        "clmax_alpha_deg": 13.5,
+        "clmax_is_lower_bound": false,
+        "cdmin": 0.00824,
+        "cdmin_alpha_deg": 0.5,
+        "best_ld": 77.94159544159544,
+        "best_ld_cl": 1.0943,
+        "best_ld_alpha_deg": 7.0,
+        "best_ld_cm": -0.0684,
+        "reliable_pre_peak_clmax": 1.3958,
+        "reliable_pre_peak_alpha_deg": 13.5,
+        "post_peak_points_excluded_from_stall": 18,
+        "combined_direct_points": 97,
+        "reverse_only_points": 0
+      },
+      "source_raw_polars": [
+        "analysis/aero/raw/clarky_re300000_realistic_model.polar",
+        "analysis/aero/raw/clarky_re300000_realistic_model_reverse.polar"
+      ],
+      "source_inputs": [
+        "analysis/aero/raw/clarky_re300000_realistic_model.in",
+        "analysis/aero/raw/clarky_re300000_realistic_model_reverse.in"
+      ],
+      "source_logs": [
+        "analysis/aero/raw/clarky_re300000_realistic_model.log",
+        "analysis/aero/raw/clarky_re300000_realistic_model_reverse.log"
+      ],
+      "forward_metrics": {
+        "points": 97,
+        "missing_alpha_deg": [],
+        "last_converged_alpha_deg": 18.0,
+        "warnings": [],
+        "clmax_2d_converged": 1.3958,
+        "clmax_alpha_deg": 13.5,
+        "clmax_is_lower_bound": false,
+        "cdmin": 0.00824,
+        "cdmin_alpha_deg": 0.5,
+        "best_ld": 77.94159544159544,
+        "best_ld_cl": 1.0943,
+        "best_ld_alpha_deg": 7.0,
+        "best_ld_cm": -0.0684,
+        "reliable_pre_peak_clmax": 1.3958,
+        "reliable_pre_peak_alpha_deg": 13.5,
+        "post_peak_points_excluded_from_stall": 18
+      }
+    },
+    {
+      "reynolds": 430000,
+      "scenario": "realistic_model",
+      "ncrit": 5.0,
+      "sweep": "combined_direct",
+      "raw_polar": "analysis/aero/raw/clarky_re430000_realistic_model.polar",
+      "input": "analysis/aero/raw/clarky_re430000_realistic_model.in",
+      "log": "analysis/aero/raw/clarky_re430000_realistic_model.log",
+      "parsed_csv": "analysis/aero/parsed/clarky_re430000_realistic_model_combined.csv",
+      "metrics": {
+        "points": 95,
+        "missing_alpha_deg": [
+          1.5,
+          5.25
+        ],
+        "last_converged_alpha_deg": 18.0,
+        "warnings": [],
+        "clmax_2d_converged": 1.4364,
+        "clmax_alpha_deg": 14.25,
+        "clmax_is_lower_bound": false,
+        "cdmin": 0.00744,
+        "cdmin_alpha_deg": 1.0,
+        "best_ld": 87.28006456820016,
+        "best_ld_cl": 1.0814,
+        "best_ld_alpha_deg": 6.75,
+        "best_ld_cm": -0.0712,
+        "reliable_pre_peak_clmax": 1.4364,
+        "reliable_pre_peak_alpha_deg": 14.25,
+        "post_peak_points_excluded_from_stall": 15,
+        "combined_direct_points": 95,
+        "reverse_only_points": 2
+      },
+      "source_raw_polars": [
+        "analysis/aero/raw/clarky_re430000_realistic_model.polar",
+        "analysis/aero/raw/clarky_re430000_realistic_model_reverse.polar"
+      ],
+      "source_inputs": [
+        "analysis/aero/raw/clarky_re430000_realistic_model.in",
+        "analysis/aero/raw/clarky_re430000_realistic_model_reverse.in"
+      ],
+      "source_logs": [
+        "analysis/aero/raw/clarky_re430000_realistic_model.log",
+        "analysis/aero/raw/clarky_re430000_realistic_model_reverse.log"
+      ],
+      "forward_metrics": {
+        "points": 93,
+        "missing_alpha_deg": [
+          -4.75,
+          -3.75,
+          1.5,
+          5.25
+        ],
+        "last_converged_alpha_deg": 18.0,
+        "warnings": [
+          "4 requested alpha points absent; no values inferred"
+        ],
+        "clmax_2d_converged": 1.4364,
+        "clmax_alpha_deg": 14.25,
+        "clmax_is_lower_bound": false,
+        "cdmin": 0.00744,
+        "cdmin_alpha_deg": 1.0,
+        "best_ld": 87.28006456820016,
+        "best_ld_cl": 1.0814,
+        "best_ld_alpha_deg": 6.75,
+        "best_ld_cm": -0.0712,
+        "reliable_pre_peak_clmax": 1.4364,
+        "reliable_pre_peak_alpha_deg": 14.25,
+        "post_peak_points_excluded_from_stall": 15
+      }
+    },
+    {
+      "reynolds": 480000,
+      "scenario": "realistic_model",
+      "ncrit": 5.0,
+      "sweep": "combined_direct",
+      "raw_polar": "analysis/aero/raw/clarky_re480000_realistic_model.polar",
+      "input": "analysis/aero/raw/clarky_re480000_realistic_model.in",
+      "log": "analysis/aero/raw/clarky_re480000_realistic_model.log",
+      "parsed_csv": "analysis/aero/parsed/clarky_re480000_realistic_model_combined.csv",
+      "metrics": {
+        "points": 96,
+        "missing_alpha_deg": [
+          8.5
+        ],
+        "last_converged_alpha_deg": 18.0,
+        "warnings": [],
+        "clmax_2d_converged": 1.4529,
+        "clmax_alpha_deg": 14.25,
+        "clmax_is_lower_bound": false,
+        "cdmin": 0.00722,
+        "cdmin_alpha_deg": 1.0,
+        "best_ld": 90.03249390739236,
+        "best_ld_cl": 1.1083,
+        "best_ld_alpha_deg": 7.0,
+        "best_ld_cm": -0.0712,
+        "reliable_pre_peak_clmax": 1.4529,
+        "reliable_pre_peak_alpha_deg": 14.25,
+        "post_peak_points_excluded_from_stall": 15,
+        "combined_direct_points": 96,
+        "reverse_only_points": 0
+      },
+      "source_raw_polars": [
+        "analysis/aero/raw/clarky_re480000_realistic_model.polar",
+        "analysis/aero/raw/clarky_re480000_realistic_model_reverse.polar"
+      ],
+      "source_inputs": [
+        "analysis/aero/raw/clarky_re480000_realistic_model.in",
+        "analysis/aero/raw/clarky_re480000_realistic_model_reverse.in"
+      ],
+      "source_logs": [
+        "analysis/aero/raw/clarky_re480000_realistic_model.log",
+        "analysis/aero/raw/clarky_re480000_realistic_model_reverse.log"
+      ],
+      "forward_metrics": {
+        "points": 96,
+        "missing_alpha_deg": [
+          8.5
+        ],
+        "last_converged_alpha_deg": 18.0,
+        "warnings": [
+          "1 requested alpha points absent; no values inferred"
+        ],
+        "clmax_2d_converged": 1.4529,
+        "clmax_alpha_deg": 14.25,
+        "clmax_is_lower_bound": false,
+        "cdmin": 0.00722,
+        "cdmin_alpha_deg": 1.0,
+        "best_ld": 90.03249390739236,
+        "best_ld_cl": 1.1083,
+        "best_ld_alpha_deg": 7.0,
+        "best_ld_cm": -0.0712,
+        "reliable_pre_peak_clmax": 1.4529,
+        "reliable_pre_peak_alpha_deg": 14.25,
+        "post_peak_points_excluded_from_stall": 15
+      }
+    }
+  ],
+  "stall_solutions_1g": {
+    "clean": {
+      "2200_g": {
+        "speed_m_s": 9.17236328125,
+        "speed_km_h": 33.0205078125,
+        "clmax_wing_at_stall": 1.1630619078356512,
+        "alpha_deg": 12.0,
+        "stations_per_semispan": 40,
+        "area_weighting": "local chord \u00d7 equal dy",
+        "reynolds_root": 157017.11877489171,
+        "reynolds_tip": 125613.69501991336,
+        "curve": [
+          {
+            "alpha_deg": -1.0,
+            "cl": 0.11945428400779606,
+            "profile_cd_area_weighted": 0.017040128454423216
+          },
+          {
+            "alpha_deg": 4.0,
+            "cl": 0.582442678604034,
+            "profile_cd_area_weighted": 0.013259079387526605
+          },
+          {
+            "alpha_deg": 5.0,
+            "cl": 0.6597765695923975,
+            "profile_cd_area_weighted": 0.013340910706390874
+          },
+          {
+            "alpha_deg": 6.0,
+            "cl": 0.7366412620055214,
+            "profile_cd_area_weighted": 0.013508730568830554
+          },
+          {
+            "alpha_deg": 7.0,
+            "cl": 0.811584153110743,
+            "profile_cd_area_weighted": 0.013869343943859393
+          },
+          {
+            "alpha_deg": 8.0,
+            "cl": 0.8845792726582447,
+            "profile_cd_area_weighted": 0.01457988367293967
+          },
+          {
+            "alpha_deg": 9.0,
+            "cl": 0.9565436665342733,
+            "profile_cd_area_weighted": 0.015620393677302757
+          },
+          {
+            "alpha_deg": 10.0,
+            "cl": 1.0273635131418828,
+            "profile_cd_area_weighted": 0.016841256051242856
+          },
+          {
+            "alpha_deg": 11.0,
+            "cl": 1.0970799926555876,
+            "profile_cd_area_weighted": 0.018202318050008014
+          },
+          {
+            "alpha_deg": 12.0,
+            "cl": 1.1630619078356512,
+            "profile_cd_area_weighted": 0.019744617330894654
+          }
+        ]
+      },
+      "2400_g": {
+        "speed_m_s": 9.58154296875,
+        "speed_km_h": 34.4935546875,
+        "clmax_wing_at_stall": 1.1627356757007572,
+        "alpha_deg": 12.0,
+        "stations_per_semispan": 40,
+        "area_weighting": "local chord \u00d7 equal dy",
+        "reynolds_root": 164021.66205587971,
+        "reynolds_tip": 131217.32964470377,
+        "curve": [
+          {
+            "alpha_deg": -1.0,
+            "cl": 0.12557381267701984,
+            "profile_cd_area_weighted": 0.01648395567576961
+          },
+          {
+            "alpha_deg": 4.0,
+            "cl": 0.5838826434566406,
+            "profile_cd_area_weighted": 0.012825524650849001
+          },
+          {
+            "alpha_deg": 5.0,
+            "cl": 0.6608440791711232,
+            "profile_cd_area_weighted": 0.0129383103597902
+          },
+          {
+            "alpha_deg": 6.0,
+            "cl": 0.7372995077203275,
+            "profile_cd_area_weighted": 0.013140413575724881
+          },
+          {
+            "alpha_deg": 7.0,
+            "cl": 0.8119803174137981,
+            "profile_cd_area_weighted": 0.013528828234373867
+          },
+          {
+            "alpha_deg": 8.0,
+            "cl": 0.8845548219637906,
+            "profile_cd_area_weighted": 0.014262254755779512
+          },
+          {
+            "alpha_deg": 9.0,
+            "cl": 0.9562265679383208,
+            "profile_cd_area_weighted": 0.015311499704351982
+          },
+          {
+            "alpha_deg": 10.0,
+            "cl": 1.0270107728370883,
+            "profile_cd_area_weighted": 0.01652684381509742
+          },
+          {
+            "alpha_deg": 11.0,
+            "cl": 1.0967581961370387,
+            "profile_cd_area_weighted": 0.017880329645300095
+          },
+          {
+            "alpha_deg": 12.0,
+            "cl": 1.1627356757007572,
+            "profile_cd_area_weighted": 0.019399987803162745
+          }
+        ]
+      },
+      "2600_g": {
+        "speed_m_s": 9.97412109375,
+        "speed_km_h": 35.9068359375,
+        "clmax_wing_at_stall": 1.1624578413056605,
+        "alpha_deg": 12.0,
+        "stations_per_semispan": 40,
+        "area_weighting": "local chord \u00d7 equal dy",
+        "reynolds_root": 170742.0114567321,
+        "reynolds_tip": 136593.60916538571,
+        "curve": [
+          {
+            "alpha_deg": -1.0,
+            "cl": 0.1304919934227319,
+            "profile_cd_area_weighted": 0.01601284369513228
+          },
+          {
+            "alpha_deg": 5.0,
+            "cl": 0.6616906872292414,
+            "profile_cd_area_weighted": 0.012593205189949363
+          },
+          {
+            "alpha_deg": 6.0,
+            "cl": 0.7377972520559872,
+            "profile_cd_area_weighted": 0.01282184351154477
+          },
+          {
+            "alpha_deg": 7.0,
+            "cl": 0.8122640737103708,
+            "profile_cd_area_weighted": 0.013234136687889787
+          },
+          {
+            "alpha_deg": 8.0,
+            "cl": 0.8845288218262719,
+            "profile_cd_area_weighted": 0.013986128692839234
+          },
+          {
+            "alpha_deg": 9.0,
+            "cl": 0.9559297963474083,
+            "profile_cd_area_weighted": 0.015043055481275505
+          },
+          {
+            "alpha_deg": 10.0,
+            "cl": 1.0267019887037754,
+            "profile_cd_area_weighted": 0.016253198699663827
+          },
+          {
+            "alpha_deg": 11.0,
+            "cl": 1.0964782451684434,
+            "profile_cd_area_weighted": 0.01759875244819249
+          },
+          {
+            "alpha_deg": 12.0,
+            "cl": 1.1624578413056605,
+            "profile_cd_area_weighted": 0.019097056556458027
+          }
+        ]
+      },
+      "2800_g": {
+        "unsupported": true,
+        "reason": "Direct polar coverage has an internal pre-peak alpha gap; no interpolation was used to bridge it."
+      }
+    },
+    "nominal_realistic": {
+      "2200_g": {
+        "unsupported": true,
+        "reason": "Direct polar coverage has an internal pre-peak alpha gap; no interpolation was used to bridge it."
+      },
+      "2400_g": {
+        "unsupported": true,
+        "reason": "Direct polar coverage has an internal pre-peak alpha gap; no interpolation was used to bridge it."
+      },
+      "2600_g": {
+        "unsupported": true,
+        "reason": "Direct polar coverage has an internal pre-peak alpha gap; no interpolation was used to bridge it."
+      },
+      "2800_g": {
+        "unsupported": true,
+        "reason": "Direct polar coverage has an internal pre-peak alpha gap; no interpolation was used to bridge it."
+      }
+    },
+    "conservative_realistic": {
+      "2200_g": {
+        "unsupported": true,
+        "reason": "Direct polar coverage has an internal pre-peak alpha gap; no interpolation was used to bridge it."
+      },
+      "2400_g": {
+        "unsupported": true,
+        "reason": "Direct polar coverage has an internal pre-peak alpha gap; no interpolation was used to bridge it."
+      },
+      "2600_g": {
+        "unsupported": true,
+        "reason": "Direct polar coverage has an internal pre-peak alpha gap; no interpolation was used to bridge it."
+      },
+      "2800_g": {
+        "unsupported": true,
+        "reason": "Direct polar coverage has an internal pre-peak alpha gap; no interpolation was used to bridge it."
+      }
+    }
+  },
+  "engineering_ncrit5_estimates": {
+    "classification": "engineering sensitivity estimate; not direct XFOIL wing-solver output",
+    "raw_rule": "Ncrit factor = reliable pre-peak CLmax(Ncrit=5)/CLmax(Ncrit=9) at Re=200000",
+    "ncrit_factor": 0.9821697099892588,
+    "aspect_ratio": 7.1111111111111125,
+    "f_formula": "1/[1 + 6.3/(pi*e*AR)]",
+    "clean_solver_clmax": 1.1627356757007572,
+    "scenarios": {
+      "nominal": {
+        "oswald_e": 0.85,
+        "margin": 1.0,
+        "clmax_wing": 1.1261985324121986,
+        "vs_km_h": {
+          "2200_g": 33.555398710223706,
+          "2400_g": 35.04747091280753,
+          "2600_g": 36.47856428323486,
+          "2800_g": 37.855595186816245
+        }
+      },
+      "conservative": {
+        "oswald_e": 0.75,
+        "margin": 0.9,
+        "clmax_wing": 0.9809941886968294,
+        "vs_km_h": {
+          "2200_g": 35.953126659283754,
+          "2400_g": 37.55181607875855,
+          "2600_g": 39.085169374678664,
+          "2800_g": 40.56059712678954
+        }
+      }
+    }
+  },
+  "cruise_required_cl": [
+    {
+      "speed_km_h": 50,
+      "cl_required": 0.5533352228571428
+    },
+    {
+      "speed_km_h": 60,
+      "cl_required": 0.38426057142857134
+    },
+    {
+      "speed_km_h": 70,
+      "cl_required": 0.282313889212828
+    },
+    {
+      "speed_km_h": 80,
+      "cl_required": 0.2161465714285714
+    },
+    {
+      "speed_km_h": 90,
+      "cl_required": 0.17078247619047618
+    },
+    {
+      "speed_km_h": 100,
+      "cl_required": 0.1383338057142857
+    }
+  ],
+  "headwind_groundspeed_km_h": [
+    {
+      "airspeed_km_h": 60,
+      "headwind_m_s": 0,
+      "groundspeed_km_h": 60.0
+    },
+    {
+      "airspeed_km_h": 60,
+      "headwind_m_s": 5,
+      "groundspeed_km_h": 42.0
+    },
+    {
+      "airspeed_km_h": 60,
+      "headwind_m_s": 8,
+      "groundspeed_km_h": 31.2
+    },
+    {
+      "airspeed_km_h": 60,
+      "headwind_m_s": 10,
+      "groundspeed_km_h": 24.0
+    },
+    {
+      "airspeed_km_h": 60,
+      "headwind_m_s": 12,
+      "groundspeed_km_h": 16.799999999999997
+    },
+    {
+      "airspeed_km_h": 70,
+      "headwind_m_s": 0,
+      "groundspeed_km_h": 70.0
+    },
+    {
+      "airspeed_km_h": 70,
+      "headwind_m_s": 5,
+      "groundspeed_km_h": 52.0
+    },
+    {
+      "airspeed_km_h": 70,
+      "headwind_m_s": 8,
+      "groundspeed_km_h": 41.2
+    },
+    {
+      "airspeed_km_h": 70,
+      "headwind_m_s": 10,
+      "groundspeed_km_h": 34.0
+    },
+    {
+      "airspeed_km_h": 70,
+      "headwind_m_s": 12,
+      "groundspeed_km_h": 26.799999999999997
+    },
+    {
+      "airspeed_km_h": 80,
+      "headwind_m_s": 0,
+      "groundspeed_km_h": 80.0
+    },
+    {
+      "airspeed_km_h": 80,
+      "headwind_m_s": 5,
+      "groundspeed_km_h": 62.0
+    },
+    {
+      "airspeed_km_h": 80,
+      "headwind_m_s": 8,
+      "groundspeed_km_h": 51.2
+    },
+    {
+      "airspeed_km_h": 80,
+      "headwind_m_s": 10,
+      "groundspeed_km_h": 44.0
+    },
+    {
+      "airspeed_km_h": 80,
+      "headwind_m_s": 12,
+      "groundspeed_km_h": 36.8
+    },
+    {
+      "airspeed_km_h": 90,
+      "headwind_m_s": 0,
+      "groundspeed_km_h": 90.0
+    },
+    {
+      "airspeed_km_h": 90,
+      "headwind_m_s": 5,
+      "groundspeed_km_h": 72.0
+    },
+    {
+      "airspeed_km_h": 90,
+      "headwind_m_s": 8,
+      "groundspeed_km_h": 61.2
+    },
+    {
+      "airspeed_km_h": 90,
+      "headwind_m_s": 10,
+      "groundspeed_km_h": 54.0
+    },
+    {
+      "airspeed_km_h": 90,
+      "headwind_m_s": 12,
+      "groundspeed_km_h": 46.8
+    }
+  ],
+  "wing_method_limitations": "Self-consistent V/Re solution; 40 stations per semispan, chord-area weighting, finite-AR induced angle. Only each raw polar's reliable pre-peak branch is available to the solver; no flaperon credit or post-peak extrapolation."
+}

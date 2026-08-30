@@ -1,0 +1,15 @@
+scenario,ncrit,reynolds,points,clmax_2d_converged,clmax_alpha_deg,cdmin,best_ld,best_ld_cl,last_converged_alpha_deg,warnings
+clean,9.0,120000,96,1.3696,12.75,0.01491,58.16091954022988,1.0626,18.0,1 requested alpha points absent; no values inferred
+clean,9.0,150000,94,1.3807,12.75,0.01245,64.65529010238909,0.9472,18.0,3 requested alpha points absent; no values inferred
+clean,9.0,200000,96,1.3965,12.5,0.01016,73.14378554021121,0.9004,18.0,1 requested alpha points absent; no values inferred
+clean,9.0,214862,96,1.3993,12.5,0.00969,75.34763948497854,0.8778,18.0,1 requested alpha points absent; no values inferred
+clean,9.0,300000,96,1.4064,13.0,0.00808,84.8659384309831,0.8546,18.0,1 requested alpha points absent; no values inferred
+clean,9.0,430000,97,1.4211,13.5,0.0069,94.749430523918,0.8319,18.0,
+clean,9.0,480000,93,1.4288,13.0,0.00658,97.72946859903384,0.8092,18.0,4 requested alpha points absent; no values inferred
+realistic_model,5.0,120000,96,1.3514,13.25,0.01235,58.417874396135275,0.9674,18.0,
+realistic_model,5.0,150000,97,1.3674,12.75,0.01098,63.482920294708634,0.9478,18.0,
+realistic_model,5.0,200000,95,1.3716,12.25,0.00962,69.5895816890292,0.8817,18.0,
+realistic_model,5.0,214862,96,1.3719,12.0,0.00935,71.20258272800646,0.8822,18.0,
+realistic_model,5.0,300000,97,1.3958,13.5,0.00824,77.94159544159544,1.0943,18.0,
+realistic_model,5.0,430000,95,1.4364,14.25,0.00744,87.28006456820016,1.0814,18.0,
+realistic_model,5.0,480000,96,1.4529,14.25,0.00722,90.03249390739236,1.1083,18.0,

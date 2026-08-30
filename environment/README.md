@@ -13,3 +13,12 @@ CONDA_PKGS_DIRS="$PWD/.tools/conda/pkgs" \
 ```
 
 The convenience scripts select this prefix. No `conda init` is required.
+
+For the reproducible airfoil-analysis executable on Linux amd64, run:
+
+```bash
+bash ./tools/bootstrap-xfoil.sh
+```
+
+It downloads the pinned Debian XFOIL 6.99.dfsg+1-3 package, verifies its
+documented checksum, and extracts it only into ignored `.tools/apps/xfoil`.

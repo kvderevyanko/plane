@@ -24,6 +24,10 @@ __pycache__/
 !.env.example
 *.local
 *.log
+!analysis/
+!analysis/aero/
+!analysis/aero/raw/
+!analysis/aero/raw/*.log
 
 # Editor and operating-system files
 .DS_Store

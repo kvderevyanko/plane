@@ -1,0 +1,15 @@
+LOAD /home/kirill/codex/plane/analysis/aero/raw/clarky.xfoil.dat
+PANE
+OPER
+VISC 430000
+VPAR
+N 5
+
+ITER 200
+PACC
+clarky_re430000_realistic_model.polar
+
+ASEQ -6 18 0.25
+PACC
+
+QUIT
