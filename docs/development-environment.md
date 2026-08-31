@@ -7,7 +7,7 @@
 | CadQuery | 2.8.0 | `.tools/conda/lr1600-cad`; `./tools/cad-shell.sh` |
 | Python | 3.12 | project-local CadQuery environment |
 | NumPy, SciPy, Matplotlib, pandas, PyYAML, ezdxf, Shapely, svgwrite, pytest | conda-forge | specified in `environment/environment.yml` |
-| LightBurn | 1.7.08 | `.tools/apps/LightBurn-Linux64-v1.7.08.AppImage`; `./tools/lightburn.sh` |
+| LightBurn | local portable package | `.tools/LightBurn/LightBurn`; `./tools/lightburn.sh` |
 | LibreCAD | 2.2.1.5 | `.tools/apps/LibreCAD-v2.2.1.5-x86_64.AppImage`; `./tools/librecad.sh` |
 | FreeCAD | 1.1.3 target | official AppImage download attempted but rejected on SHA-256 mismatch; not installed |
 | XFOIL | 6.99.dfsg+1-3 (amd64) | `.tools/apps/xfoil/usr/bin/xfoil`; `bash ./tools/bootstrap-xfoil.sh` |
@@ -39,10 +39,6 @@ changes under `/usr`, `/opt`, home application folders, or desktop menus. In
 this environment AppImages require `--appimage-extract-and-run` because FUSE
 mounting is unavailable; project launchers handle it.
 
-LightBurn documents 1.7.08 as the final Linux line and supports Ubuntu 22.04.
-The project-local AppImage SHA-256 is
-`206a25a876439083df73831ff0822fb0af0c5f9cd481b1d6b2abf22ef324ab05`.
-
 ## Commands
 
 ```bash
@@ -59,8 +55,12 @@ tests.
 
 ## Known limits
 
-- No laser is attached on this machine; no machine profile or serial settings
-  were created.
+- The local machine reference is the ZBAITU M81-FF80-EAIR. Its LightBurn bed
+  is 940 × 620 mm; the mandatory 50 mm edge clearance leaves an 840 × 520 mm
+  safe nesting/cut envelope (X=50..890 mm, Y=50..570 mm) with a conventional
+  lower-left origin. See `docs/laser-workflow.md`.
+- Documenting the local machine does not imply a serial/controller connection:
+  no controller configuration or serial settings are managed by this repository.
 - Serial-group membership is intentionally unchanged; make it on the actual
   laser workstation and log out/in afterwards.
 - CQ-editor 0.7.0 and FreeCAD 1.1.3 are not installed: their large official
