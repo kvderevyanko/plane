@@ -38,4 +38,14 @@ developer_instructions = """
 8. Все детали должны иметь стабильные уникальные имена.
 9. Перед завершением запускай релевантные тесты.
 10. Не делай git commit/push без явного поручения.
+11. Для reference geometry сначала сверяйся с существующим parametric
+    generator/model, включая placement, sign convention, sweep/centering,
+    dihedral и axes. Не восстанавливай эти правила на глаз из отдельных YAML
+    чисел и не создавай второй источник геометрии.
+12. Для master-layout рисуй только подтверждённую reference geometry и явно
+    `known` point-mass markers. TBD components остаются в mass ledger и не
+    получают выдуманный объём, размер или положение.
+13. После build различай инженерные изменения артефактов от timestamp/GUID и
+    producer-metadata churn. Последний не stage/commit без отдельной причины;
+    проверяй, что содержательная геометрия по-прежнему проходит тесты.
 """
