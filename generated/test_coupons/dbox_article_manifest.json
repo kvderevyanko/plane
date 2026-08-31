@@ -1,0 +1,58 @@
+{
+  "warning": "TEST-ONLY / NOMINAL / NO KERF / NOT FLIGHT PART",
+  "article_kind": "actual root closed cell; measured GJ of the complete article, not effective material G",
+  "variant_annotations": {
+    "A": "foam-only control",
+    "B": "foam + light +/-45 glass candidate",
+    "C": "foam + +/-45 carbon candidate"
+  },
+  "geometry_from_typed_aircraft_loader": {
+    "root_chord_mm": 250.0,
+    "spar_x_mm": 75.0,
+    "upper_spar_z_mm": 22.670099999999998,
+    "lower_spar_z_mm": -6.576975,
+    "closure_height_mm": 29.247075,
+    "skin_developed_length_mm": 158.9149151961069,
+    "upper_skin_developed_length_mm": 81.09538311354238,
+    "lower_skin_developed_length_mm": 77.8195320825645
+  },
+  "span_mm": 300,
+  "rib_stations_mm": [
+    0,
+    100,
+    200,
+    300
+  ],
+  "flight_representative_constituents": {
+    "foam3_upper_skin": 1,
+    "foam3_lower_skin": 1,
+    "foam5_contour_ribs": 4,
+    "birch2_spar_closure": 1,
+    "reinforcement": "variant-specific",
+    "retained_adhesive_resin": "measured"
+  },
+  "test_fixture_only_constituents": {
+    "birch3_end_bulkheads_clamp_interfaces": 2,
+    "torque_arm_250mm": "shared removable fixture",
+    "guarded_torsion_fixture": "shared removable fixture"
+  },
+  "mass_recording": {
+    "required_fields_g": [
+      "foam_skin_before_g",
+      "foam_ribs_before_g",
+      "birch_closure_before_g",
+      "reinforcement_dry_g",
+      "retained_adhesive_resin_g",
+      "complete_article_mass_g",
+      "fixture_mass_g",
+      "flight_representative_mass_g"
+    ],
+    "definitions": {
+      "complete_article_mass_g": "weighed assembled test D-box, including any attached birch-3 end bulkheads/clamp interfaces but excluding separate torque arm/guard unless deliberately attached",
+      "fixture_mass_g": "mass of all test-fixture-only material included in complete_article_mass_g; record zero only if none is included",
+      "flight_representative_mass_g": "complete_article_mass_g - fixture_mass_g; this is the only complete-article mass eligible for wing scaling",
+      "external_fixture_mass_g": "optional record for removable torque arm/guard; never include in flight_representative_mass_g"
+    },
+    "scaling_basis": "Scale only flight_representative_mass_g for this exact root closed-cell geometry; never scale fixture-only mass into the wing budget."
+  }
+}

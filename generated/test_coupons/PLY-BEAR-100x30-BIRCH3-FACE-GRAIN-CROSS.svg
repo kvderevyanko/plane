@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="100.000mm" height="30.000mm" viewBox="0 0 100.000 30.000"><title>TEST-ONLY / NOMINAL / NO KERF / NOT FLIGHT PART</title><g fill="none" stroke="#000" stroke-width="0.1"><path d="M 0.000,30.000 L 100.000,30.000 L 100.000,0.000 L 0.000,0.000 Z"/><circle cx="25.000" cy="15.000" r="1.500"/><circle cx="50.000" cy="15.000" r="2.000"/><circle cx="75.000" cy="15.000" r="2.500"/></g></svg>

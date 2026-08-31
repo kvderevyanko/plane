@@ -13,6 +13,7 @@ sys.path.insert(0, str(ROOT))
 
 from cad.common.calibration_coupon import HEIGHT_MM, WIDTH_MM, generate
 from scripts.config import load_aircraft_config
+from scripts.generate_test_coupons import generate as generate_test_coupons
 from scripts.generate_previews import generate_previews
 from scripts.generate_wing import generate as generate_wing
 
@@ -60,6 +61,7 @@ def main() -> None:
     # Keep inspection drawings in sync with YAML before making their disposable
     # preview copies.  Neither output feeds a CAD generator.
     generate_wing(ROOT / "config" / "aircraft.yaml", ROOT / "generated")
+    generate_test_coupons(ROOT / "config" / "aircraft.yaml", ROOT / "generated" / "test_coupons")
     previews = generate_previews(ROOT / "generated", ROOT / "generated" / "previews")
     validate_coupon_dxf(paths["dxf"])
     validate_coupon_svg(paths["svg"])

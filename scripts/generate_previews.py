@@ -35,6 +35,12 @@ DETAIL_FILES = {
     "Root rib (SVG)": "rib_00_root.svg",
     "Tip rib (SVG)": "rib_08_tip.svg",
 }
+TEST_DETAIL_FILES = {
+    "Material & Structural Test Coupons — density template": "test_MAT-DENS-100.svg",
+    "Material & Structural Test Coupons — spar EI cradle": "test_SPAR-EI-CRADLE-14.svg",
+    "Material & Structural Test Coupons — D-box root rib": "test_DBOX-A-RIB-X000.svg",
+    "Material & Structural Test Coupons — guarded socket fixture": "test_SOCKET-GUARDED-FIXTURE.svg",
+}
 
 
 def _mesh_faces(model: cq.Workplane) -> list[list[tuple[float, float, float]]]:
@@ -71,11 +77,16 @@ def _write_index(destination: Path) -> Path:
         ("Calibration coupon — side", VIEW_FILES["side"]),
         *DETAIL_FILES.items(),
     ]
+    test_cards = list(TEST_DETAIL_FILES.items())
     items = "\n".join(
         f'    <figure><a href="{filename}"><img src="{filename}" alt="{title}"></a><figcaption>{title}</figcaption></figure>'
         for title, filename in cards
     )
     index = destination / "index.html"
+    test_items = "\n".join(
+        f'    <figure><a href="{filename}"><img src="{filename}" alt="{title}"></a><figcaption>{title}</figcaption></figure>'
+        for title, filename in test_cards
+    )
     index.write_text(
         """<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -84,7 +95,8 @@ def _write_index(destination: Path) -> Path:
 </head><body><main><h1>LR1600 generated CAD previews</h1><p>Disposable build artifacts for visual inspection only. Aircraft geometry and parameters remain defined by source files and <code>config/aircraft.yaml</code>.</p><section class="grid">
 """
         + items
-        + "\n</section></main></body></html>\n",
+        + "\n</section><h2>Material &amp; Structural Test Coupons</h2><p>TEST-ONLY, nominal, no-kerf geometry. These are not flight or production parts.</p><section class=\"grid\">\n"
+        + test_items + "\n</section></main></body></html>\n",
         encoding="utf-8",
     )
     return index
@@ -93,7 +105,7 @@ def _write_index(destination: Path) -> Path:
 def generate_previews(source: Path = DEFAULT_SOURCE, output: Path = DEFAULT_OUTPUT) -> dict[str, Path]:
     """Render coupon views and copy current 2-D inspection drawings to a gallery."""
     output.mkdir(parents=True, exist_ok=True)
-    for stale in [*VIEW_FILES.values(), *DETAIL_FILES.values(), "index.html"]:
+    for stale in [*VIEW_FILES.values(), *DETAIL_FILES.values(), *TEST_DETAIL_FILES.values(), "index.html"]:
         (output / stale).unlink(missing_ok=True)
 
     model = make_solid()
@@ -105,9 +117,15 @@ def generate_previews(source: Path = DEFAULT_SOURCE, output: Path = DEFAULT_OUTP
         if not origin.is_file():
             raise FileNotFoundError(f"Missing current generated drawing: {origin}")
         shutil.copyfile(origin, output / filename)
+    for preview_name in TEST_DETAIL_FILES.values():
+        origin = source / "test_coupons" / preview_name.removeprefix("test_")
+        if not origin.is_file():
+            raise FileNotFoundError(f"Missing current generated test drawing: {origin}")
+        shutil.copyfile(origin, output / preview_name)
     index = _write_index(output)
     paths = {name: output / filename for name, filename in VIEW_FILES.items()}
     paths.update({filename: output / filename for filename in DETAIL_FILES.values()})
+    paths.update({filename: output / filename for filename in TEST_DETAIL_FILES.values()})
     paths["index"] = index
     if not all(path.is_file() and path.stat().st_size > 0 for path in paths.values()):
         raise RuntimeError("Preview generation produced an empty artifact")

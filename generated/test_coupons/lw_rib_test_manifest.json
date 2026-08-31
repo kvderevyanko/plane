@@ -1,0 +1,18 @@
+{
+  "id": "LW-RIB-TEST-180x20",
+  "quantity": 3,
+  "geometry_mm": {
+    "length_mm": 180,
+    "height_mm": 20,
+    "thickness_mm": 2,
+    "end_tab_mm": 10
+  },
+  "recommended_start": {
+    "layer_height_mm": 0.2,
+    "line_width_mm": 0.45,
+    "walls": 3,
+    "infill": "10-15% gyroid at end-tab transitions only; otherwise no infill",
+    "orientation": "layers normal to the rib plane"
+  },
+  "status": "TEST CANDIDATE ONLY; filament temperature and flow are user inputs"
+}

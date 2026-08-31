@@ -30,6 +30,11 @@ __pycache__/
 !analysis/aero/raw/
 !analysis/aero/raw/*.log
 
+# User-entered physical-test observations and generated material reports
+analysis/materials/measurements.yaml
+analysis/materials/results/
+analysis/materials/photos/
+
 # Editor and operating-system files
 .DS_Store
 Thumbs.db

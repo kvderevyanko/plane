@@ -1,0 +1,36 @@
+schema: lr1600-material-measurements-v1
+metadata:
+  format_version: 1
+  data_variant: home-test-v1
+  operator: ""
+  scale_resolution_g: null
+  caliper_resolution_mm: null
+  ambient_temperature_c: null
+foam:
+  foam_3mm: {samples: [], indentation_tests: []}
+  foam_5mm: {samples: [], indentation_tests: []}
+plywood:
+  poplar_2mm: {samples: [], visual_observations: []}
+  birch_2mm: {samples: [], visual_observations: []}
+  birch_3mm: {samples: [], visual_observations: []}
+beam_tests: []
+bearing_tests: []
+carbon:
+  spar_14x12:
+    dimensional_stations: []
+    mass_specimen: null
+    bending_test: null
+joiner:
+  solid_rod: {diameter_measurements_mm: [], mass_specimen: null}
+  fit_pairs: []
+lwpla:
+  samples: []
+  bending_test: null
+  creep_tests: []
+# Each filled joint needs positive applied-load evidence.  For failure_mode:
+# no_failure -> maximum_applied_load_n; other modes -> first_slip_load_n and/or
+# failure_load_n.  mixed additionally requires mixed_failure_modes (>=2).
+adhesive_joints: []
+wing_bond_area_model: null
+dbox_tests: []
+socket_tests: []

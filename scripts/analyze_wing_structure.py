@@ -180,7 +180,17 @@ def render_plot(path: Path, x: list[float], series: dict[str, list[float]], ylab
     figure.tight_layout(); figure.savefig(path); plt.close(figure)
 
 
-def mass_budget(config: AircraftConfig, carbon_density: float) -> dict[str, Any]:
+def _measured_density(summary: dict[str, Any] | None, material: str) -> dict[str, Any] | None:
+    """Return >=3-sample density statistics; retain scatter rather than pointifying it."""
+    if not summary:
+        return None
+    result = summary.get("density_kg_m3", {}).get(material, {})
+    if result.get("state") == "DERIVED" and result.get("n", 0) >= 3 and all(isinstance(result.get(key), (int, float)) for key in ("mean", "min", "max", "stddev")):
+        return result
+    return None
+
+
+def mass_budget(config: AircraftConfig, carbon_density: float, measurements: dict[str, Any] | None = None, dbox_variant: str | None = None) -> dict[str, Any]:
     """Ranges retain unknown measured foam/printed densities as uncertainties."""
     panel = config.wing.panel_span_mm / 1000
     root_chord, tip_chord = config.wing.root_chord_mm / 1000, config.wing.tip_chord_mm / 1000
@@ -196,23 +206,70 @@ def mass_budget(config: AircraftConfig, carbon_density: float) -> dict[str, Any]
     dbox_birch_web_volume = 2 * panel * .025 * .002  # continuous spar closure, both panels
     birch_plates_volume = .000028       # root sockets and boom plates, both panels
     adhesive_mass = (35.0, 80.0)
-    def interval(volume: float, densities: tuple[float, float]) -> tuple[float, float]: return tuple(round(volume * density * 1000, 1) for density in densities)
+    used_measurements: dict[str, Any] = {}
+    def interval(volume: float, densities: tuple[float, float], material: str | None = None) -> tuple[float, float]:
+        measured = _measured_density(measurements, material) if material else None
+        if measured is not None:
+            used_measurements[material] = {"state": "MEASURED", "density_kg_m3": measured, "qualification": "n>=3; measured min/max retained as mass uncertainty"}
+            return (round(volume * measured["min"] * 1000, 1), round(volume * measured["max"] * 1000, 1))
+        return tuple(round(volume * density * 1000, 1) for density in densities)
+    carbon_mass_per_m = None
+    joiner_mass_per_m = None
+    if measurements:
+        raw = measurements.get("carbon_spar_14x12", {}).get("mass_per_m", {})
+        if raw.get("state") == "DERIVED" and isinstance(raw.get("value"), (int, float)):
+            carbon_mass_per_m = float(raw["value"])
+            used_measurements["carbon_spar_14x12_mass_per_m"] = {"state": "MEASURED", "g_per_m": carbon_mass_per_m}
+        raw_joiner = measurements.get("joiner", {}).get("solid_rod", {}).get("mass_per_m", {})
+        if raw_joiner.get("state") == "DERIVED" and isinstance(raw_joiner.get("value"), (int, float)):
+            joiner_mass_per_m = float(raw_joiner["value"])
+            used_measurements["joiner_solid_rod_mass_per_m"] = {"state": "MEASURED", "g_per_m": joiner_mass_per_m}
+        adhesive_projection = measurements.get("wing_adhesive_mass_projection", {})
+        if adhesive_projection.get("state") == "DERIVED" and isinstance(adhesive_projection.get("range_g"), list) and len(adhesive_projection["range_g"]) == 2:
+            adhesive_mass = tuple(float(value) for value in adhesive_projection["range_g"])
+            used_measurements["wing_adhesive_mass"] = {"state": "MEASURED", "range_g": adhesive_mass, "bond_area_source": adhesive_projection.get("bond_area_source")}
+    dbox_complete_mass: tuple[float, float] | None = None
+    if measurements and dbox_variant:
+        candidates = measurements.get("dbox", [])
+        if isinstance(candidates, list):
+            selected = next((item for item in candidates if item.get("variant") == dbox_variant), None)
+            if selected:
+                raw = selected.get("complete_article_mass_per_m", {})
+                if raw.get("state") == "DERIVED" and isinstance(raw.get("value"), (int, float)):
+                    # 1.6 m is both panels' D-box span. The root-chord article is
+                    # deliberately applied across the taper, a conservative and
+                    # explicitly auditable mass scaling.
+                    exact = round(float(raw["value"]) * (2 * panel), 1)
+                    dbox_complete_mass = (exact, exact)
+                    used_measurements["dbox_complete_article"] = {"state": "MEASURED", "variant": dbox_variant, "g_per_m": raw["value"], "scaling": "actual closed root article x full 1.6 m span; conservative"}
     full = {
-        "foam_3mm_skins_top_and_bottom": interval(4 * panel_area * .003, (30, 80)),
-        "foam_5mm_ordinary_ribs": interval(2 * foam_rib_volume, (30, 80)),
-        "poplar_2mm_secondary_hatch_formers": interval(poplar_structural_volume, (420, 500)),
-        "birch_2mm_root_boom_and_dbox_closure": interval(birch_rib_volume * 2 + birch_plates_volume + dbox_birch_web_volume, (600, 750)),
+        "foam_3mm_skins_top_and_bottom": interval(4 * panel_area * .003, (30, 80), "foam_3mm"),
+        "foam_5mm_ordinary_ribs": interval(2 * foam_rib_volume, (30, 80), "foam_5mm"),
+        "poplar_2mm_secondary_hatch_formers": interval(poplar_structural_volume, (420, 500), "poplar_2mm"),
+        "birch_2mm_root_boom_and_dbox_closure": interval(birch_rib_volume * 2 + birch_plates_volume + dbox_birch_web_volume, (600, 750), "birch_2mm"),
         "birch_3mm_local_only": (0.0, 18.0),
         "dbox_bias_laminate_and_resin": (35.0, 75.0),
-        "carbon_main_spars": (round(2 * tube["area_m2"] * panel * carbon_density * 1000, 1),) * 2,
-        "carbon_joiner_11_5mm_x_600mm": (round(joiner["area_m2"] * .600 * carbon_density * 1000, 1),) * 2,
+        "carbon_main_spars": ((round(2 * panel * carbon_mass_per_m, 1),) * 2 if carbon_mass_per_m is not None else (round(2 * tube["area_m2"] * panel * carbon_density * 1000, 1),) * 2),
+        "carbon_joiner_11_5mm_x_600mm": ((round(.600 * joiner_mass_per_m, 1),) * 2 if joiner_mass_per_m is not None else (round(joiner["area_m2"] * .600 * carbon_density * 1000, 1),) * 2),
         "lw_pla": (0.0, 0.0),
         "adhesive": adhesive_mass,
         "servo_mounts_wiring": (18.0, 38.0),
         "placeholder_servos_two": (40.0, 80.0),
     }
+    if dbox_complete_mass is not None:
+        # Replace, rather than double-count, baseline portions represented by the
+        # closed-cell article.  The 30%-chord allocation is intentionally simple
+        # and conservative until a tapered D-box area manifest exists.
+        full["foam_3mm_skins_outside_dbox"] = tuple(round(value * .70, 1) for value in full.pop("foam_3mm_skins_top_and_bottom"))
+        full["foam_5mm_ribs_outside_dbox"] = tuple(round(value * .70, 1) for value in full.pop("foam_5mm_ordinary_ribs"))
+        full["birch_2mm_root_boom_outside_dbox"] = interval(birch_rib_volume * 2 + birch_plates_volume, (600, 750), "birch_2mm")
+        full.pop("birch_2mm_root_boom_and_dbox_closure")
+        full["adhesive_outside_dbox"] = tuple(round(value * .70, 1) for value in full.pop("adhesive"))
+        full.pop("dbox_bias_laminate_and_resin")
+        full["dbox_complete_article_scaled"] = dbox_complete_mass
     low, high = (sum(value[0] for value in full.values()), sum(value[1] for value in full.values()))
-    return {"per_console_excluding_joiner_g": [round((low - full["carbon_joiner_11_5mm_x_600mm"][0]) / 2, 1), round((high - full["carbon_joiner_11_5mm_x_600mm"][1]) / 2, 1)], "joiner_g": list(full["carbon_joiner_11_5mm_x_600mm"]), "full_wing_assembly_g": [round(low, 1), round(high, 1)], "percent_target_mass": [round(low / config.aircraft.target_mass_g * 100, 1), round(high / config.aircraft.target_mass_g * 100, 1)], "items_g": full, "note": "Planning range: foam density and printed density must be physically measured; no material density is inferred from aircraft.yaml."}
+    glue_state = used_measurements.get("wing_adhesive_mass", {"state": "NOT_MEASURED", "reason": "No complete, reproducible bond-area model with three retained-mass coupons per family."})
+    return {"per_console_excluding_joiner_g": [round((low - full["carbon_joiner_11_5mm_x_600mm"][0]) / 2, 1), round((high - full["carbon_joiner_11_5mm_x_600mm"][1]) / 2, 1)], "joiner_g": list(full["carbon_joiner_11_5mm_x_600mm"]), "full_wing_assembly_g": [round(low, 1), round(high, 1)], "percent_target_mass": [round(low / config.aircraft.target_mass_g * 100, 1), round(high / config.aircraft.target_mass_g * 100, 1)], "items_g": full, "measured_inputs_used": used_measurements or {"state": "NOT_MEASURED"}, "adhesive_mass_projection": glue_state, "note": "Measured density, spar/joiner g/m, a closed D-box article and an explicit adhesive bond-area model replace only their own planning intervals. Strength allowables are never replaced by this path."}
 
 
 def proof_schedule(load: dict[str, list[float]], gravity_m_s2: float) -> list[dict[str, float]]:
@@ -227,7 +284,7 @@ def proof_schedule(load: dict[str, list[float]], gravity_m_s2: float) -> list[di
     return zones
 
 
-def analyze(config: AircraftConfig, *, aero_polar_path: Path = ROOT / "analysis" / "aero" / "parsed" / "clarky_re300000_realistic_model_combined.csv") -> dict[str, Any]:
+def analyze(config: AircraftConfig, *, aero_polar_path: Path = ROOT / "analysis" / "aero" / "parsed" / "clarky_re300000_realistic_model_combined.csv", measurements: dict[str, Any] | None = None, use_measured_stiffness: bool = False, dbox_variant: str | None = None) -> dict[str, Any]:
     panel_span = config.wing.panel_span_mm / 1000.0
     design_lift = config.aircraft.target_mass_kg * config.aircraft.gravity_m_s2 * config.aircraft.design_load_factor_g
     load = elliptic_load(panel_span, design_lift / 2.0)
@@ -242,6 +299,16 @@ def analyze(config: AircraftConfig, *, aero_polar_path: Path = ROOT / "analysis"
         deflection = cantilever_deflection(load["moment_nm"], dy, envelope.youngs_modulus_gpa * 1e9, spar["second_moment_m4"])
         deflections[envelope.name] = deflection
         envelopes.append({"name": envelope.name, "youngs_modulus_gpa": envelope.youngs_modulus_gpa, "root_bending_stress_mpa": stress_mpa, "root_shear_screening_mpa": shear_mpa, "tension_sf": envelope.tensile_strength_mpa / stress_mpa, "compression_sf": envelope.compressive_strength_mpa / stress_mpa, "shear_sf": envelope.shear_strength_mpa / shear_mpa, "tip_deflection_mm": deflection[-1] * 1000})
+    measured_stiffness: dict[str, Any] = {"state": "NOT_MEASURED"}
+    if measurements:
+        measured = measurements.get("carbon_spar_14x12", {}).get("bending", {})
+        if use_measured_stiffness and measured.get("state") == "DERIVED" and measured.get("valid_for_deflection_use") and isinstance(measured.get("EI_n_m2"), (int, float)):
+            measured_ei = float(measured["EI_n_m2"])
+            deflection = cantilever_deflection(load["moment_nm"], dy, 1.0, measured_ei)
+            deflections["measured_EI_opt_in"] = deflection
+            measured_stiffness = {"state": "MEASURED", "use": "deflection only", "EI_n_m2": measured_ei, "effective_E_gpa": measured.get("effective_E_gpa"), "tip_deflection_mm": deflection[-1] * 1000, "strength_allowables": "NOT_REPLACED"}
+        else:
+            measured_stiffness = {"state": "NOT_USED", "reason": "Pass --use-measured-stiffness only with a validated linear carbon bending result; strength envelopes remain unchanged."}
     joiner = solid_rod_properties(.0115)
     joiner_stress = root_moment / joiner["section_modulus_m3"] / 1e6
     contact_force = root_moment / .0115
@@ -266,16 +333,23 @@ def analyze(config: AircraftConfig, *, aero_polar_path: Path = ROOT / "analysis"
         alternatives.append({"name": name, "area_mm2": properties["area_m2"] * 1e6, "I_mm4": properties["second_moment_m4"] * 1e12, "Z_mm3": properties["section_modulus_m3"] * 1e9, "root_stress_nominal_mpa": root_moment / properties["section_modulus_m3"] / 1e6, "comment": comment})
     cm_abs = load_cruise_aero_cm(aero_polar_path)
     twist = {str(speed): {"foam_only_conservative_deg": math.degrees(aeroelastic_twist(config, speed, 8e6, cm_abs)), "reinforced_dbox_conservative_deg": math.degrees(aeroelastic_twist(config, speed, 100e6, cm_abs)), "reinforced_dbox_nominal_deg": math.degrees(aeroelastic_twist(config, speed, 250e6, cm_abs)), "reinforced_dbox_minimum_g300_deg": math.degrees(aeroelastic_twist(config, speed, 300e6, cm_abs))} for speed in (70, 90, 100, 120)}
+    measured_dbox: dict[str, Any] = {"state": "NOT_MEASURED"}
+    if measurements and dbox_variant and isinstance(measurements.get("dbox"), list):
+        dbox = next((item for item in measurements["dbox"] if item.get("variant") == dbox_variant), None)
+        if dbox and dbox.get("gate", {}).get("pass") is True:
+            measured_dbox = {"state": "MEASURED", "variant": dbox_variant, "actual_article_GJ_n_m2": dbox["actual_article_GJ_n_m2"], "gate_pass": True, "use": "root D-box torsion confirmation only; not converted to effective G or a spanwise aeroelastic model"}
+        elif dbox:
+            measured_dbox = {"state": "NOT_VALID", "variant": dbox_variant, "reason": "D-box result must pass both R² and actual GJ >=22.8 N m²."}
     return {
         "schema": SCHEMA,
         "calculation_status": "preliminary concept validation; not a production release",
         "configuration_from_typed_loader": {"path": str(DEFAULT_CONFIG_PATH.relative_to(ROOT)), "value": asdict(config)},
         "load_case": {"design_load_factor_g": config.aircraft.design_load_factor_g, "classification": "YAML does not define limit versus ultimate; treated here as the current design/limit case, not an ultimate rating.", "design_total_lift_n": design_lift, "per_panel_lift_n": design_lift / 2, "distribution": "elliptic, normalized separately on each semi-span", "sensitivity_cases": {"vertical_gust_screening": "1.25 x design lift sensitivity only; not a regulatory gust calculation", "vertical_gust_root_v_n": root_shear * 1.25, "vertical_gust_root_m_nm": root_moment * 1.25, "asymmetric_70_30_total_lift_split": "70/30 of total design lift: loaded/unloaded panel reactions, preserving total lift", "asymmetric_loaded_root_v_n": root_shear * 1.4, "asymmetric_loaded_root_m_nm": root_moment * 1.4, "asymmetric_unloaded_root_v_n": root_shear * .6, "asymmetric_unloaded_root_m_nm": root_moment * .6}},
-        "main_spar": {"dimensions_mm": [config.spar.outer_diameter_mm, config.spar.inner_diameter_mm], "area_mm2": spar["area_m2"] * 1e6, "second_moment_mm4": spar["second_moment_m4"] * 1e12, "section_modulus_mm3": spar["section_modulus_m3"] * 1e9, "root_bending_moment_nm": root_moment, "root_shear_n": root_shear, "material_envelopes": envelopes, "purchasing_requirements": "OD 14.00 ±0.10 mm; measured ID at least 11.85 mm after ovality check; E >=70 GPa, compressive allowable >=300 MPa, tensile >=350 MPa, shear allowable >=35 MPa; continuous predominantly 0-degree fibres (pultruded or documented wound laminate), straightness <=1 mm/800 mm. Supplier data plus coupon/proof test required."},
+        "main_spar": {"dimensions_mm": [config.spar.outer_diameter_mm, config.spar.inner_diameter_mm], "area_mm2": spar["area_m2"] * 1e6, "second_moment_mm4": spar["second_moment_m4"] * 1e12, "section_modulus_mm3": spar["section_modulus_m3"] * 1e9, "root_bending_moment_nm": root_moment, "root_shear_n": root_shear, "material_envelopes": envelopes, "measured_stiffness": measured_stiffness, "purchasing_requirements": "OD 14.00 ±0.10 mm; measured ID at least 11.85 mm after ovality check; E >=70 GPa, compressive allowable >=300 MPa, tensile >=350 MPa, shear allowable >=35 MPa; continuous predominantly 0-degree fibres (pultruded or documented wound laminate), straightness <=1 mm/800 mm. Supplier data plus coupon/proof test required."},
         "joiner": {"recommendation": "precision solid carbon rod, nominal 11.5 mm, total 600 mm, 275 mm insertion per console with 50 mm controlled centre/support zone; do not specify nominal 12 mm without measured fit.", "properties": {key: value * (1e6 if key == "area_m2" else 1e12 if key == "second_moment_m4" else 1e9) for key, value in joiner.items()}, "root_moment_nm": root_moment, "bending_stress_mpa": joiner_stress, "material_envelopes": joiner_envelopes, "contact_couple_force_n": contact_force, "socket_screening": {"model": "50-mm prepared contact at each moment-couple support; external hoop sleeve and two 2-mm birch plates are mandatory", "minimum_tube_wall_mm": minimum_tube_wall_m * 1000, "carbon_contact_bearing_mpa": bearing_stress, "carbon_hoop_splitting_mpa": hoop_screening, "birch_plate_bearing_mpa": birch_bearing, "birch_plate_net_tension_mpa_with_30mm_ligament": birch_net_tension, "bondline_shear_mpa_over_two_50x50mm_plates": bondline_shear, "provisional_allowables_mpa": {"carbon_radial_bearing": 15.0, "carbon_hoop_with_external_sleeve": 25.0, "birch_bearing": 15.0, "birch_net_tension": 20.0}, "screening_sf": {"carbon_radial_bearing": 15.0 / bearing_stress, "carbon_hoop_with_external_sleeve": 25.0 / hoop_screening, "birch_bearing": 15.0 / birch_bearing, "birch_net_tension": 20.0 / birch_net_tension}, "status": "Provisional assumed-allowable screen only: no final socket SF until representative tube/liner/birch/bond coupons and proof test pass."}, "fit_requirement": "Measure every tube ID, OD, wall and rod OD. Select rod actual OD 11.50--11.70 mm, tube minimum ID >=11.85 mm, tube maximum ID <=12.10 mm and tube minimum wall >=0.90 mm, giving 0.075--0.175 mm radial clearance. A loose, unmeasured slip fit is prohibited.", "load_path": "Use a 50-mm long prepared internal G10/CF wear liner at each contact plus a 50-mm external ±45-degree carbon hoop sleeve. Each support is backed by two 2-mm birch longitudinal plates with >=30-mm net ligament and >=50-mm bonded length. The joiner end at y=275 mm is bracketed by ribs at y=250 and 300 mm. Do not rely on foam or an unbonded tube wall alone."},
         "spar_alternatives": alternatives,
-        "dbox_twist_screening": {"cm_abs": cm_abs, "source": str(aero_polar_path.relative_to(ROOT)), "cruise_cl_bracket": [0.13, 0.30], "moment_model": "worst observed Re300k cruise |CM| plus 1-g elliptic lift transferred from c/4 to 30%-chord spar; magnitudes are summed conservatively", "root_gj_nm2_at_effective_g_250mpa": dbox_gj(config.wing.root_chord_mm / 1000, 250e6), "minimum_screening_requirement": "effective D-box G >= 300 MPa by coupon, equivalent root GJ >= 22.8 N m2; target tip twist <=2 deg at 100 km/h and <=3 deg at 120 km/h", "speed_cases_deg": twist, "conclusion": "Foam-only D-box is not acceptable as a validated torsion structure. Continuous closed LE-to-spar cell, 2-mm birch closure web and documented ±45-degree carbon/glass reinforcement are required; values remain coupon-dependent."},
-        "mass_budget": mass_budget(config, 1600),
+        "dbox_twist_screening": {"cm_abs": cm_abs, "source": str(aero_polar_path.relative_to(ROOT)), "cruise_cl_bracket": [0.13, 0.30], "moment_model": "worst observed Re300k cruise |CM| plus 1-g elliptic lift transferred from c/4 to 30%-chord spar; magnitudes are summed conservatively", "root_gj_nm2_at_effective_g_250mpa": dbox_gj(config.wing.root_chord_mm / 1000, 250e6), "minimum_screening_requirement": "effective D-box G >= 300 MPa by coupon, equivalent root GJ >= 22.8 N m2; target tip twist <=2 deg at 100 km/h and <=3 deg at 120 km/h", "measured_article_confirmation": measured_dbox, "speed_cases_deg": twist, "conclusion": "Foam-only D-box is not acceptable as a validated torsion structure. Continuous closed LE-to-spar cell, 2-mm birch closure web and documented ±45-degree carbon/glass reinforcement are required; values remain coupon-dependent."},
+        "mass_budget": mass_budget(config, 1600, measurements, dbox_variant),
         "proof_test": {"distribution": "five equal-span load zones; use a broad pad/spreader at each centre, not point contact on foam", "loads_per_console": proof_schedule(load, config.aircraft.gravity_m_s2), "steps_percent": [25, 50, 75, 100], "dwell_s": 60, "release_condition": "125% is prohibited pending explicit limit/ultimate classification and safety review."},
         "recommendation": {"main_spar": "Keep 14x12 only provisionally: it has conservative strength screening SF >2.2 in bending, but 4-g tip deflection is a design driver and must pass proof test. Caps+web is a later mass/stiffness option, not an automatic change.", "root_ribs_per_console": [{"station_mm": 0, "material": "birch 2 mm"}, {"station_mm": 50, "material": "birch 2 mm"}, {"station_mm": 250, "material": "birch 2 mm"}, {"station_mm": 300, "material": "birch 2 mm"}], "ordinary_ribs": "5-mm foam at 100-mm nominal pitch; birch 2-mm locally at servo/boom mounts, no LW-PLA primary path. LW-PLA is suitable for tip rib, alignment and servo geometry only after mass/creep coupon.", "root_structure": "Four 2-mm birch ribs plus paired 2-mm birch longitudinal shear plates/root socket doublers. Use 3-mm birch only for a small boom/fastener doubler if bearing/net-section coupon or bolt sizing requires it.", "boom_attachment": "Two or more birch-2 ribs straddling each final boom station; clamp load through birch plates into spar and D-box closure, with anti-rotation fore/aft spacing. Foam is shape-only. Birch 3-mm only as local bolted crushing plate.", "servo": "Add a rear spar/false spar across two foam bays; use poplar 2-mm hatch rails only as secondary formers, birch 2-mm at servo screw/load transfer, and LW-PLA only non-primary locating geometry."},
     }, {"load": load, "deflections": deflections, "spar": spar}
@@ -303,9 +377,20 @@ def main() -> None:
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG_PATH)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--aero-polar", type=Path, default=ROOT / "analysis" / "aero" / "parsed" / "clarky_re300000_realistic_model_combined.csv")
+    parser.add_argument("--materials-results", type=Path, help="Validated result JSON from analyze_material_measurements.py; optional.")
+    parser.add_argument("--materials-input", type=Path, help="Raw YAML paired with results; defaults to the provenance path and is revalidated.")
+    parser.add_argument("--use-measured-stiffness", action="store_true", help="Use a valid measured carbon EI for deflection only; never changes strength allowables.")
+    parser.add_argument("--dbox-variant", help="Explicit D-box test variant to use for conservative mass scaling; e.g. B or C.")
     args = parser.parse_args()
     config = load_aircraft_config(args.config)
-    result, working = analyze(config, aero_polar_path=args.aero_polar)
+    measurements = None
+    if args.materials_results:
+        try:
+            from analyze_material_measurements import load_measurement_summary
+        except ImportError:  # pragma: no cover
+            from scripts.analyze_material_measurements import load_measurement_summary
+        measurements = load_measurement_summary(args.materials_results, config_path=args.config, raw_input=args.materials_input)
+    result, working = analyze(config, aero_polar_path=args.aero_polar, measurements=measurements, use_measured_stiffness=args.use_measured_stiffness, dbox_variant=args.dbox_variant)
     result["calculation_provenance"] = {"config_path": str(args.config.resolve()), "aero_polar_path": str(args.aero_polar.resolve()), "output_path": str(args.output.resolve())}
     emit(result, working, args.output)
     print(f"Structural concept analysis written to {args.output}")
