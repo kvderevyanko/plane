@@ -179,6 +179,90 @@ class CGEnvelopeConfig:
 @dataclass(frozen=True)
 class CGConfig:
     initial_envelope: CGEnvelopeConfig
+    first_flight_recommendation: "FirstFlightCGConfig"
+
+
+@dataclass(frozen=True)
+class FirstFlightCGConfig:
+    """Preliminary marker, never a substitute for measured all-up CG."""
+
+    status: Literal["tbd", "preliminary_recommendation"]
+    x_mac_fraction: float | None
+    basis: str | None
+
+    @property
+    def is_defined(self) -> bool:
+        return self.status == "preliminary_recommendation"
+
+
+@dataclass(frozen=True)
+class HorizontalTailConfig:
+    span_mm: float
+    root_chord_mm: float
+    tip_chord_mm: float
+    elevator_chord_fraction: float
+
+    @property
+    def area_m2(self) -> float:
+        return self.span_mm * (self.root_chord_mm + self.tip_chord_mm) / 2_000_000.0
+
+
+@dataclass(frozen=True)
+class VerticalTailConfig:
+    fin_height_mm: float
+    root_chord_mm: float
+    tip_chord_mm: float
+    rudder_chord_fraction: float
+
+    @property
+    def area_each_m2(self) -> float:
+        return self.fin_height_mm * (self.root_chord_mm + self.tip_chord_mm) / 2_000_000.0
+
+    @property
+    def total_area_m2(self) -> float:
+        return 2.0 * self.area_each_m2
+
+
+@dataclass(frozen=True)
+class TailConfig:
+    status: Literal["tbd", "initial_design_assumption"]
+    tail_arm_mm: float | None
+    horizontal: HorizontalTailConfig | None
+    vertical: VerticalTailConfig | None
+    wing_aerodynamic_center_x_mm: float
+
+    @property
+    def is_defined(self) -> bool:
+        return self.status == "initial_design_assumption"
+
+    @property
+    def aerodynamic_center_x_mm(self) -> float | None:
+        """Derived from the typed wing AC plus the stored tail arm.
+
+        It is deliberately not a second YAML datum: a wing-source sensitivity
+        must move this reference automatically rather than invalidate config.
+        """
+        return None if self.tail_arm_mm is None else self.wing_aerodynamic_center_x_mm + self.tail_arm_mm
+
+
+@dataclass(frozen=True)
+class BoomSectionCandidateConfig:
+    status: Literal["tbd", "design_estimate"]
+    outer_diameter_mm: float | None
+    inner_diameter_mm: float | None
+
+
+@dataclass(frozen=True)
+class BoomsConfig:
+    status: Literal["tbd", "initial_design_assumption"]
+    lateral_offset_mm: float | None
+    axis_z_mm: float | None
+    tail_attachment_x_mm: float | None
+    section_candidate: BoomSectionCandidateConfig
+
+    @property
+    def is_defined(self) -> bool:
+        return self.status == "initial_design_assumption"
 
 
 @dataclass(frozen=True)
@@ -214,6 +298,8 @@ class AircraftConfig:
     aircraft: AircraftMassConfig
     layout: LayoutConfig
     cg: CGConfig
+    tail: TailConfig
+    booms: BoomsConfig
     mass_budget: MassBudgetConfig
 
 
@@ -226,7 +312,7 @@ def load_aircraft_config(path: Path = DEFAULT_CONFIG_PATH) -> AircraftConfig:
     except yaml.YAMLError as error:
         raise ConfigurationError(f"Invalid YAML in {path}: {error}") from error
 
-    top_level = {"project", "wing", "spar", "materials", "aircraft", "layout", "cg", "mass_budget"}
+    top_level = {"project", "wing", "spar", "materials", "aircraft", "layout", "cg", "tail", "booms", "mass_budget"}
     missing, unknown = top_level - set(document), set(document) - top_level
     if missing:
         raise ConfigurationError(f"Configuration is missing required sections: {sorted(missing)}")
@@ -314,7 +400,7 @@ def load_aircraft_config(path: Path = DEFAULT_CONFIG_PATH) -> AircraftConfig:
             raise ConfigurationError(f"layout.coordinate_system.{key} must be {expected!r}")
     layout_config = LayoutConfig(CoordinateSystemConfig(**coordinate_system))
 
-    cg = _section(document, "cg", {"initial_envelope"})
+    cg = _section(document, "cg", {"initial_envelope", "first_flight_recommendation"})
     envelope = _section(cg, "initial_envelope", {
         "status", "x_mac_fraction_min", "x_mac_fraction_max", "basis",
     })
@@ -333,7 +419,87 @@ def load_aircraft_config(path: Path = DEFAULT_CONFIG_PATH) -> AircraftConfig:
             raise ConfigurationError("defined cg.initial_envelope needs both fractions and a basis")
         if not 0.0 <= fraction_min < fraction_max <= 1.0:
             raise ConfigurationError("cg.initial_envelope fractions must satisfy 0 <= min < max <= 1")
-    cg_config = CGConfig(CGEnvelopeConfig(envelope["status"], fraction_min, fraction_max, basis))
+    first_flight = _section(cg, "first_flight_recommendation", {"status", "x_mac_fraction", "basis"})
+    if first_flight["status"] not in {"tbd", "preliminary_recommendation"}:
+        raise ConfigurationError("cg.first_flight_recommendation.status must be 'tbd' or 'preliminary_recommendation'")
+    first_flight_fraction = _nullable_number(first_flight["x_mac_fraction"], "cg.first_flight_recommendation.x_mac_fraction")
+    first_flight_basis = first_flight["basis"]
+    if first_flight_basis is not None:
+        first_flight_basis = _non_empty_string(first_flight_basis, "cg.first_flight_recommendation.basis")
+    if first_flight["status"] == "tbd":
+        if first_flight_fraction is not None or first_flight_basis is not None:
+            raise ConfigurationError("tbd cg.first_flight_recommendation must use null fraction and basis")
+    elif first_flight_fraction is None or first_flight_basis is None or not 0.0 <= first_flight_fraction <= 1.0:
+        raise ConfigurationError("defined cg.first_flight_recommendation needs a fraction in [0, 1] and a basis")
+    if envelope["status"] == "tbd" and first_flight["status"] != "tbd":
+        raise ConfigurationError("cg.first_flight_recommendation needs a defined initial_envelope")
+    if envelope["status"] != "tbd" and first_flight["status"] != "tbd" and not fraction_min <= first_flight_fraction <= fraction_max:
+        raise ConfigurationError("cg.first_flight_recommendation must lie inside cg.initial_envelope")
+    cg_config = CGConfig(
+        CGEnvelopeConfig(envelope["status"], fraction_min, fraction_max, basis),
+        FirstFlightCGConfig(first_flight["status"], first_flight_fraction, first_flight_basis),
+    )
+
+    tail = _section(document, "tail", {"status", "tail_arm_mm", "horizontal", "vertical"})
+    if tail["status"] not in {"tbd", "initial_design_assumption"}:
+        raise ConfigurationError("tail.status must be 'tbd' or 'initial_design_assumption'")
+    tail_arm = _nullable_number(tail["tail_arm_mm"], "tail.tail_arm_mm")
+    horizontal_raw, vertical_raw = tail["horizontal"], tail["vertical"]
+    if tail["status"] == "tbd":
+        if any(value is not None for value in (tail_arm, horizontal_raw, vertical_raw)):
+            raise ConfigurationError("tbd tail must use null geometry")
+        wing_ac_x = wing_config.mean_aerodynamic_chord_leading_edge_x_mm + .25 * wing_config.mean_aerodynamic_chord_mm
+        tail_config = TailConfig("tbd", None, None, None, wing_ac_x)
+    else:
+        if tail_arm is None:
+            raise ConfigurationError("defined tail needs tail_arm_mm")
+        horizontal = _mapping(horizontal_raw, "tail.horizontal")
+        horizontal_keys = {"span_mm", "root_chord_mm", "tip_chord_mm", "elevator_chord_fraction"}
+        if set(horizontal) != horizontal_keys:
+            raise ConfigurationError("tail.horizontal has missing or unknown keys")
+        vertical = _mapping(vertical_raw, "tail.vertical")
+        vertical_keys = {"fin_height_mm", "root_chord_mm", "tip_chord_mm", "rudder_chord_fraction"}
+        if set(vertical) != vertical_keys:
+            raise ConfigurationError("tail.vertical has missing or unknown keys")
+        horizontal_config = HorizontalTailConfig(
+            _positive(horizontal["span_mm"], "tail.horizontal.span_mm"), _positive(horizontal["root_chord_mm"], "tail.horizontal.root_chord_mm"),
+            _positive(horizontal["tip_chord_mm"], "tail.horizontal.tip_chord_mm"), _bounded(horizontal["elevator_chord_fraction"], "tail.horizontal.elevator_chord_fraction", .05, .80),
+        )
+        vertical_config = VerticalTailConfig(
+            _positive(vertical["fin_height_mm"], "tail.vertical.fin_height_mm"), _positive(vertical["root_chord_mm"], "tail.vertical.root_chord_mm"),
+            _positive(vertical["tip_chord_mm"], "tail.vertical.tip_chord_mm"), _bounded(vertical["rudder_chord_fraction"], "tail.vertical.rudder_chord_fraction", .05, .80),
+        )
+        wing_ac_x = wing_config.mean_aerodynamic_chord_leading_edge_x_mm + .25 * wing_config.mean_aerodynamic_chord_mm
+        if tail_arm <= 0:
+            raise ConfigurationError("defined tail must lie aft of the wing aerodynamic-center reference")
+        tail_config = TailConfig("initial_design_assumption", tail_arm, horizontal_config, vertical_config, wing_ac_x)
+
+    booms = _section(document, "booms", {"status", "lateral_offset_mm", "axis_z_mm", "section_candidate"})
+    if booms["status"] not in {"tbd", "initial_design_assumption"}:
+        raise ConfigurationError("booms.status must be 'tbd' or 'initial_design_assumption'")
+    boom_y = _nullable_number(booms["lateral_offset_mm"], "booms.lateral_offset_mm")
+    boom_z = _nullable_number(booms["axis_z_mm"], "booms.axis_z_mm")
+    section = _mapping(booms["section_candidate"], "booms.section_candidate")
+    if set(section) != {"status", "outer_diameter_mm", "inner_diameter_mm"}:
+        raise ConfigurationError("booms.section_candidate has missing or unknown keys")
+    if section["status"] not in {"tbd", "design_estimate"}:
+        raise ConfigurationError("booms.section_candidate.status must be 'tbd' or 'design_estimate'")
+    outer = _nullable_number(section["outer_diameter_mm"], "booms.section_candidate.outer_diameter_mm")
+    inner = _nullable_number(section["inner_diameter_mm"], "booms.section_candidate.inner_diameter_mm")
+    if section["status"] == "tbd":
+        if outer is not None or inner is not None:
+            raise ConfigurationError("tbd booms.section_candidate must use null dimensions")
+    elif outer is None or inner is None or outer <= inner or inner <= 0:
+        raise ConfigurationError("design_estimate booms.section_candidate needs positive OD > ID")
+    section_config = BoomSectionCandidateConfig(section["status"], outer, inner)
+    if booms["status"] == "tbd":
+        if any(value is not None for value in (boom_y, boom_z)):
+            raise ConfigurationError("tbd booms must use null reference axes")
+        booms_config = BoomsConfig("tbd", None, None, None, section_config)
+    else:
+        if boom_y is None or boom_z is None or boom_y <= 0:
+            raise ConfigurationError("defined booms need positive lateral offset and complete axes")
+        booms_config = BoomsConfig("initial_design_assumption", boom_y, boom_z, tail_config.aerodynamic_center_x_mm, section_config)
 
     mass_budget = _section(document, "mass_budget", {"components"})
     components_raw = mass_budget["components"]
@@ -386,5 +552,5 @@ def load_aircraft_config(path: Path = DEFAULT_CONFIG_PATH) -> AircraftConfig:
 
     return AircraftConfig(
         ProjectConfig(project["name"], project["units"]), wing_config, spar_config,
-        materials_config, aircraft_config, layout_config, cg_config, mass_budget_config,
+        materials_config, aircraft_config, layout_config, cg_config, tail_config, booms_config, mass_budget_config,
     )

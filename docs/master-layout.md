@@ -37,14 +37,11 @@ the typed `mean_aerodynamic_chord_leading_edge_x_mm` property to place the MAC
 in the shared root-LE datum; it derives from the canonical MAC property and
 the existing centered trapezoid reference.
 
-The current `cg.initial_envelope.status` is `tbd`. As documented in
-[the aerodynamic CG reference](cg-reference.md), a numerical initial/design
-range cannot be justified until tail geometry/effectiveness, longitudinal
-stability and trim criteria, and pusher thrust-line inputs are defined.
-`initial_design_assumption` is allowed only with min/max fractions of MAC and
-a recorded basis. It is not a first-flight release: a separate measured,
-conservative first-flight CG must be approved after the completed aircraft is
-weighed.
+The current `cg.initial_envelope.status` is `initial_design_assumption`, based
+on the preliminary tail-stability sensitivity study. It is a design band, not
+a measured aircraft CG. The distinct `first_flight_recommendation` marker is
+also preliminary and must be replaced by a weighed all-up aircraft CG before
+flight.
 
 ## Mass ledger and calculator
 
@@ -72,11 +69,21 @@ deliberate TBD placeholders, so it produces no numerical aircraft CG.
 
 ## Current master-layout output
 
-`cad/master_layout/model.py` builds a CadQuery reference model containing only
-the configured wing planform, datum/axes, MAC, explicitly known point-mass
-markers, and a CG band when it is justified in the typed config. It intentionally
-contains no guessed fuselage, battery, motor, ESC, boom, tail, or electronics
-volume. The preview workflow creates `master_layout_iso.png`,
+`cad/master_layout/model.py` builds a CadQuery reference model containing the
+configured wing planform, datum/axes, MAC, CG design band, preliminary
+first-flight marker, and explicitly known point-mass markers. When the typed
+`tail` and `booms` sections have `initial_design_assumption` status, it also
+shows the horizontal stabilizer/elevator, twin fins/rudders, and dashed boom
+reference axes. The tail is a preliminary aerodynamic layout, and the dashed
+axes run from the wing AC reference to the tail AC reference: they are neither
+boom tubes nor selected wing hardpoints. Horizontal-tail and fin leading edges
+are derived by aligning their quarter-chord reference with the typed tail AC.
+
+The propeller overlay is an explicitly non-aircraft radial-clearance inset for
+the 10/12/14/15-inch study disks. It plots typed boom axes in Y/Z only and
+states that no propeller X plane has been configured. It does not draw a motor,
+propeller installation, fuselage, battery, ESC, boom tube section, or
+electronics volume. The preview workflow creates `master_layout_iso.png`,
 `master_layout_top.png`, and `master_layout_side.png` in `generated/previews/`
 and lists them in its gallery.
 

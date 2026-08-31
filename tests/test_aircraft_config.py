@@ -57,9 +57,14 @@ def test_repository_aircraft_yaml_loads_and_has_expected_planform():
     assert config.layout.coordinate_system.x_positive == "aft"
     assert config.layout.coordinate_system.y_positive == "right"
     assert config.layout.coordinate_system.z_positive == "up"
-    assert config.cg.initial_envelope.status == "tbd"
-    assert config.cg.initial_envelope.x_mac_fraction_min is None
-    assert config.cg.initial_envelope.x_mac_fraction_max is None
+    assert config.cg.initial_envelope.status == "initial_design_assumption"
+    assert config.cg.initial_envelope.x_mac_fraction_min == pytest.approx(.24)
+    assert config.cg.initial_envelope.x_mac_fraction_max == pytest.approx(.28)
+    assert config.cg.first_flight_recommendation.status == "preliminary_recommendation"
+    assert config.cg.first_flight_recommendation.x_mac_fraction == pytest.approx(.25)
+    assert config.tail.horizontal.area_m2 == pytest.approx(.063)
+    assert config.tail.vertical.total_area_m2 == pytest.approx(.0531691)
+    assert config.booms.lateral_offset_mm == pytest.approx(230)
     assert config.wing.mean_aerodynamic_chord_leading_edge_x_mm == pytest.approx(12.037037)
     assert {component.id for component in config.mass_budget.components} >= {"wing_assembly", "tail_boom_left", "tail_boom_right"}
 

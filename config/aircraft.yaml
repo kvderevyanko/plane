@@ -51,10 +51,41 @@ layout:
 # listed in docs/cg-reference.md exist.
 cg:
   initial_envelope:
+    status: initial_design_assumption
+    x_mac_fraction_min: 0.24
+    x_mac_fraction_max: 0.28
+    basis: preliminary tail-stability-v1 sensitivity; not a measured aircraft CG or first-flight release
+  first_flight_recommendation:
+    status: preliminary_recommendation
+    x_mac_fraction: 0.25
+    basis: preliminary tail-stability-v1 conservative point inside the design envelope; requires measured all-up CG before flight
+
+# Preliminary stability integration only.  These values are intentionally
+# separated from the immutable wing definition and are not manufacturing data.
+tail:
+  status: initial_design_assumption
+  tail_arm_mm: 650.0
+  horizontal:
+    span_mm: 700.0
+    root_chord_mm: 90.0
+    tip_chord_mm: 90.0
+    elevator_chord_fraction: 0.40
+  vertical:
+    fin_height_mm: 230.0
+    root_chord_mm: 135.0
+    tip_chord_mm: 96.17
+    rudder_chord_fraction: 0.30
+
+# Twin-boom reference axes are selected for stability/clearance integration;
+# the actual tube section and mass remain design-estimate/TBD until sourced.
+booms:
+  status: initial_design_assumption
+  lateral_offset_mm: 230.0
+  axis_z_mm: 0.0
+  section_candidate:
     status: tbd
-    x_mac_fraction_min: null
-    x_mac_fraction_max: null
-    basis: null
+    outer_diameter_mm: null
+    inner_diameter_mm: null
 
 # Planned aircraft-level mass ledger.  `tbd` is deliberate: no unmeasured mass
 # or location may be invented merely to produce an apparent aircraft CG.

@@ -83,14 +83,26 @@ def _render_view(model: cq.Workplane, destination: Path, *, elevation: float, az
 
 def _render_master_layout_view(layout: MasterLayout, destination: Path, *, elevation: float, azimuth: float) -> None:
     """Render reference geometry plus coordinate/MAC/optional-CG annotations."""
-    faces = _mesh_faces(layout.wing)
     figure = plt.figure(figsize=(9, 5.5), dpi=150)
     axis = figure.add_subplot(111, projection="3d")
-    axis.add_collection3d(Poly3DCollection(faces, facecolor="#b9d8ee", edgecolor="#1e4d70", linewidth=0.25))
+    models = (
+        (layout.wing, "#b9d8ee", "#1e4d70"),
+        (layout.horizontal_tail, "#e5c07b", "#7b5e00"),
+        (layout.elevator, "#e07a16", "#8b3b00"),
+        (layout.vertical_fins, "#e5c07b", "#7b5e00"),
+        (layout.rudders, "#e07a16", "#8b3b00"),
+    )
+    faces_by_model = []
+    for model, fill, edge in models:
+        if model is None:
+            continue
+        model_faces = _mesh_faces(model)
+        faces_by_model.extend(model_faces)
+        axis.add_collection3d(Poly3DCollection(model_faces, facecolor=fill, edgecolor=edge, linewidth=0.25))
 
-    xs = [point[0] for face in faces for point in face]
-    ys = [point[1] for face in faces for point in face]
-    zs = [point[2] for face in faces for point in face]
+    xs = [point[0] for face in faces_by_model for point in face]
+    ys = [point[1] for face in faces_by_model for point in face]
+    zs = [point[2] for face in faces_by_model for point in face]
     axis.plot([0, 180], [0, 0], [0, 0], color="#d22", linewidth=2)
     axis.plot([0, 0], [0, 180], [0, 0], color="#287b2d", linewidth=2)
     axis.plot([0, 0], [0, 0], [0, 100], color="#2456b5", linewidth=2)
@@ -101,6 +113,10 @@ def _render_master_layout_view(layout: MasterLayout, destination: Path, *, eleva
     if layout.cg_x_range_mm is not None:
         low, high = layout.cg_x_range_mm
         axis.plot([low, high], [0, 0], [8, 8], color="#e07a16", linewidth=6, alpha=0.75)
+    if layout.first_flight_cg_x_mm is not None:
+        axis.scatter([layout.first_flight_cg_x_mm], [0], [12], color="#5b2c83", marker="D", s=32, depthshade=False)
+    for start, end in layout.boom_axis_segments:
+        axis.plot([start[0], end[0]], [start[1], end[1]], [start[2], end[2]], color="#536878", linestyle="--", linewidth=1.5)
     for component_id, x_mm, y_mm, z_mm in layout.known_mass_items:
         axis.scatter([x_mm], [y_mm], [z_mm], color="#b3261e", s=28, depthshade=False)
         axis.text(x_mm, y_mm, z_mm + 8, component_id, color="#7f1712", fontsize=7)
@@ -116,10 +132,32 @@ def _render_master_layout_view(layout: MasterLayout, destination: Path, *, eleva
     axis.view_init(elev=elevation, azim=azimuth)
     axis.set_axis_off()
     cg_note = "CG band: not defined (TBD)" if layout.cg_x_range_mm is None else "CG band: initial design assumption"
-    figure.text(0.02, 0.02, f"Datum: root leading edge | +X aft (red), +Y right (green), +Z up (blue)\nMAC: {layout.mac_mm:.3f} mm | {cg_note}", fontsize=8)
+    tail_note = "Tail/boom axes: preliminary design assumption" if layout.horizontal_tail is not None else "Tail/boom axes: TBD"
+    first_flight_note = "First-flight marker: preliminary only" if layout.first_flight_cg_x_mm is not None else "First-flight marker: TBD"
+    figure.text(0.02, 0.02, f"Datum: root leading edge | +X aft (red), +Y right (green), +Z up (blue)\nMAC: {layout.mac_mm:.3f} mm | {cg_note}\n{tail_note} | {first_flight_note}", fontsize=8)
+    _render_propeller_clearance_inset(figure, layout)
     figure.tight_layout(pad=0)
     figure.savefig(destination, transparent=False, bbox_inches="tight", pad_inches=0.02)
     plt.close(figure)
+
+
+def _render_propeller_clearance_inset(figure: plt.Figure, layout: MasterLayout) -> None:
+    """Add a non-aircraft radial-clearance study; no propeller X plane is implied."""
+    inset = figure.add_axes((0.78, 0.65, 0.18, 0.26))
+    inset.set_aspect("equal")
+    for diameter_mm, color in ((254, "#4c78a8"), (305, "#59a14f"), (356, "#f28e2b"), (381, "#e15759")):
+        inset.add_patch(plt.Circle((0, 0), diameter_mm / 2.0, fill=False, color=color, linewidth=1.0))
+        inset.text(0, diameter_mm / 2.0 + 8, f"{diameter_mm / 25.4:.0f} in", color=color, ha="center", va="bottom", fontsize=5)
+    # ±Y axes derive from typed boom placement.  The inset is deliberately a
+    # cross-section, because the pusher propeller X remains TBD with
+    # fuselage/motor integration.
+    if layout.boom_axis_segments:
+        for start, _ in layout.boom_axis_segments:
+            inset.scatter([start[1]], [start[2]], color="#536878", marker="x", s=16, zorder=3)
+    inset.axhline(0, color="#536878", linewidth=.6)
+    inset.axvline(0, color="#536878", linewidth=.6)
+    inset.set(xlim=(-270, 270), ylim=(-270, 270), xticks=[], yticks=[], title="10–15 in disk studies\n(no prop X configured)")
+    inset.title.set_fontsize(5)
 
 
 def generate_master_layout_previews(config: "AircraftConfig", output: Path) -> dict[str, Path]:

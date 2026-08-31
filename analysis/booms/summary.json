@@ -1,0 +1,271 @@
+{
+  "candidate_requirement_envelope": {
+    "expected_primary_failure_mode": "wing hardpoint/bond or local tube crushing/splitting before global tube bending; prove load transfer with representative mounted article",
+    "minimum_screened_section": "20 x 18 mm circular carbon tube (1 mm nominal wall), conditional on measured/datasheet EI and GJ",
+    "preferred_stiffness_margin_section": "larger or torsionally stiffer section if measured GJ/mount compliance is below the stated screen",
+    "required_each_boom": {
+      "common_pitch_limit_deg": 2.0,
+      "common_pitch_normal_1g_deg": 0.5,
+      "differential_pitch_limit_deg": 0.25,
+      "measured_EI_Nm2_min": 125.0,
+      "measured_GJ_Nm2_min": 105.0,
+      "straightness_requirement": "TBD by alignment fixture; measure over the typed unsupported length",
+      "torsional_twist_limit_deg": 0.5
+    }
+  },
+  "candidate_sections": {
+    "16 x 14 mm": {
+      "assessment": {
+        "meets_common_pitch_limit_2deg": false,
+        "meets_common_pitch_normal_0_5deg": false,
+        "meets_differential_pitch_0_25deg": false,
+        "meets_minimum_EI_125_Nm2": false,
+        "meets_minimum_GJ_105_Nm2": false,
+        "meets_torsional_twist_0_5deg": false
+      },
+      "geometry": {
+        "inner_diameter_mm": 14.0,
+        "outer_diameter_mm": 16.0,
+        "wall_mm": 1.0
+      },
+      "loads": {
+        "bending_stress_mpa_at_assumed_E": 78.1220723613315,
+        "common_tail_pitch_deg_limit_screen": 2.261611762738528,
+        "common_tail_pitch_deg_normal_1g_proxy": 0.565402940684632,
+        "differential_tail_pitch_deg_for_10pct_EI_mismatch": 0.2512901958598365,
+        "euler_buckling_n_fixed_free": 544.2151964670967,
+        "governing_root_bending_moment_nm": 13.0,
+        "handling_tip_deflection_mm": 19.646771174203906,
+        "screening_compression_sf_vs_assumed_300MPa": 3.8401439046884858,
+        "tail_roll_from_translation_deg_for_10pct_EI_mismatch": 0.23672264827375908,
+        "torsion_twist_deg": 0.7686977201984845,
+        "vertical_tip_deflection_mm": 17.104781053368722
+      },
+      "mass_estimate": {
+        "density_assumption_kg_m3": [
+          1450.0,
+          1650.0
+        ],
+        "mass_per_m_g": [
+          68.32964021557797,
+          77.75441817634734
+        ],
+        "status": "design_estimate, not ledger known mass",
+        "two_booms_at_selected_arm_g": [
+          88.82853228025137,
+          101.08074362925154
+        ]
+      },
+      "section": {
+        "I_mm4": 1331.249886958675,
+        "J_mm4": 2662.49977391735,
+        "Z_mm3": 166.40623586983438,
+        "area_mm2": 47.12388980384687
+      },
+      "stiffness": {
+        "EI_nm2_at_E70GPa": 93.18749208710726,
+        "GJ_nm2_at_G25GPa": 66.56249434793375
+      }
+    },
+    "18 x 16 mm": {
+      "assessment": {
+        "meets_common_pitch_limit_2deg": true,
+        "meets_common_pitch_normal_0_5deg": true,
+        "meets_differential_pitch_0_25deg": true,
+        "meets_minimum_EI_125_Nm2": true,
+        "meets_minimum_GJ_105_Nm2": false,
+        "meets_torsional_twist_0_5deg": false
+      },
+      "geometry": {
+        "inner_diameter_mm": 16.0,
+        "outer_diameter_mm": 18.0,
+        "wall_mm": 1.0
+      },
+      "loads": {
+        "bending_stress_mpa_at_assumed_E": 60.43368224503617,
+        "common_tail_pitch_deg_limit_screen": 1.5551448023699024,
+        "common_tail_pitch_deg_normal_1g_proxy": 0.3887862005924756,
+        "differential_tail_pitch_deg_for_10pct_EI_mismatch": 0.17279386692998916,
+        "euler_buckling_n_fixed_free": 791.4397989919715,
+        "governing_root_bending_moment_nm": 13.0,
+        "handling_tip_deflection_mm": 13.50964589869195,
+        "screening_compression_sf_vs_assumed_300MPa": 4.964119160960791,
+        "tail_roll_from_translation_deg_for_10pct_EI_mismatch": 0.1627768311659317,
+        "torsion_twist_deg": 0.5285771341729948,
+        "vertical_tip_deflection_mm": 11.761705430206902
+      },
+      "mass_estimate": {
+        "density_assumption_kg_m3": [
+          1450.0,
+          1650.0
+        ],
+        "mass_per_m_g": [
+          77.44025891098836,
+          88.12167393319366
+        ],
+        "status": "design_estimate, not ledger known mass",
+        "two_booms_at_selected_arm_g": [
+          100.67233658428488,
+          114.55817611315176
+        ]
+      },
+      "section": {
+        "I_mm4": 1936.0064727747083,
+        "J_mm4": 3872.0129455494166,
+        "Z_mm3": 215.11183030830094,
+        "area_mm2": 53.40707511102646
+      },
+      "stiffness": {
+        "EI_nm2_at_E70GPa": 135.5204530942296,
+        "GJ_nm2_at_G25GPa": 96.80032363873542
+      }
+    },
+    "20 x 18 mm": {
+      "assessment": {
+        "meets_common_pitch_limit_2deg": true,
+        "meets_common_pitch_normal_0_5deg": true,
+        "meets_differential_pitch_0_25deg": true,
+        "meets_minimum_EI_125_Nm2": true,
+        "meets_minimum_GJ_105_Nm2": true,
+        "meets_torsional_twist_0_5deg": true
+      },
+      "geometry": {
+        "inner_diameter_mm": 18.0,
+        "outer_diameter_mm": 20.0,
+        "wall_mm": 1.0
+      },
+      "loads": {
+        "bending_stress_mpa_at_assumed_E": 48.1306021563161,
+        "common_tail_pitch_deg_limit_screen": 1.114693788264555,
+        "common_tail_pitch_deg_normal_1g_proxy": 0.2786734470661387,
+        "differential_tail_pitch_deg_for_10pct_EI_mismatch": 0.12385486536272833,
+        "euler_buckling_n_fixed_free": 1104.162867640322,
+        "governing_root_bending_moment_nm": 13.0,
+        "handling_tip_deflection_mm": 9.683418767163596,
+        "screening_compression_sf_vs_assumed_300MPa": 6.233040655208829,
+        "tail_roll_from_translation_deg_for_10pct_EI_mismatch": 0.11667487316778756,
+        "torsion_twist_deg": 0.37887253147322786,
+        "vertical_tip_deflection_mm": 8.43053326125617
+      },
+      "mass_estimate": {
+        "density_assumption_kg_m3": [
+          1450.0,
+          1650.0
+        ],
+        "mass_per_m_g": [
+          86.55087760639887,
+          98.4889296900401
+        ],
+        "status": "design_estimate, not ledger known mass",
+        "two_booms_at_selected_arm_g": [
+          112.51614088831853,
+          128.03560859705212
+        ]
+      },
+      "section": {
+        "I_mm4": 2700.984283923826,
+        "J_mm4": 5401.968567847652,
+        "Z_mm3": 270.0984283923826,
+        "area_mm2": 59.690260418206115
+      },
+      "stiffness": {
+        "EI_nm2_at_E70GPa": 189.0688998746678,
+        "GJ_nm2_at_G25GPa": 135.0492141961913
+      }
+    }
+  },
+  "design_assumptions": {
+    "alignment_model": "10% EI mismatch, individual fixed-free cantilevers and no shared-stabilizer/mount-compliance credit; common pitch, differential pitch, tail roll and torsion are reported separately",
+    "carbon_property_envelope": {
+      "E_assumed_GPa": 70.0,
+      "G_assumed_GPa": 25.0,
+      "compression_allowable_screen_MPa": 300.0,
+      "qualification": "conditional analysis values, not conservative generic tube properties; candidate needs measured/datasheet EI, GJ and coupon/proof evidence"
+    },
+    "tail_load_cases": {
+      "asymmetric_yaw_factor": 1.5,
+      "empennage_mass_design_estimate_kg": 0.15,
+      "fin_load_eccentricity_mm": 90.0,
+      "handling_load_N_per_boom": 20.0,
+      "horizontal_tail_CL_screen": 1.2,
+      "max_speed_km_h": 90.0,
+      "vertical_fin_force_coefficient_screen": 1.0
+    }
+  },
+  "known_from_config": {
+    "design_load_factor_g": 4.0,
+    "gravity_m_s2": 9.80665,
+    "target_mass_g": 2400.0
+  },
+  "load_results": {
+    "asymmetric_fin_side_load_n_per_boom": 15.265347070312501,
+    "combined_vertical_load_n_per_boom": 17.412307499999997,
+    "dynamic_pressure_pa": 382.8125,
+    "empennage_4g_inertial_load_n_total": 5.88399,
+    "fin_eccentricity_torsion_nm_per_boom": 1.373881236328125,
+    "handling_or_landing_point_load_n_per_boom": 20.0,
+    "horizontal_tail_aerodynamic_load_n_total": 28.940624999999997,
+    "horizontal_tail_aerodynamic_load_study_n_total_at_CL0_8": 19.293750000000003,
+    "horizontal_tail_planform_scaled_4g_study_n_total": 16.475172
+  },
+  "propeller_radial_clearance_screen": {
+    "boom_OD_mm_for_screen": 20.0,
+    "cases": [
+      {
+        "clears_selected_spacing_at_z0": true,
+        "diameter_in": 10.0,
+        "diameter_mm": 254.0,
+        "required_boom_center_spacing_mm_at_z0": 334.0
+      },
+      {
+        "clears_selected_spacing_at_z0": true,
+        "diameter_in": 12.0,
+        "diameter_mm": 304.79999999999995,
+        "required_boom_center_spacing_mm_at_z0": 384.79999999999995
+      },
+      {
+        "clears_selected_spacing_at_z0": true,
+        "diameter_in": 14.0,
+        "diameter_mm": 355.59999999999997,
+        "required_boom_center_spacing_mm_at_z0": 435.59999999999997
+      },
+      {
+        "clears_selected_spacing_at_z0": false,
+        "diameter_in": 15.0,
+        "diameter_mm": 381.0,
+        "required_boom_center_spacing_mm_at_z0": 461.0
+      }
+    ],
+    "clearance_mm": 30.0,
+    "conclusion": "460.0 mm center spacing clears 10\u201314 inch study disks at z=0 with the 20 mm OD / 30 mm clearance screen. 15 inch requires >461 mm at z=0, so it is not a no-penalty fit; actual boom Z, local prop plane and dynamic deflection must be integrated before selection.",
+    "formula": "sqrt((spacing/2)^2 + z_offset^2) > prop_radius + boom_radius + manufacturing/deflection clearance",
+    "selected_spacing_mm": 460.0
+  },
+  "selected_integration_geometry": {
+    "boom_center_spacing_mm": 460.0,
+    "boom_lateral_position_mm": [
+      -230.0,
+      230.0
+    ],
+    "boom_z_mm": 0.0,
+    "horizontal_tail_area_m2": 0.063,
+    "tail_arm_mm": 650.0,
+    "vertical_tail_total_area_m2": 0.053169100000000004
+  },
+  "source_of_truth": "config/aircraft.yaml, loaded through scripts.config; it supplies target mass, 4g context and selected preliminary tail/boom geometry",
+  "status": "preliminary_design_assumption; not release-to-manufacture and not a tube selection",
+  "tbd": [
+    "manufacturer datasheet, fibre architecture, actual E/G/strength, ovality and mass per metre of any carbon tube",
+    "complete fuselage/motor/propeller plane and actual boom Z offset, clearance and dynamic deflection",
+    "validated tail aerodynamic/control loads, gust/yaw/landing spectrum and empirical empennage mass",
+    "wing hardpoint X coordinate, fastener/clamp geometry, bond area, local bearing/net-section coupons and proof fixture",
+    "complete aircraft mass ledger and measured final CG"
+  ],
+  "wing_attachment_interface_requirements": {
+    "alignment": "fixture both boom axes and horizontal-tail incidence within +/-0.15 deg during bond; verify proof-load common pitch <=2 deg, normal 1g pitch <=0.5 deg, differential pitch <=0.25 deg and torsional twist <=0.5 deg. Mount compliance is uncredited in this screen.",
+    "attachment_length_and_rotation": "use two separated longitudinal load stations (target >=60 mm fore/aft separation) or an equivalently substantiated clamp/sleeve; provide positive anti-rotation and a replaceable boom-to-hardpoint interface. Do not use a single foam-supported bolt.",
+    "load_transfer": "each boom mount must transfer the published vertical, lateral and torsional loads through paired birch-2 ribs straddling the mount, birch-2 longitudinal plates, main spar and closed D-box; 3-mm birch only as a local bearing/crushing doubler after fastener calculation/coupon.",
+    "preliminary_locations": "one hardpoint on each wing panel near y = +/-230 mm; coordinate X must be tied to the local main spar/D-box load path, not foam or skin alone. Exact x and fastener pattern remain TBD with the pusher/fuselage integration.",
+    "production_status": "no production DXF, bolt size or adhesive allowable is released by this study"
+  }
+}
