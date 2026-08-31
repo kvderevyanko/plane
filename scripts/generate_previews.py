@@ -1,0 +1,119 @@
+#!/usr/bin/env python3
+"""Generate disposable visual previews of the current CAD build artifacts.
+
+This module is deliberately downstream-only: it reads CadQuery source geometry
+and already-generated 2-D drawings, then writes files below ``generated/``.
+It never reads a preview as an input and it never supplies aircraft parameters
+to a generator.
+"""
+
+from __future__ import annotations
+
+import shutil
+from pathlib import Path
+
+import cadquery as cq
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+
+from cad.common.calibration_coupon import make_solid
+
+
+ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_SOURCE = ROOT / "generated"
+DEFAULT_OUTPUT = DEFAULT_SOURCE / "previews"
+VIEW_FILES = {
+    "iso": "calibration_coupon_iso.png",
+    "top": "calibration_coupon_top.png",
+    "side": "calibration_coupon_side.png",
+}
+DETAIL_FILES = {
+    "Wing plan (SVG)": "panel_plan.svg",
+    "Root rib (SVG)": "rib_00_root.svg",
+    "Tip rib (SVG)": "rib_08_tip.svg",
+}
+
+
+def _mesh_faces(model: cq.Workplane) -> list[list[tuple[float, float, float]]]:
+    vertices, triangles = model.val().tessellate(0.1)
+    points = [vertex.toTuple() for vertex in vertices]
+    return [[points[index] for index in triangle] for triangle in triangles]
+
+
+def _render_view(model: cq.Workplane, destination: Path, *, elevation: float, azimuth: float) -> None:
+    faces = _mesh_faces(model)
+    figure = plt.figure(figsize=(8, 5), dpi=150)
+    axis = figure.add_subplot(111, projection="3d")
+    axis.add_collection3d(Poly3DCollection(faces, facecolor="#9cc9e8", edgecolor="#1e4d70", linewidth=0.25))
+
+    xs = [point[0] for face in faces for point in face]
+    ys = [point[1] for face in faces for point in face]
+    zs = [point[2] for face in faces for point in face]
+    span = max(max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs), 1.0)
+    for setter, values in ((axis.set_xlim, xs), (axis.set_ylim, ys), (axis.set_zlim, zs)):
+        centre = (min(values) + max(values)) / 2.0
+        setter(centre - span / 2.0, centre + span / 2.0)
+    axis.set_box_aspect((1.0, 1.0, 0.25))
+    axis.view_init(elev=elevation, azim=azimuth)
+    axis.set_axis_off()
+    figure.tight_layout(pad=0)
+    figure.savefig(destination, transparent=False, bbox_inches="tight", pad_inches=0.02)
+    plt.close(figure)
+
+
+def _write_index(destination: Path) -> Path:
+    cards = [
+        ("Calibration coupon — isometric", VIEW_FILES["iso"]),
+        ("Calibration coupon — top", VIEW_FILES["top"]),
+        ("Calibration coupon — side", VIEW_FILES["side"]),
+        *DETAIL_FILES.items(),
+    ]
+    items = "\n".join(
+        f'    <figure><a href="{filename}"><img src="{filename}" alt="{title}"></a><figcaption>{title}</figcaption></figure>'
+        for title, filename in cards
+    )
+    index = destination / "index.html"
+    index.write_text(
+        """<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LR1600 generated CAD previews</title>
+<style>body{font-family:system-ui,sans-serif;margin:2rem;background:#f7f9fb;color:#16212b}main{max-width:1200px;margin:auto}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.25rem}figure{margin:0;background:white;border:1px solid #d9e1e8;border-radius:.5rem;padding:.75rem;box-shadow:0 1px 2px #0001}img{display:block;width:100%;height:220px;object-fit:contain;background:#fff}figcaption{margin-top:.6rem;font-weight:600}p{max-width:70ch}</style>
+</head><body><main><h1>LR1600 generated CAD previews</h1><p>Disposable build artifacts for visual inspection only. Aircraft geometry and parameters remain defined by source files and <code>config/aircraft.yaml</code>.</p><section class="grid">
+"""
+        + items
+        + "\n</section></main></body></html>\n",
+        encoding="utf-8",
+    )
+    return index
+
+
+def generate_previews(source: Path = DEFAULT_SOURCE, output: Path = DEFAULT_OUTPUT) -> dict[str, Path]:
+    """Render coupon views and copy current 2-D inspection drawings to a gallery."""
+    output.mkdir(parents=True, exist_ok=True)
+    for stale in [*VIEW_FILES.values(), *DETAIL_FILES.values(), "index.html"]:
+        (output / stale).unlink(missing_ok=True)
+
+    model = make_solid()
+    _render_view(model, output / VIEW_FILES["iso"], elevation=25, azimuth=-55)
+    _render_view(model, output / VIEW_FILES["top"], elevation=90, azimuth=-90)
+    _render_view(model, output / VIEW_FILES["side"], elevation=0, azimuth=-90)
+    for filename in DETAIL_FILES.values():
+        origin = source / filename
+        if not origin.is_file():
+            raise FileNotFoundError(f"Missing current generated drawing: {origin}")
+        shutil.copyfile(origin, output / filename)
+    index = _write_index(output)
+    paths = {name: output / filename for name, filename in VIEW_FILES.items()}
+    paths.update({filename: output / filename for filename in DETAIL_FILES.values()})
+    paths["index"] = index
+    if not all(path.is_file() and path.stat().st_size > 0 for path in paths.values()):
+        raise RuntimeError("Preview generation produced an empty artifact")
+    return paths
+
+
+if __name__ == "__main__":
+    paths = generate_previews()
+    print(f"Generated {len(paths)} CAD previews in {DEFAULT_OUTPUT}")

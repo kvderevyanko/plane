@@ -1,0 +1,3 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/.tools/conda/lr1600-cad/bin/python"
+}

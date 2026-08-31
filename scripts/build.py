@@ -13,6 +13,8 @@ sys.path.insert(0, str(ROOT))
 
 from cad.common.calibration_coupon import HEIGHT_MM, WIDTH_MM, generate
 from scripts.config import load_aircraft_config
+from scripts.generate_previews import generate_previews
+from scripts.generate_wing import generate as generate_wing
 
 
 def require(condition: bool, message: str) -> None:
@@ -55,11 +57,16 @@ def validate_coupon_svg(path: Path) -> None:
 def main() -> None:
     config = load_aircraft_config(ROOT / "config" / "aircraft.yaml")
     paths = generate(ROOT / "build")
+    # Keep inspection drawings in sync with YAML before making their disposable
+    # preview copies.  Neither output feeds a CAD generator.
+    generate_wing(ROOT / "config" / "aircraft.yaml", ROOT / "generated")
+    previews = generate_previews(ROOT / "generated", ROOT / "generated" / "previews")
     validate_coupon_dxf(paths["dxf"])
     validate_coupon_svg(paths["svg"])
     print(f"{config.project.name}: CAD build passed; calibration coupon is 100.000 × 50.000 mm.")
     for kind, path in paths.items():
         print(f"  {kind}: {path.relative_to(ROOT)} ({path.stat().st_size} bytes)")
+    print(f"  previews: {previews['index'].relative_to(ROOT)}")
 
 
 if __name__ == "__main__":

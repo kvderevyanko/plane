@@ -14,6 +14,7 @@ tmp/
 temp/
 dist/
 build/
+generated/previews/
 coverage/
 __pycache__/
 *.py[cod]
@@ -33,7 +34,9 @@ __pycache__/
 .DS_Store
 Thumbs.db
 .idea/
-.vscode/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
 
 # Project-local toolchains
 .tools/

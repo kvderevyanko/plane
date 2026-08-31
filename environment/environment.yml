@@ -13,3 +13,6 @@ dependencies:
   - shapely
   - svgwrite
   - pytest
+  - pip
+  - pip:
+      - ocp-vscode==4.0.1
