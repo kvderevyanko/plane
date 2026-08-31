@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import yaml
 
@@ -61,6 +61,18 @@ def _bounded(value: Any, name: str, low: float, high: float) -> float:
     return value
 
 
+def _nullable_number(value: Any, name: str) -> float | None:
+    if value is None:
+        return None
+    return _number(value, name)
+
+
+def _non_empty_string(value: Any, name: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise ConfigurationError(f"{name} must be a non-empty string")
+    return value
+
+
 @dataclass(frozen=True)
 class ProjectConfig:
     name: str
@@ -98,6 +110,16 @@ class WingConfig:
         taper = self.taper_ratio
         return (2.0 / 3.0) * self.root_chord_mm * (1 + taper + taper * taper) / (1 + taper)
 
+    @property
+    def mean_aerodynamic_chord_leading_edge_x_mm(self) -> float:
+        """MAC leading-edge X in the root-LE datum of the current planform.
+
+        The generated wing planform centres each tapered panel on the root
+        chord.  At the MAC station its local chord equals the existing MAC, so
+        the leading-edge location derives from that one canonical value.
+        """
+        return (self.root_chord_mm - self.mean_aerodynamic_chord_mm) / 2.0
+
 
 @dataclass(frozen=True)
 class SparConfig:
@@ -128,12 +150,71 @@ class AircraftMassConfig:
 
 
 @dataclass(frozen=True)
+class CoordinateSystemConfig:
+    datum: Literal["wing_root_leading_edge"]
+    x_positive: Literal["aft"]
+    y_positive: Literal["right"]
+    z_positive: Literal["up"]
+    length_unit: Literal["mm"]
+    mass_unit: Literal["g"]
+
+
+@dataclass(frozen=True)
+class LayoutConfig:
+    coordinate_system: CoordinateSystemConfig
+
+
+@dataclass(frozen=True)
+class CGEnvelopeConfig:
+    status: Literal["tbd", "initial_design_assumption"]
+    x_mac_fraction_min: float | None
+    x_mac_fraction_max: float | None
+    basis: str | None
+
+    @property
+    def is_defined(self) -> bool:
+        return self.status == "initial_design_assumption"
+
+
+@dataclass(frozen=True)
+class CGConfig:
+    initial_envelope: CGEnvelopeConfig
+
+
+@dataclass(frozen=True)
+class MassComponentConfig:
+    """One point-mass ledger entry in the common aircraft coordinate system."""
+
+    id: str
+    name: str
+    status: Literal["known", "tbd"]
+    mass_g: float | None
+    x_mm: float | None
+    y_mm: float | None
+    z_mm: float | None
+    side: Literal["left", "right", "center"]
+    pair_id: str | None
+
+    @property
+    def is_resolved(self) -> bool:
+        return self.status == "known"
+
+
+@dataclass(frozen=True)
+class MassBudgetConfig:
+    components: tuple[MassComponentConfig, ...]
+
+
+@dataclass(frozen=True)
 class AircraftConfig:
     project: ProjectConfig
     wing: WingConfig
     spar: SparConfig
     materials: MaterialsConfig
     aircraft: AircraftMassConfig
+    layout: LayoutConfig
+    cg: CGConfig
+    mass_budget: MassBudgetConfig
 
 
 def load_aircraft_config(path: Path = DEFAULT_CONFIG_PATH) -> AircraftConfig:
@@ -145,7 +226,7 @@ def load_aircraft_config(path: Path = DEFAULT_CONFIG_PATH) -> AircraftConfig:
     except yaml.YAMLError as error:
         raise ConfigurationError(f"Invalid YAML in {path}: {error}") from error
 
-    top_level = {"project", "wing", "spar", "materials", "aircraft"}
+    top_level = {"project", "wing", "spar", "materials", "aircraft", "layout", "cg", "mass_budget"}
     missing, unknown = top_level - set(document), set(document) - top_level
     if missing:
         raise ConfigurationError(f"Configuration is missing required sections: {sorted(missing)}")
@@ -220,4 +301,90 @@ def load_aircraft_config(path: Path = DEFAULT_CONFIG_PATH) -> AircraftConfig:
         design_load_factor_g=_bounded(aircraft["design_load_factor_g"], "aircraft.design_load_factor_g", 0.1, 20.0),
         gravity_m_s2=_bounded(aircraft["gravity_m_s2"], "aircraft.gravity_m_s2", 9.0, 10.0),
     )
-    return AircraftConfig(ProjectConfig(project["name"], project["units"]), wing_config, spar_config, materials_config, aircraft_config)
+    layout = _section(document, "layout", {"coordinate_system"})
+    coordinate_system = _section(layout, "coordinate_system", {
+        "datum", "x_positive", "y_positive", "z_positive", "length_unit", "mass_unit",
+    })
+    expected_coordinates = {
+        "datum": "wing_root_leading_edge", "x_positive": "aft", "y_positive": "right",
+        "z_positive": "up", "length_unit": "mm", "mass_unit": "g",
+    }
+    for key, expected in expected_coordinates.items():
+        if coordinate_system[key] != expected:
+            raise ConfigurationError(f"layout.coordinate_system.{key} must be {expected!r}")
+    layout_config = LayoutConfig(CoordinateSystemConfig(**coordinate_system))
+
+    cg = _section(document, "cg", {"initial_envelope"})
+    envelope = _section(cg, "initial_envelope", {
+        "status", "x_mac_fraction_min", "x_mac_fraction_max", "basis",
+    })
+    if envelope["status"] not in {"tbd", "initial_design_assumption"}:
+        raise ConfigurationError("cg.initial_envelope.status must be 'tbd' or 'initial_design_assumption'")
+    fraction_min = _nullable_number(envelope["x_mac_fraction_min"], "cg.initial_envelope.x_mac_fraction_min")
+    fraction_max = _nullable_number(envelope["x_mac_fraction_max"], "cg.initial_envelope.x_mac_fraction_max")
+    basis = envelope["basis"]
+    if basis is not None:
+        basis = _non_empty_string(basis, "cg.initial_envelope.basis")
+    if envelope["status"] == "tbd":
+        if any(value is not None for value in (fraction_min, fraction_max, basis)):
+            raise ConfigurationError("tbd cg.initial_envelope must use null fractions and basis")
+    else:
+        if fraction_min is None or fraction_max is None or basis is None:
+            raise ConfigurationError("defined cg.initial_envelope needs both fractions and a basis")
+        if not 0.0 <= fraction_min < fraction_max <= 1.0:
+            raise ConfigurationError("cg.initial_envelope fractions must satisfy 0 <= min < max <= 1")
+    cg_config = CGConfig(CGEnvelopeConfig(envelope["status"], fraction_min, fraction_max, basis))
+
+    mass_budget = _section(document, "mass_budget", {"components"})
+    components_raw = mass_budget["components"]
+    if not isinstance(components_raw, list):
+        raise ConfigurationError("mass_budget.components must be a list")
+    component_keys = {"id", "name", "status", "mass_g", "x_mm", "y_mm", "z_mm", "side", "pair_id"}
+    components: list[MassComponentConfig] = []
+    ids: set[str] = set()
+    pair_sides: dict[str, set[str]] = {}
+    for index, raw in enumerate(components_raw):
+        item = _mapping(raw, f"mass_budget.components[{index}]")
+        missing, unknown = component_keys - set(item), set(item) - component_keys
+        if missing:
+            raise ConfigurationError(f"mass_budget.components[{index}] is missing required keys: {sorted(missing)}")
+        if unknown:
+            raise ConfigurationError(f"mass_budget.components[{index}] has unknown keys: {sorted(unknown)}")
+        component_id = _non_empty_string(item["id"], f"mass_budget.components[{index}].id")
+        if component_id in ids:
+            raise ConfigurationError(f"Duplicate mass component id: {component_id}")
+        ids.add(component_id)
+        name = _non_empty_string(item["name"], f"mass_budget.components[{index}].name")
+        status = item["status"]
+        if status not in {"known", "tbd"}:
+            raise ConfigurationError(f"mass_budget.components[{index}].status must be 'known' or 'tbd'")
+        mass_g = _nullable_number(item["mass_g"], f"mass_budget.components[{index}].mass_g")
+        if mass_g is not None and mass_g < 0:
+            raise ConfigurationError(f"mass_budget.components[{index}].mass_g must not be negative")
+        coordinates = tuple(_nullable_number(item[key], f"mass_budget.components[{index}].{key}") for key in ("x_mm", "y_mm", "z_mm"))
+        if status == "known" and (mass_g is None or any(value is None for value in coordinates)):
+            raise ConfigurationError(f"known mass_budget.components[{index}] needs mass_g and all coordinates")
+        side = item["side"]
+        if side not in {"left", "right", "center"}:
+            raise ConfigurationError(f"mass_budget.components[{index}].side must be left, right, or center")
+        pair_id = item["pair_id"]
+        if pair_id is not None:
+            pair_id = _non_empty_string(pair_id, f"mass_budget.components[{index}].pair_id")
+            if side == "center":
+                raise ConfigurationError(f"mass_budget.components[{index}].pair_id requires left or right side")
+            sides = pair_sides.setdefault(pair_id, set())
+            if side in sides:
+                raise ConfigurationError(f"mass component pair {pair_id!r} has more than one {side} item")
+            sides.add(side)
+        elif side != "center":
+            raise ConfigurationError(f"mass_budget.components[{index}] left/right side needs pair_id")
+        components.append(MassComponentConfig(component_id, name, status, mass_g, *coordinates, side, pair_id))
+    for pair_id, sides in pair_sides.items():
+        if sides != {"left", "right"}:
+            raise ConfigurationError(f"mass component pair {pair_id!r} must include one left and one right item")
+    mass_budget_config = MassBudgetConfig(tuple(components))
+
+    return AircraftConfig(
+        ProjectConfig(project["name"], project["units"]), wing_config, spar_config,
+        materials_config, aircraft_config, layout_config, cg_config, mass_budget_config,
+    )

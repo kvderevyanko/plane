@@ -16,6 +16,7 @@ from scripts.config import load_aircraft_config
 from scripts.generate_test_coupons import generate as generate_test_coupons
 from scripts.generate_previews import generate_previews
 from scripts.generate_wing import generate as generate_wing
+from scripts.mass_properties import calculate_mass_properties
 
 
 def require(condition: bool, message: str) -> None:
@@ -57,6 +58,7 @@ def validate_coupon_svg(path: Path) -> None:
 
 def main() -> None:
     config = load_aircraft_config(ROOT / "config" / "aircraft.yaml")
+    mass_properties = calculate_mass_properties(config.mass_budget.components)
     paths = generate(ROOT / "build")
     # Keep inspection drawings in sync with YAML before making their disposable
     # preview copies.  Neither output feeds a CAD generator.
@@ -66,6 +68,18 @@ def main() -> None:
     validate_coupon_dxf(paths["dxf"])
     validate_coupon_svg(paths["svg"])
     print(f"{config.project.name}: CAD build passed; calibration coupon is 100.000 × 50.000 mm.")
+    if mass_properties.is_final_aircraft_cg:
+        print(
+            "  mass properties: "
+            f"{mass_properties.total_mass_g:.3f} g; CG "
+            f"({mass_properties.x_cg_mm:.3f}, {mass_properties.y_cg_mm:.3f}, {mass_properties.z_cg_mm:.3f}) mm"
+        )
+    else:
+        unresolved = ", ".join(component.id for component in mass_properties.unresolved_components)
+        print(
+            "  mass properties: aircraft CG is not final; "
+            f"known subtotal {mass_properties.total_mass_g:.3f} g; unresolved: {unresolved or 'none'}"
+        )
     for kind, path in paths.items():
         print(f"  {kind}: {path.relative_to(ROOT)} ({path.stat().st_size} bytes)")
     print(f"  previews: {previews['index'].relative_to(ROOT)}")

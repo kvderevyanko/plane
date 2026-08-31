@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import shutil
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import cadquery as cq
 import matplotlib
@@ -20,6 +21,11 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 from cad.common.calibration_coupon import make_solid
+from cad.master_layout.model import MasterLayout, master_layout_from_config
+from scripts.config import DEFAULT_CONFIG_PATH, load_aircraft_config
+
+if TYPE_CHECKING:
+    from scripts.config import AircraftConfig
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -29,6 +35,11 @@ VIEW_FILES = {
     "iso": "calibration_coupon_iso.png",
     "top": "calibration_coupon_top.png",
     "side": "calibration_coupon_side.png",
+}
+MASTER_LAYOUT_VIEW_FILES = {
+    "master_layout_iso": "master_layout_iso.png",
+    "master_layout_top": "master_layout_top.png",
+    "master_layout_side": "master_layout_side.png",
 }
 DETAIL_FILES = {
     "Wing plan (SVG)": "panel_plan.svg",
@@ -70,8 +81,60 @@ def _render_view(model: cq.Workplane, destination: Path, *, elevation: float, az
     plt.close(figure)
 
 
+def _render_master_layout_view(layout: MasterLayout, destination: Path, *, elevation: float, azimuth: float) -> None:
+    """Render reference geometry plus coordinate/MAC/optional-CG annotations."""
+    faces = _mesh_faces(layout.wing)
+    figure = plt.figure(figsize=(9, 5.5), dpi=150)
+    axis = figure.add_subplot(111, projection="3d")
+    axis.add_collection3d(Poly3DCollection(faces, facecolor="#b9d8ee", edgecolor="#1e4d70", linewidth=0.25))
+
+    xs = [point[0] for face in faces for point in face]
+    ys = [point[1] for face in faces for point in face]
+    zs = [point[2] for face in faces for point in face]
+    axis.plot([0, 180], [0, 0], [0, 0], color="#d22", linewidth=2)
+    axis.plot([0, 0], [0, 180], [0, 0], color="#287b2d", linewidth=2)
+    axis.plot([0, 0], [0, 0], [0, 100], color="#2456b5", linewidth=2)
+    axis.scatter([0], [0], [0], color="#111", s=20)
+
+    mac_x0, mac_x1 = layout.mac_leading_edge_x_mm, layout.mac_leading_edge_x_mm + layout.mac_mm
+    axis.plot([mac_x0, mac_x1], [0, 0], [4, 4], color="#6a3d9a", linewidth=3)
+    if layout.cg_x_range_mm is not None:
+        low, high = layout.cg_x_range_mm
+        axis.plot([low, high], [0, 0], [8, 8], color="#e07a16", linewidth=6, alpha=0.75)
+    for component_id, x_mm, y_mm, z_mm in layout.known_mass_items:
+        axis.scatter([x_mm], [y_mm], [z_mm], color="#b3261e", s=28, depthshade=False)
+        axis.text(x_mm, y_mm, z_mm + 8, component_id, color="#7f1712", fontsize=7)
+
+    all_zs = zs + [0, 100]
+    x_margin, y_margin, z_margin = 100.0, 80.0, 20.0
+    axis.set_xlim(min(xs) - x_margin, max(xs) + x_margin)
+    axis.set_ylim(min(ys) - y_margin, max(ys) + y_margin)
+    axis.set_zlim(min(all_zs) - z_margin, max(all_zs) + z_margin)
+    axis.set_box_aspect((max(xs) - min(xs) + 2 * x_margin,
+                         max(ys) - min(ys) + 2 * y_margin,
+                         max(all_zs) - min(all_zs) + 2 * z_margin))
+    axis.view_init(elev=elevation, azim=azimuth)
+    axis.set_axis_off()
+    cg_note = "CG band: not defined (TBD)" if layout.cg_x_range_mm is None else "CG band: initial design assumption"
+    figure.text(0.02, 0.02, f"Datum: root leading edge | +X aft (red), +Y right (green), +Z up (blue)\nMAC: {layout.mac_mm:.3f} mm | {cg_note}", fontsize=8)
+    figure.tight_layout(pad=0)
+    figure.savefig(destination, transparent=False, bbox_inches="tight", pad_inches=0.02)
+    plt.close(figure)
+
+
+def generate_master_layout_previews(config: "AircraftConfig", output: Path) -> dict[str, Path]:
+    """Write the three disposable views of the reference-only master layout."""
+    layout = master_layout_from_config(config)
+    for name, elevation, azimuth in (("master_layout_iso", 25, -55), ("master_layout_top", 90, -90), ("master_layout_side", 0, -90)):
+        _render_master_layout_view(layout, output / MASTER_LAYOUT_VIEW_FILES[name], elevation=elevation, azimuth=azimuth)
+    return {name: output / filename for name, filename in MASTER_LAYOUT_VIEW_FILES.items()}
+
+
 def _write_index(destination: Path) -> Path:
     cards = [
+        ("Master layout — isometric", MASTER_LAYOUT_VIEW_FILES["master_layout_iso"]),
+        ("Master layout — top", MASTER_LAYOUT_VIEW_FILES["master_layout_top"]),
+        ("Master layout — side", MASTER_LAYOUT_VIEW_FILES["master_layout_side"]),
         ("Calibration coupon — isometric", VIEW_FILES["iso"]),
         ("Calibration coupon — top", VIEW_FILES["top"]),
         ("Calibration coupon — side", VIEW_FILES["side"]),
@@ -102,12 +165,14 @@ def _write_index(destination: Path) -> Path:
     return index
 
 
-def generate_previews(source: Path = DEFAULT_SOURCE, output: Path = DEFAULT_OUTPUT) -> dict[str, Path]:
+def generate_previews(source: Path = DEFAULT_SOURCE, output: Path = DEFAULT_OUTPUT,
+                      config_path: Path = DEFAULT_CONFIG_PATH) -> dict[str, Path]:
     """Render coupon views and copy current 2-D inspection drawings to a gallery."""
     output.mkdir(parents=True, exist_ok=True)
-    for stale in [*VIEW_FILES.values(), *DETAIL_FILES.values(), *TEST_DETAIL_FILES.values(), "index.html"]:
+    for stale in [*VIEW_FILES.values(), *MASTER_LAYOUT_VIEW_FILES.values(), *DETAIL_FILES.values(), *TEST_DETAIL_FILES.values(), "index.html"]:
         (output / stale).unlink(missing_ok=True)
 
+    master_layout_paths = generate_master_layout_previews(load_aircraft_config(config_path), output)
     model = make_solid()
     _render_view(model, output / VIEW_FILES["iso"], elevation=25, azimuth=-55)
     _render_view(model, output / VIEW_FILES["top"], elevation=90, azimuth=-90)
@@ -124,6 +189,7 @@ def generate_previews(source: Path = DEFAULT_SOURCE, output: Path = DEFAULT_OUTP
         shutil.copyfile(origin, output / preview_name)
     index = _write_index(output)
     paths = {name: output / filename for name, filename in VIEW_FILES.items()}
+    paths.update(master_layout_paths)
     paths.update({filename: output / filename for filename in DETAIL_FILES.values()})
     paths.update({filename: output / filename for filename in TEST_DETAIL_FILES.values()})
     paths["index"] = index

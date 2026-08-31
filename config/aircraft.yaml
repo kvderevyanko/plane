@@ -34,3 +34,146 @@ aircraft:
   target_mass_g: 2400
   design_load_factor_g: 4.0
   gravity_m_s2: 9.80665
+
+# The aircraft reference system applies to every future layout, mass item, and
+# CG result.  All coordinates are relative to the root-wing leading edge.
+layout:
+  coordinate_system:
+    datum: wing_root_leading_edge
+    x_positive: aft
+    y_positive: right
+    z_positive: up
+    length_unit: mm
+    mass_unit: g
+
+# This is intentionally not a first-flight CG approval.  The numerical
+# initial/design envelope remains undefined until the tail and stability inputs
+# listed in docs/cg-reference.md exist.
+cg:
+  initial_envelope:
+    status: tbd
+    x_mac_fraction_min: null
+    x_mac_fraction_max: null
+    basis: null
+
+# Planned aircraft-level mass ledger.  `tbd` is deliberate: no unmeasured mass
+# or location may be invented merely to produce an apparent aircraft CG.
+mass_budget:
+  components:
+    - id: wing_assembly
+      name: Wing assembly
+      status: tbd
+      mass_g: null
+      x_mm: null
+      y_mm: null
+      z_mm: null
+      side: center
+      pair_id: null
+    - id: fuselage
+      name: Fuselage
+      status: tbd
+      mass_g: null
+      x_mm: null
+      y_mm: null
+      z_mm: null
+      side: center
+      pair_id: null
+    - id: propulsion_motor
+      name: Propulsion motor
+      status: tbd
+      mass_g: null
+      x_mm: null
+      y_mm: null
+      z_mm: null
+      side: center
+      pair_id: null
+    - id: propulsion_esc
+      name: Propulsion ESC
+      status: tbd
+      mass_g: null
+      x_mm: null
+      y_mm: null
+      z_mm: null
+      side: center
+      pair_id: null
+    - id: flight_battery
+      name: Flight battery
+      status: tbd
+      mass_g: null
+      x_mm: null
+      y_mm: null
+      z_mm: null
+      side: center
+      pair_id: null
+    - id: tail_boom_left
+      name: Left tail boom
+      status: tbd
+      mass_g: null
+      x_mm: null
+      y_mm: null
+      z_mm: null
+      side: left
+      pair_id: tail_booms
+    - id: tail_boom_right
+      name: Right tail boom
+      status: tbd
+      mass_g: null
+      x_mm: null
+      y_mm: null
+      z_mm: null
+      side: right
+      pair_id: tail_booms
+    - id: empennage
+      name: Empennage
+      status: tbd
+      mass_g: null
+      x_mm: null
+      y_mm: null
+      z_mm: null
+      side: center
+      pair_id: null
+    - id: flight_controller
+      name: Flight controller
+      status: tbd
+      mass_g: null
+      x_mm: null
+      y_mm: null
+      z_mm: null
+      side: center
+      pair_id: null
+    - id: gnss_compass
+      name: GNSS / compass
+      status: tbd
+      mass_g: null
+      x_mm: null
+      y_mm: null
+      z_mm: null
+      side: center
+      pair_id: null
+    - id: rc_receiver
+      name: RC receiver
+      status: tbd
+      mass_g: null
+      x_mm: null
+      y_mm: null
+      z_mm: null
+      side: center
+      pair_id: null
+    - id: servos_and_linkages
+      name: Servos and linkages
+      status: tbd
+      mass_g: null
+      x_mm: null
+      y_mm: null
+      z_mm: null
+      side: center
+      pair_id: null
+    - id: wiring_and_hardware
+      name: Wiring and hardware
+      status: tbd
+      mass_g: null
+      x_mm: null
+      y_mm: null
+      z_mm: null
+      side: center
+      pair_id: null

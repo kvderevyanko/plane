@@ -53,6 +53,15 @@ def test_repository_aircraft_yaml_loads_and_has_expected_planform():
     assert config.wing.tip_chord_mm == 200
     assert config.wing.area_m2 == pytest.approx(0.36)
     assert config.wing.mean_aerodynamic_chord_mm == pytest.approx(225.925926)
+    assert config.layout.coordinate_system.datum == "wing_root_leading_edge"
+    assert config.layout.coordinate_system.x_positive == "aft"
+    assert config.layout.coordinate_system.y_positive == "right"
+    assert config.layout.coordinate_system.z_positive == "up"
+    assert config.cg.initial_envelope.status == "tbd"
+    assert config.cg.initial_envelope.x_mac_fraction_min is None
+    assert config.cg.initial_envelope.x_mac_fraction_max is None
+    assert config.wing.mean_aerodynamic_chord_leading_edge_x_mm == pytest.approx(12.037037)
+    assert {component.id for component in config.mass_budget.components} >= {"wing_assembly", "tail_boom_left", "tail_boom_right"}
 
 
 def test_yaml_values_map_directly_to_wing_generator(tmp_path: Path):
@@ -132,4 +141,31 @@ def test_config_rejects_missing_required_generator_parameter(tmp_path: Path):
         encoding="utf-8",
     )
     with pytest.raises(ConfigurationError, match="rib_pitch_mm"):
+        load_aircraft_config(invalid_config)
+
+
+@pytest.mark.parametrize(("old", "new", "message"), [
+    (
+        "    mass_unit: g\n",
+        "    mass_unit: g\n    invented_axis: forward\n",
+        "unknown keys",
+    ),
+    (
+        "      pair_id: tail_booms\n",
+        "      pair_id: tail_booms\n      invented_mass_field: 123\n",
+        "unknown keys",
+    ),
+    (
+        "      mass_g: null\n",
+        "      mass_g: -1\n",
+        "must not be negative",
+    ),
+])
+def test_config_rejects_unknown_and_invalid_master_layout_mass_fields(
+    tmp_path: Path, old: str, new: str, message: str,
+):
+    invalid_config = tmp_path / "aircraft.yaml"
+    invalid_config.write_text(CONFIG_PATH.read_text(encoding="utf-8").replace(old, new, 1), encoding="utf-8")
+
+    with pytest.raises(ConfigurationError, match=message):
         load_aircraft_config(invalid_config)

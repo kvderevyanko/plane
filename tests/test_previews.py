@@ -1,6 +1,12 @@
 from pathlib import Path
 
-from scripts.generate_previews import DETAIL_FILES, TEST_DETAIL_FILES, VIEW_FILES, generate_previews
+from scripts.generate_previews import (
+    DETAIL_FILES,
+    MASTER_LAYOUT_VIEW_FILES,
+    TEST_DETAIL_FILES,
+    VIEW_FILES,
+    generate_previews,
+)
 from scripts.generate_test_coupons import dbox_root_geometry, generate as generate_test_coupons
 from scripts.generate_wing import generate as generate_wing
 
@@ -17,10 +23,11 @@ def test_preview_generation_is_disposable_and_contains_current_drawings(tmp_path
     paths = generate_previews(generated, previews)
 
     assert set(VIEW_FILES).issubset(paths)
+    assert set(MASTER_LAYOUT_VIEW_FILES).issubset(paths)
     assert paths["index"].name == "index.html"
     assert all(path.is_file() and path.stat().st_size > 0 for path in paths.values())
     index = paths["index"].read_text(encoding="utf-8")
-    for filename in [*VIEW_FILES.values(), *DETAIL_FILES.values(), *TEST_DETAIL_FILES.values()]:
+    for filename in [*MASTER_LAYOUT_VIEW_FILES.values(), *VIEW_FILES.values(), *DETAIL_FILES.values(), *TEST_DETAIL_FILES.values()]:
         assert filename in index
     for filename in DETAIL_FILES.values():
         assert (previews / filename).read_bytes() == (generated / filename).read_bytes()
@@ -55,5 +62,16 @@ def test_dbox_root_geometry_is_intersected_from_typed_clark_y_profile():
 
 def test_preview_code_has_no_aircraft_parameter_or_snapshot_input():
     source = (ROOT / "scripts" / "generate_previews.py").read_text(encoding="utf-8")
-    assert "load_aircraft_config" not in source
     assert "parameters.json" not in source
+    assert "root_chord_mm =" not in source
+    assert "tip_chord_mm =" not in source
+
+
+def test_master_layout_previews_are_generated_from_typed_source_config(tmp_path: Path):
+    generated = tmp_path / "generated"
+    generate_wing(CONFIG, generated)
+    generate_test_coupons(CONFIG, generated / "test_coupons")
+    paths = generate_previews(generated, generated / "previews", CONFIG)
+
+    assert set(MASTER_LAYOUT_VIEW_FILES).issubset(paths)
+    assert all(paths[name].stat().st_size > 0 for name in MASTER_LAYOUT_VIEW_FILES)
