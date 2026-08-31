@@ -1,5 +1,6 @@
 name = "aircraft-lead"
 description = "Главный инженер LR1600. Использовать для архитектурных решений, согласования аэродинамики, конструкции, массы, центровки, силовой установки и принятия решений между дисциплинами."
+model = "gpt-5.6-terra"
 model_reasoning_effort = "high"
 
 developer_instructions = """

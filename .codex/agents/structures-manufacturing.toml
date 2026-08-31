@@ -1,5 +1,6 @@
 name = "structures-manufacturing"
 description = "Инженер прочности и производства LR1600. Использовать для карбона, фанеры, модельного пеноматериала, лонжеронов, соединителей крыла, хвостовых балок, моторамы, лазерных соединений и proof-test."
+model = "gpt-5.6-terra"
 model_reasoning_effort = "high"
 
 developer_instructions = """

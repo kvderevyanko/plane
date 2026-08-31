@@ -1,5 +1,6 @@
 name = "cad-laser-engineer"
 description = "CAD/laser инженер LR1600. Использовать для CadQuery, FreeCAD, SVG/DXF/STEP/STL, параметрических нервюр, шпангоутов, раскроя и автоматических проверок геометрии."
+model = "gpt-5.6-terra"
 model_reasoning_effort = "medium"
 
 developer_instructions = """

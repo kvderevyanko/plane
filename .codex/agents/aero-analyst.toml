@@ -1,5 +1,6 @@
 name = "aero-analyst"
 description = "Аэродинамический аналитик LR1600. Использовать для крыла, профиля, Reynolds, скорости сваливания, устойчивости, центровки, оперения, аэродинамических нагрузок и оценки влияния ветра."
+model = "gpt-5.6-terra"
 model_reasoning_effort = "high"
 
 developer_instructions = """

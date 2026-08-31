@@ -1,5 +1,6 @@
 name = "independent-reviewer"
 description = "Независимый инженерный ревьюер LR1600. Использовать перед изготовлением, после крупных изменений и перед первым полётом для поиска ошибок в расчётах, CAD, центровке, прочности, авионике и процедурах."
+model = "gpt-5.6-terra"
 model_reasoning_effort = "high"
 
 developer_instructions = """

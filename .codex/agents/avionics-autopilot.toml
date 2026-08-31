@@ -1,5 +1,6 @@
 name = "avionics-autopilot"
 description = "Инженер авионики LR1600. Использовать для ArduPilot Plane, FC, GPS/компаса, airspeed, ELRS, серв, ESC, питания, EMI, failsafe, логирования и схемы проводки."
+model = "gpt-5.6-terra"
 model_reasoning_effort = "high"
 
 developer_instructions = """
