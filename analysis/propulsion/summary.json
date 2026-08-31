@@ -1,0 +1,653 @@
+{
+  "climb_2400g": [
+    {
+      "climb_rate_m_s": 2.0,
+      "electrical_total_w_including_hotel_study": {
+        "max": 282.220679709727,
+        "min": 120.84206812725385
+      },
+      "shaft_power_w": {
+        "max": 120.45178610011149,
+        "min": 80.75271202603739
+      },
+      "speed_km_h": 60.0,
+      "thrust_n": {
+        "max": 7.227107166006688,
+        "min": 4.845162721562243
+      }
+    },
+    {
+      "climb_rate_m_s": 3.0,
+      "electrical_total_w_including_hotel_study": {
+        "max": 337.3658530930447,
+        "min": 156.0623599342123
+      },
+      "shaft_power_w": {
+        "max": 143.98774610011148,
+        "min": 104.28867202603737
+      },
+      "speed_km_h": 60.0,
+      "thrust_n": {
+        "max": 8.639264766006688,
+        "min": 6.257320321562243
+      }
+    },
+    {
+      "climb_rate_m_s": 4.0,
+      "electrical_total_w_including_hotel_study": {
+        "max": 392.5110264763624,
+        "min": 191.2826517411708
+      },
+      "shaft_power_w": {
+        "max": 167.5237061001115,
+        "min": 127.82463202603739
+      },
+      "speed_km_h": 60.0,
+      "thrust_n": {
+        "max": 10.051422366006687,
+        "min": 7.669477921562242
+      }
+    }
+  ],
+  "cruise_2400g": [
+    {
+      "electrical_total_w_including_hotel_study": {
+        "max": 171.93033294309154,
+        "min": 50.401484513336904
+      },
+      "nominal_energy_only": {
+        "aerodynamic_power_w": 50.69468091492629,
+        "climb_rate_m_s": 0.0,
+        "efficiency": {
+          "esc": 0.98,
+          "motor": 0.87,
+          "propeller": 0.65,
+          "total": 0.55419
+        },
+        "electrical_propulsion_w": 91.47527186511176,
+        "electrical_total_w": 91.47527186511176,
+        "hotel_load_w": 0.0,
+        "mass_kg": 2.4,
+        "parasitic_cda_m2": 0.012,
+        "parasitic_drag_n": 2.0416666666666674,
+        "required_thrust_n": 3.041680854895577,
+        "shaft_power_w": 50.69468091492629,
+        "speed_km_h": 60.00000000000001,
+        "speed_m_s": 16.666666666666668,
+        "total_drag_n": 3.041680854895577,
+        "wing_drag_n": 1.0000141882289093
+      },
+      "shaft_power_w": {
+        "max": 73.37986610011149,
+        "min": 33.68079202603739
+      },
+      "speed_km_h": 60.0,
+      "thrust_n": {
+        "max": 4.4027919660066885,
+        "min": 2.020847521562243
+      }
+    },
+    {
+      "electrical_total_w_including_hotel_study": {
+        "max": 259.9730261327174,
+        "min": 71.7034467039147
+      },
+      "nominal_energy_only": {
+        "aerodynamic_power_w": 74.93325367141362,
+        "climb_rate_m_s": 0.0,
+        "efficiency": {
+          "esc": 0.98,
+          "motor": 0.87,
+          "propeller": 0.65,
+          "total": 0.55419
+        },
+        "electrical_propulsion_w": 135.2122082163403,
+        "electrical_total_w": 135.2122082163403,
+        "hotel_load_w": 0.0,
+        "mass_kg": 2.4,
+        "parasitic_cda_m2": 0.012,
+        "parasitic_drag_n": 2.778935185185185,
+        "required_thrust_n": 3.8537101888155583,
+        "shaft_power_w": 74.93325367141362,
+        "speed_km_h": 70.0,
+        "speed_m_s": 19.444444444444443,
+        "total_drag_n": 3.8537101888155583,
+        "wing_drag_n": 1.0747750036303734
+      },
+      "shaft_power_w": {
+        "max": 110.95648755344381,
+        "min": 47.91582825989099
+      },
+      "speed_km_h": 70.0,
+      "thrust_n": {
+        "max": 5.706333645605682,
+        "min": 2.4642425962229657
+      }
+    },
+    {
+      "electrical_total_w_including_hotel_study": {
+        "max": 381.5676703230307,
+        "min": 102.88301201278831
+      },
+      "nominal_energy_only": {
+        "aerodynamic_power_w": 109.08079088454167,
+        "climb_rate_m_s": 0.0,
+        "efficiency": {
+          "esc": 0.98,
+          "motor": 0.87,
+          "propeller": 0.65,
+          "total": 0.55419
+        },
+        "electrical_propulsion_w": 196.82922983911956,
+        "electrical_total_w": 196.82922983911956,
+        "hotel_load_w": 0.0,
+        "mass_kg": 2.4,
+        "parasitic_cda_m2": 0.012,
+        "parasitic_drag_n": 3.62962962962963,
+        "required_thrust_n": 4.908635589804375,
+        "shaft_power_w": 109.08079088454167,
+        "speed_km_h": 80.0,
+        "speed_m_s": 22.22222222222222,
+        "total_drag_n": 4.908635589804375,
+        "wing_drag_n": 1.2790059601747452
+      },
+      "shaft_power_w": {
+        "max": 162.85308169386954,
+        "min": 68.75157277754579
+      },
+      "speed_km_h": 80.0,
+      "thrust_n": {
+        "max": 7.3283886762241295,
+        "min": 3.0938207749895605
+      }
+    },
+    {
+      "electrical_total_w_including_hotel_study": {
+        "max": 538.3087864364908,
+        "min": 143.30836520926945
+      },
+      "nominal_energy_only": {
+        "aerodynamic_power_w": 153.1876900510943,
+        "climb_rate_m_s": 0.0,
+        "efficiency": {
+          "esc": 0.98,
+          "motor": 0.87,
+          "propeller": 0.65,
+          "total": 0.55419
+        },
+        "electrical_propulsion_w": 276.4172757557775,
+        "electrical_total_w": 276.4172757557775,
+        "hotel_load_w": 0.0,
+        "mass_kg": 2.4,
+        "parasitic_cda_m2": 0.012,
+        "parasitic_drag_n": 4.59375,
+        "required_thrust_n": 6.127507602043773,
+        "shaft_power_w": 153.1876900510943,
+        "speed_km_h": 90.0,
+        "speed_m_s": 25.0,
+        "total_drag_n": 6.127507602043773,
+        "wing_drag_n": 1.5337576020437724
+      },
+      "shaft_power_w": {
+        "max": 229.7501900510943,
+        "min": 95.76581505109432
+      },
+      "speed_km_h": 90.0,
+      "thrust_n": {
+        "max": 9.190007602043773,
+        "min": 3.8306326020437726
+      }
+    }
+  ],
+  "design_assumptions": {
+    "atmosphere": "ISA sea level",
+    "battery_energy_definition": "usable energy already excludes the future battery reserve/unusable fraction; it is not pack nominal energy",
+    "climb_study_speed_km_h": [
+      60.0
+    ],
+    "esc_efficiency": [
+      0.97,
+      0.98,
+      0.99
+    ],
+    "hotel_load_battery_bus_w": null,
+    "hotel_load_result_treatment": "0 W results are propulsion-only references; replace with measured battery-bus average load for aircraft endurance/range.",
+    "integration_power_margin_factor": 1.25,
+    "motor_efficiency": [
+      0.8,
+      0.87,
+      0.9
+    ],
+    "oswald_e": 0.9,
+    "parasitic_cda_m2": [
+      0.006,
+      0.012,
+      0.02
+    ],
+    "parasitic_drag_formula": "D_parasitic = 0.5*rho*V^2*CdA",
+    "propeller_efficiency": [
+      0.55,
+      0.65,
+      0.75
+    ],
+    "rho_kg_m3": 1.225
+  },
+  "energy_budget_nominal_drag_efficiency": [
+    {
+      "electrical_total_w": 91.47527186511176,
+      "endurance_h": 1.0931916130018033,
+      "hotel_load_w": 0.0,
+      "speed_km_h": 60.0,
+      "still_air_range_km": 65.5914967801082,
+      "usable_energy_wh": 100.0
+    },
+    {
+      "electrical_total_w": 135.2122082163403,
+      "endurance_h": 0.7395781883836957,
+      "hotel_load_w": 0.0,
+      "speed_km_h": 70.0,
+      "still_air_range_km": 51.7704731868587,
+      "usable_energy_wh": 100.0
+    },
+    {
+      "electrical_total_w": 196.82922983911956,
+      "endurance_h": 0.5080546221805372,
+      "hotel_load_w": 0.0,
+      "speed_km_h": 80.0,
+      "still_air_range_km": 40.64436977444298,
+      "usable_energy_wh": 100.0
+    },
+    {
+      "electrical_total_w": 276.4172757557775,
+      "endurance_h": 0.36177188899131196,
+      "hotel_load_w": 0.0,
+      "speed_km_h": 90.0,
+      "still_air_range_km": 32.559470009218074,
+      "usable_energy_wh": 100.0
+    },
+    {
+      "electrical_total_w": 91.47527186511176,
+      "endurance_h": 1.639787419502705,
+      "hotel_load_w": 0.0,
+      "speed_km_h": 60.0,
+      "still_air_range_km": 98.3872451701623,
+      "usable_energy_wh": 150.0
+    },
+    {
+      "electrical_total_w": 135.2122082163403,
+      "endurance_h": 1.1093672825755434,
+      "hotel_load_w": 0.0,
+      "speed_km_h": 70.0,
+      "still_air_range_km": 77.65570978028803,
+      "usable_energy_wh": 150.0
+    },
+    {
+      "electrical_total_w": 196.82922983911956,
+      "endurance_h": 0.7620819332708058,
+      "hotel_load_w": 0.0,
+      "speed_km_h": 80.0,
+      "still_air_range_km": 60.96655466166446,
+      "usable_energy_wh": 150.0
+    },
+    {
+      "electrical_total_w": 276.4172757557775,
+      "endurance_h": 0.5426578334869679,
+      "hotel_load_w": 0.0,
+      "speed_km_h": 90.0,
+      "still_air_range_km": 48.83920501382711,
+      "usable_energy_wh": 150.0
+    },
+    {
+      "electrical_total_w": 91.47527186511176,
+      "endurance_h": 2.1863832260036067,
+      "hotel_load_w": 0.0,
+      "speed_km_h": 60.0,
+      "still_air_range_km": 131.1829935602164,
+      "usable_energy_wh": 200.0
+    },
+    {
+      "electrical_total_w": 135.2122082163403,
+      "endurance_h": 1.4791563767673914,
+      "hotel_load_w": 0.0,
+      "speed_km_h": 70.0,
+      "still_air_range_km": 103.5409463737174,
+      "usable_energy_wh": 200.0
+    },
+    {
+      "electrical_total_w": 196.82922983911956,
+      "endurance_h": 1.0161092443610744,
+      "hotel_load_w": 0.0,
+      "speed_km_h": 80.0,
+      "still_air_range_km": 81.28873954888596,
+      "usable_energy_wh": 200.0
+    },
+    {
+      "electrical_total_w": 276.4172757557775,
+      "endurance_h": 0.7235437779826239,
+      "hotel_load_w": 0.0,
+      "speed_km_h": 90.0,
+      "still_air_range_km": 65.11894001843615,
+      "usable_energy_wh": 200.0
+    },
+    {
+      "electrical_total_w": 91.47527186511176,
+      "endurance_h": 2.7329790325045082,
+      "hotel_load_w": 0.0,
+      "speed_km_h": 60.0,
+      "still_air_range_km": 163.97874195027052,
+      "usable_energy_wh": 250.0
+    },
+    {
+      "electrical_total_w": 135.2122082163403,
+      "endurance_h": 1.8489454709592392,
+      "hotel_load_w": 0.0,
+      "speed_km_h": 70.0,
+      "still_air_range_km": 129.42618296714676,
+      "usable_energy_wh": 250.0
+    },
+    {
+      "electrical_total_w": 196.82922983911956,
+      "endurance_h": 1.2701365554513429,
+      "hotel_load_w": 0.0,
+      "speed_km_h": 80.0,
+      "still_air_range_km": 101.61092443610742,
+      "usable_energy_wh": 250.0
+    },
+    {
+      "electrical_total_w": 276.4172757557775,
+      "endurance_h": 0.9044297224782799,
+      "hotel_load_w": 0.0,
+      "speed_km_h": 90.0,
+      "still_air_range_km": 81.39867502304519,
+      "usable_energy_wh": 250.0
+    }
+  ],
+  "generated_utc": "2026-08-31T16:23:49.809555+00:00",
+  "hardware_selection": {
+    "battery": null,
+    "esc": null,
+    "motor": null,
+    "propeller": null,
+    "status": "intentionally unselected while TBD inputs remain"
+  },
+  "headwind_display_case": [
+    {
+      "groundspeed_km_h": 70.0,
+      "headwind_m_s": 0.0,
+      "range_km": 103.5409463737174,
+      "tas_km_h": 70.0,
+      "usable_energy_wh": 200.0
+    },
+    {
+      "groundspeed_km_h": 51.99999999999999,
+      "headwind_m_s": 5.0,
+      "range_km": 76.91613159190435,
+      "tas_km_h": 70.0,
+      "usable_energy_wh": 200.0
+    },
+    {
+      "groundspeed_km_h": 41.199999999999996,
+      "headwind_m_s": 8.0,
+      "range_km": 60.94124272281652,
+      "tas_km_h": 70.0,
+      "usable_energy_wh": 200.0
+    },
+    {
+      "groundspeed_km_h": 33.99999999999999,
+      "headwind_m_s": 10.0,
+      "range_km": 50.291316810091296,
+      "tas_km_h": 70.0,
+      "usable_energy_wh": 200.0
+    },
+    {
+      "groundspeed_km_h": 26.799999999999994,
+      "headwind_m_s": 12.0,
+      "range_km": 39.64139089736608,
+      "tas_km_h": 70.0,
+      "usable_energy_wh": 200.0
+    }
+  ],
+  "known": {
+    "mission_airspeed_km_h": [
+      60.0,
+      70.0,
+      80.0,
+      90.0
+    ],
+    "target_mass_g": 2400.0,
+    "wing_area_m2": 0.36,
+    "wing_only_aero_status": "not used as full-aircraft drag"
+  },
+  "limitations": [
+    "CdA is a sizing sweep, not a measured LR1600 value.",
+    "Wing contribution comes from clean XFOIL-derived polars and a finite-wing induced-drag estimate.",
+    "Static thrust, propeller RPM, current, voltage sag and thermal limits require selected hardware maps.",
+    "Energy/range values are still-air study estimates, not guaranteed mission range."
+  ],
+  "mass_feedback": [
+    {
+      "electrical_propulsion_w": {
+        "max": 169.28287479885165,
+        "min": 48.71059766565778
+      },
+      "mass_g": 2200.0,
+      "speed_km_h": 60.0,
+      "thrust_n": {
+        "max": 4.334995857848994,
+        "min": 1.9530514134045487
+      }
+    },
+    {
+      "electrical_propulsion_w": {
+        "max": 258.6740356602486,
+        "min": 70.87380340627207
+      },
+      "mass_g": 2200.0,
+      "speed_km_h": 70.0,
+      "thrust_n": {
+        "max": 5.677821175875127,
+        "min": 2.4357301264924107
+      }
+    },
+    {
+      "electrical_propulsion_w": {
+        "max": 380.94101518590764,
+        "min": 102.48277794990148
+      },
+      "mass_g": 2200.0,
+      "speed_km_h": 80.0,
+      "thrust_n": {
+        "max": 7.316353137660544,
+        "min": 3.081785236425975
+      }
+    },
+    {
+      "electrical_propulsion_w": {
+        "max": 537.8848027631441,
+        "min": 143.03757399073692
+      },
+      "mass_g": 2200.0,
+      "speed_km_h": 90.0,
+      "thrust_n": {
+        "max": 9.182769352772397,
+        "min": 3.8233943527723975
+      }
+    },
+    {
+      "electrical_propulsion_w": {
+        "max": 171.93033294309154,
+        "min": 50.401484513336904
+      },
+      "mass_g": 2400.0,
+      "speed_km_h": 60.0,
+      "thrust_n": {
+        "max": 4.4027919660066885,
+        "min": 2.020847521562243
+      }
+    },
+    {
+      "electrical_propulsion_w": {
+        "max": 259.9730261327174,
+        "min": 71.7034467039147
+      },
+      "mass_g": 2400.0,
+      "speed_km_h": 70.0,
+      "thrust_n": {
+        "max": 5.706333645605682,
+        "min": 2.4642425962229657
+      }
+    },
+    {
+      "electrical_propulsion_w": {
+        "max": 381.5676703230307,
+        "min": 102.88301201278831
+      },
+      "mass_g": 2400.0,
+      "speed_km_h": 80.0,
+      "thrust_n": {
+        "max": 7.3283886762241295,
+        "min": 3.0938207749895605
+      }
+    },
+    {
+      "electrical_propulsion_w": {
+        "max": 538.3087864364908,
+        "min": 143.30836520926945
+      },
+      "mass_g": 2400.0,
+      "speed_km_h": 90.0,
+      "thrust_n": {
+        "max": 9.190007602043773,
+        "min": 3.8306326020437726
+      }
+    },
+    {
+      "electrical_propulsion_w": {
+        "max": 174.8217517123283,
+        "min": 52.248184895993475
+      },
+      "mass_g": 2600.0,
+      "speed_km_h": 60.0,
+      "thrust_n": {
+        "max": 4.476835417849304,
+        "min": 2.0948909734048584
+      }
+    },
+    {
+      "electrical_propulsion_w": {
+        "max": 261.48112571232645,
+        "min": 72.66664446010944
+      },
+      "mass_g": 2600.0,
+      "speed_km_h": 70.0,
+      "thrust_n": {
+        "max": 5.739436000492506,
+        "min": 2.49734495110979
+      }
+    },
+    {
+      "electrical_propulsion_w": {
+        "max": 382.37729592890145,
+        "min": 103.40010622690824
+      },
+      "mass_g": 2600.0,
+      "speed_km_h": 80.0,
+      "thrust_n": {
+        "max": 7.343938345610483,
+        "min": 3.1093704443759145
+      }
+    },
+    {
+      "electrical_propulsion_w": {
+        "max": 538.8982886292588,
+        "min": 143.68487031345708
+      },
+      "mass_g": 2600.0,
+      "speed_km_h": 90.0,
+      "thrust_n": {
+        "max": 9.200071583478708,
+        "min": 3.8406965834787083
+      }
+    },
+    {
+      "electrical_propulsion_w": {
+        "max": 178.0887518378284,
+        "min": 54.33476275392603
+      },
+      "mass_g": 2800.0,
+      "speed_km_h": 60.0,
+      "thrust_n": {
+        "max": 4.56049675706311,
+        "min": 2.178552312618664
+      }
+    },
+    {
+      "electrical_propulsion_w": {
+        "max": 263.5234081813987,
+        "min": 73.97101581484202
+      },
+      "mass_g": 2800.0,
+      "speed_km_h": 70.0,
+      "thrust_n": {
+        "max": 5.784263517179365,
+        "min": 2.5421724677966493
+      }
+    },
+    {
+      "electrical_propulsion_w": {
+        "max": 383.5092902135997,
+        "min": 104.12309187705291
+      },
+      "mass_g": 2800.0,
+      "speed_km_h": 80.0,
+      "thrust_n": {
+        "max": 7.365679427842396,
+        "min": 3.1311115266078273
+      }
+    },
+    {
+      "electrical_propulsion_w": {
+        "max": 539.6504312386916,
+        "min": 144.16525110762973
+      },
+      "mass_g": 2800.0,
+      "speed_km_h": 90.0,
+      "thrust_n": {
+        "max": 9.212912162106944,
+        "min": 3.853537162106943
+      }
+    }
+  ],
+  "requirement_envelope": {
+    "continuous_electrical_power_w_propulsion_only": {
+      "maximum": 538.3087864364908,
+      "minimum": 50.401484513336904,
+      "selection_guidance": 672.8859830456134
+    },
+    "launch": {
+      "ground_takeoff": "TBD: requires rolling resistance, runway, rotation/liftoff speed and propeller static-thrust data; not numerically claimed.",
+      "hand_launch": "TBD: demonstrate positive excess thrust at release/transition airspeed with the selected propeller map."
+    },
+    "peak_electrical_power_w_for_2_to_4_m_s_climb_propulsion_only": {
+      "maximum": 392.5110264763624,
+      "minimum": 120.84206812725385,
+      "selection_guidance": 490.63878309545305
+    }
+  },
+  "schema": "lr1600-propulsion-sizing-v1",
+  "source_inputs": {
+    "aircraft_yaml": "config/aircraft.yaml",
+    "wing_aero_summary": "analysis/aero/summary.json",
+    "wing_clean_polars": "analysis/aero/parsed/*_clean.csv"
+  },
+  "tbd": [
+    "mission endurance and range",
+    "battery chemistry, series count, voltage sag curve, capacity and mass",
+    "final hotel-load inventory and duty cycle",
+    "motor, ESC, propeller and their measured maps",
+    "fuselage/tail/boom geometry and measured full-aircraft CdA",
+    "launch method and ground-run inputs",
+    "propeller clearance and maximum diameter",
+    "initial CG"
+  ]
+}
