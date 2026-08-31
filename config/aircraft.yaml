@@ -27,7 +27,6 @@ materials:
   rib_foam_mm: 5
   root_rib_plywood_mm: 2.0
   plywood_structural_mm:
-    - 1.5
     - 2.0
     - 3.0
 

@@ -1,0 +1,364 @@
+{
+  "calculation_provenance": {
+    "aero_polar_path": "/home/kirill/codex/plane/analysis/aero/parsed/clarky_re300000_realistic_model_combined.csv",
+    "config_path": "/home/kirill/codex/plane/config/aircraft.yaml",
+    "output_path": "/home/kirill/codex/plane/analysis/structures"
+  },
+  "calculation_status": "preliminary concept validation; not a production release",
+  "configuration_from_typed_loader": {
+    "path": "config/aircraft.yaml",
+    "value": {
+      "aircraft": {
+        "design_load_factor_g": 4.0,
+        "gravity_m_s2": 9.80665,
+        "target_mass_g": 2400.0
+      },
+      "materials": {
+        "plywood_structural_mm": [
+          2.0,
+          3.0
+        ],
+        "rib_foam_mm": 5.0,
+        "root_rib_plywood_mm": 2.0,
+        "skin_foam_mm": 3.0
+      },
+      "project": {
+        "name": "LR1600",
+        "units": "mm"
+      },
+      "spar": {
+        "chord_position": 0.3,
+        "hole_clearance_mm": 0.25,
+        "inner_diameter_mm": 12.0,
+        "outer_diameter_mm": 14.0,
+        "type": "carbon_tube"
+      },
+      "wing": {
+        "aileron_chord_mm": 48.0,
+        "aileron_inboard_offset_mm": 150.0,
+        "aileron_span_mm": 500.0,
+        "airfoil": "clark_y",
+        "dihedral_deg_per_panel": 2.0,
+        "rib_pitch_mm": 100.0,
+        "root_chord_mm": 250.0,
+        "span_mm": 1600.0,
+        "tip_chord_mm": 200.0,
+        "twist_axis_fraction": 0.25,
+        "washout_deg": -1.5
+      }
+    }
+  },
+  "dbox_twist_screening": {
+    "cm_abs": 0.0839,
+    "conclusion": "Foam-only D-box is not acceptable as a validated torsion structure. Continuous closed LE-to-spar cell, 2-mm birch closure web and documented \u00b145-degree carbon/glass reinforcement are required; values remain coupon-dependent.",
+    "cruise_cl_bracket": [
+      0.13,
+      0.3
+    ],
+    "minimum_screening_requirement": "effective D-box G >= 300 MPa by coupon, equivalent root GJ >= 22.8 N m2; target tip twist <=2 deg at 100 km/h and <=3 deg at 120 km/h",
+    "moment_model": "worst observed Re300k cruise |CM| plus 1-g elliptic lift transferred from c/4 to 30%-chord spar; magnitudes are summed conservatively",
+    "root_gj_nm2_at_effective_g_250mpa": 18.990045199010435,
+    "source": "analysis/aero/parsed/clarky_re300000_realistic_model_combined.csv",
+    "speed_cases_deg": {
+      "100": {
+        "foam_only_conservative_deg": 74.8178291370261,
+        "reinforced_dbox_conservative_deg": 5.985426330962087,
+        "reinforced_dbox_minimum_g300_deg": 1.9951421103206959,
+        "reinforced_dbox_nominal_deg": 2.3941705323848352
+      },
+      "120": {
+        "foam_only_conservative_deg": 105.52424118507096,
+        "reinforced_dbox_conservative_deg": 8.441939294805676,
+        "reinforced_dbox_minimum_g300_deg": 2.8139797649352256,
+        "reinforced_dbox_nominal_deg": 3.376775717922271
+      },
+      "70": {
+        "foam_only_conservative_deg": 39.2263060813377,
+        "reinforced_dbox_conservative_deg": 3.138104486507016,
+        "reinforced_dbox_minimum_g300_deg": 1.0460348288356718,
+        "reinforced_dbox_nominal_deg": 1.2552417946028063
+      },
+      "90": {
+        "foam_only_conservative_deg": 61.55824211627941,
+        "reinforced_dbox_conservative_deg": 4.924659369302352,
+        "reinforced_dbox_minimum_g300_deg": 1.6415531231007843,
+        "reinforced_dbox_nominal_deg": 1.9698637477209409
+      }
+    }
+  },
+  "joiner": {
+    "bending_stress_mpa": 107.03621972940098,
+    "contact_couple_force_n": 1389.7168955506393,
+    "fit_requirement": "Measure every tube ID, OD, wall and rod OD. Select rod actual OD 11.50--11.70 mm, tube minimum ID >=11.85 mm, tube maximum ID <=12.10 mm and tube minimum wall >=0.90 mm, giving 0.075--0.175 mm radial clearance. A loose, unmeasured slip fit is prohibited.",
+    "load_path": "Use a 50-mm long prepared internal G10/CF wear liner at each contact plus a 50-mm external \u00b145-degree carbon hoop sleeve. Each support is backed by two 2-mm birch longitudinal plates with >=30-mm net ligament and >=50-mm bonded length. The joiner end at y=275 mm is bracketed by ribs at y=250 and 300 mm. Do not rely on foam or an unbonded tube wall alone.",
+    "material_envelopes": [
+      {
+        "bending_sf_compression": 2.8027895674794205,
+        "bending_sf_tension": 3.269921162059324,
+        "centre_50mm_screening_deflection_mm": 0.08310265506941071,
+        "name": "conservative"
+      },
+      {
+        "bending_sf_compression": 4.6713159457990345,
+        "bending_sf_tension": 5.605579134958841,
+        "centre_50mm_screening_deflection_mm": 0.05288350777144318,
+        "name": "nominal"
+      },
+      {
+        "bending_sf_compression": 7.006973918698551,
+        "bending_sf_tension": 8.408368702438262,
+        "centre_50mm_screening_deflection_mm": 0.041551327534705355,
+        "name": "high_quality"
+      }
+    ],
+    "properties": {
+      "area_m2": 103.86890710931253,
+      "second_moment_m4": 858.5414353254113,
+      "section_modulus_m3": 149.31155396963675
+    },
+    "recommendation": "precision solid carbon rod, nominal 11.5 mm, total 600 mm, 275 mm insertion per console with 50 mm controlled centre/support zone; do not specify nominal 12 mm without measured fit.",
+    "root_moment_nm": 15.981744298832352,
+    "socket_screening": {
+      "birch_plate_bearing_mpa": 6.9485844777531955,
+      "birch_plate_net_tension_mpa_with_30mm_ligament": 11.58097412958866,
+      "bondline_shear_mpa_over_two_50x50mm_plates": 0.2779433791101278,
+      "carbon_contact_bearing_mpa": 2.4168989487837202,
+      "carbon_hoop_splitting_mpa": 15.441298839451546,
+      "minimum_tube_wall_mm": 0.9,
+      "model": "50-mm prepared contact at each moment-couple support; external hoop sleeve and two 2-mm birch plates are mandatory",
+      "provisional_allowables_mpa": {
+        "birch_bearing": 15.0,
+        "birch_net_tension": 20.0,
+        "carbon_hoop_with_external_sleeve": 25.0,
+        "carbon_radial_bearing": 15.0
+      },
+      "screening_sf": {
+        "birch_bearing": 2.158713051273172,
+        "birch_net_tension": 1.7269704410185376,
+        "carbon_hoop_with_external_sleeve": 1.6190347884548788,
+        "carbon_radial_bearing": 6.206300022410369
+      },
+      "status": "Provisional assumed-allowable screen only: no final socket SF until representative tube/liner/birch/bond coupons and proof test pass."
+    }
+  },
+  "load_case": {
+    "classification": "YAML does not define limit versus ultimate; treated here as the current design/limit case, not an ultimate rating.",
+    "design_load_factor_g": 4.0,
+    "design_total_lift_n": 94.14384,
+    "distribution": "elliptic, normalized separately on each semi-span",
+    "per_panel_lift_n": 47.07192,
+    "sensitivity_cases": {
+      "asymmetric_70_30_total_lift_split": "70/30 of total design lift: loaded/unloaded panel reactions, preserving total lift",
+      "asymmetric_loaded_root_m_nm": 22.37444201836529,
+      "asymmetric_loaded_root_v_n": 65.89959784271761,
+      "asymmetric_unloaded_root_m_nm": 9.58904657929941,
+      "asymmetric_unloaded_root_v_n": 28.24268478973612,
+      "vertical_gust_root_m_nm": 19.97718037354044,
+      "vertical_gust_root_v_n": 58.83892664528359,
+      "vertical_gust_screening": "1.25 x design lift sensitivity only; not a regulatory gust calculation"
+    }
+  },
+  "main_spar": {
+    "area_mm2": 40.84070449666732,
+    "dimensions_mm": [
+      14.0,
+      12.0
+    ],
+    "material_envelopes": [
+      {
+        "compression_sf": 2.327293712643623,
+        "name": "conservative",
+        "root_bending_stress_mpa": 128.90508764328828,
+        "root_shear_screening_mpa": 2.3051091746014305,
+        "shear_sf": 15.183662615915685,
+        "tension_sf": 2.7151759980842267,
+        "tip_deflection_mm": 38.36278654660364,
+        "youngs_modulus_gpa": 70.0
+      },
+      {
+        "compression_sf": 3.8788228544060384,
+        "name": "nominal",
+        "root_bending_stress_mpa": 128.90508764328828,
+        "root_shear_screening_mpa": 2.3051091746014305,
+        "shear_sf": 26.029135912998317,
+        "tension_sf": 4.654587425287246,
+        "tip_deflection_mm": 24.41268234783869,
+        "youngs_modulus_gpa": 110.0
+      },
+      {
+        "compression_sf": 5.818234281609057,
+        "name": "high_quality",
+        "root_bending_stress_mpa": 128.90508764328828,
+        "root_shear_screening_mpa": 2.3051091746014305,
+        "shear_sf": 39.04370386949747,
+        "tension_sf": 6.981881137930869,
+        "tip_deflection_mm": 19.18139327330182,
+        "youngs_modulus_gpa": 140.0
+      }
+    ],
+    "purchasing_requirements": "OD 14.00 \u00b10.10 mm; measured ID at least 11.85 mm after ovality check; E >=70 GPa, compressive allowable >=300 MPa, tensile >=350 MPa, shear allowable >=35 MPa; continuous predominantly 0-degree fibres (pultruded or documented wound laminate), straightness <=1 mm/800 mm. Supplier data plus coupon/proof test required.",
+    "root_bending_moment_nm": 15.981744298832352,
+    "root_shear_n": 47.07114131622687,
+    "second_moment_mm4": 867.8649705541806,
+    "section_modulus_mm3": 123.98071007916866
+  },
+  "mass_budget": {
+    "full_wing_assembly_g": [
+      522.1,
+      836.4
+    ],
+    "items_g": {
+      "adhesive": [
+        35.0,
+        80.0
+      ],
+      "birch_2mm_root_boom_and_dbox_closure": [
+        105.6,
+        132.0
+      ],
+      "birch_3mm_local_only": [
+        0.0,
+        18.0
+      ],
+      "carbon_joiner_11_5mm_x_600mm": [
+        99.7,
+        99.7
+      ],
+      "carbon_main_spars": [
+        104.6,
+        104.6
+      ],
+      "dbox_bias_laminate_and_resin": [
+        35.0,
+        75.0
+      ],
+      "foam_3mm_skins_top_and_bottom": [
+        64.8,
+        172.8
+      ],
+      "foam_5mm_ordinary_ribs": [
+        8.9,
+        23.8
+      ],
+      "lw_pla": [
+        0.0,
+        0.0
+      ],
+      "placeholder_servos_two": [
+        40.0,
+        80.0
+      ],
+      "poplar_2mm_secondary_hatch_formers": [
+        10.5,
+        12.5
+      ],
+      "servo_mounts_wiring": [
+        18.0,
+        38.0
+      ]
+    },
+    "joiner_g": [
+      99.7,
+      99.7
+    ],
+    "note": "Planning range: foam density and printed density must be physically measured; no material density is inferred from aircraft.yaml.",
+    "per_console_excluding_joiner_g": [
+      211.2,
+      368.3
+    ],
+    "percent_target_mass": [
+      21.8,
+      34.8
+    ]
+  },
+  "proof_test": {
+    "distribution": "five equal-span load zones; use a broad pad/spreader at each centre, not point contact on foam",
+    "dwell_s": 60,
+    "loads_per_console": [
+      {
+        "centre_y_mm": 80.0,
+        "hanging_mass_at_100_percent_kg": 1.214111462660803,
+        "load_at_100_percent_n": 11.906366175302562
+      },
+      {
+        "centre_y_mm": 240.0,
+        "hanging_mass_at_100_percent_kg": 1.1636566277849603,
+        "load_at_100_percent_n": 11.41157326886738
+      },
+      {
+        "centre_y_mm": 400.0,
+        "hanging_mass_at_100_percent_kg": 1.055397809369903,
+        "load_at_100_percent_n": 10.34991692725736
+      },
+      {
+        "centre_y_mm": 560.0,
+        "hanging_mass_at_100_percent_kg": 0.8672104535752462,
+        "load_at_100_percent_n": 8.504429394553688
+      },
+      {
+        "centre_y_mm": 720.0,
+        "hanging_mass_at_100_percent_kg": 0.499544242962267,
+        "load_at_100_percent_n": 4.898855550245916
+      }
+    ],
+    "release_condition": "125% is prohibited pending explicit limit/ultimate classification and safety review.",
+    "steps_percent": [
+      25,
+      50,
+      75,
+      100
+    ]
+  },
+  "recommendation": {
+    "boom_attachment": "Two or more birch-2 ribs straddling each final boom station; clamp load through birch plates into spar and D-box closure, with anti-rotation fore/aft spacing. Foam is shape-only. Birch 3-mm only as local bolted crushing plate.",
+    "main_spar": "Keep 14x12 only provisionally: it has conservative strength screening SF >2.2 in bending, but 4-g tip deflection is a design driver and must pass proof test. Caps+web is a later mass/stiffness option, not an automatic change.",
+    "ordinary_ribs": "5-mm foam at 100-mm nominal pitch; birch 2-mm locally at servo/boom mounts, no LW-PLA primary path. LW-PLA is suitable for tip rib, alignment and servo geometry only after mass/creep coupon.",
+    "root_ribs_per_console": [
+      {
+        "material": "birch 2 mm",
+        "station_mm": 0
+      },
+      {
+        "material": "birch 2 mm",
+        "station_mm": 50
+      },
+      {
+        "material": "birch 2 mm",
+        "station_mm": 250
+      },
+      {
+        "material": "birch 2 mm",
+        "station_mm": 300
+      }
+    ],
+    "root_structure": "Four 2-mm birch ribs plus paired 2-mm birch longitudinal shear plates/root socket doublers. Use 3-mm birch only for a small boom/fastener doubler if bearing/net-section coupon or bolt sizing requires it.",
+    "servo": "Add a rear spar/false spar across two foam bays; use poplar 2-mm hatch rails only as secondary formers, birch 2-mm at servo screw/load transfer, and LW-PLA only non-primary locating geometry."
+  },
+  "schema": "lr1600-wing-structure-v1",
+  "spar_alternatives": [
+    {
+      "I_mm4": 867.8649705541806,
+      "Z_mm3": 123.98071007916866,
+      "area_mm2": 40.84070449666732,
+      "comment": "Current candidate; simple ribs and purchase, but deflection must be proof-tested.",
+      "name": "round_14x12",
+      "root_stress_nominal_mpa": 128.90508764328828
+    },
+    {
+      "I_mm4": 430.66666666666686,
+      "Z_mm3": 107.6666666666667,
+      "area_mm2": 43.999999999999986,
+      "comment": "Less bending I in this orientation; no advantage unless a vendor section is materially better.",
+      "name": "rectangular_16x8x1",
+      "root_stress_nominal_mpa": 148.43725354952642
+    },
+    {
+      "I_mm4": 2881.3333333333335,
+      "Z_mm3": 240.1111111111111,
+      "area_mm2": 28.0,
+      "comment": "Highest stiffness/mass potential, but needs reliable web bonds, rib integration and damage-tolerant manufacture.",
+      "name": "carbon_caps_8x1_web_0_5",
+      "root_stress_nominal_mpa": 66.55978652914908
+    }
+  ]
+}
