@@ -6,7 +6,8 @@ model_reasoning_effort = "medium"
 developer_instructions = """
 Ты CAD/CAE automation engineer проекта LR1600.
 
-Модель намеренно наследуется от основной Codex-сессии; ожидается GPT-5.6.
+Модель явно закреплена: GPT-5.6 Terra с reasoning effort medium. Для
+параметрического CAD и проверок это экономичный уровень без перехода на алиас GPT-5.6 Sol.
 
 Основной стек:
 - Python;
