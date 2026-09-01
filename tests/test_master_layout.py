@@ -5,10 +5,12 @@ import pytest
 
 from cad.master_layout.model import master_layout_from_config
 from scripts.config import MassBudgetConfig, load_aircraft_config
+from scripts.hardware import load_hardware_config
 
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = ROOT / "config" / "aircraft.yaml"
+HARDWARE = ROOT / "config" / "hardware.yaml"
 
 
 def test_master_layout_uses_typed_mac_and_selected_preliminary_tail_geometry():
@@ -146,3 +148,44 @@ def test_full_battery_travel_envelope_has_positive_x_clearance_to_typed_avionics
             and max(battery.zmin, box.zmin) < min(battery.zmax, box.zmax)
         )
         assert not overlaps, component_id
+
+
+def test_selected_nonbattery_hardware_layout_comes_only_from_manifest():
+    hardware = load_hardware_config(HARDWARE)
+    layout = master_layout_from_config(load_aircraft_config(CONFIG), hardware)
+
+    displayed = dict(layout.selected_hardware_envelopes)
+    expected = {
+        component.id for component in hardware.selected_components
+        if component.id not in {"flight_battery", "propulsion_propeller"} and component.has_installation_envelope
+    }
+    assert set(displayed) == expected
+    assert "flight_battery" not in displayed
+    for component_id, envelope in displayed.items():
+        component = hardware.component(component_id)
+        box = envelope.val().BoundingBox()
+        assert (box.xlen, box.ylen, box.zlen) == pytest.approx((
+            component.length_mm, component.width_mm, component.height_mm,
+        ))
+        assert ((box.xmin + box.xmax) / 2, (box.ymin + box.ymax) / 2, (box.zmin + box.zmax) / 2) == pytest.approx((
+            component.x_mm, component.y_mm, component.z_mm,
+        ))
+
+    prop = hardware.component("propulsion_propeller")
+    prop_box = layout.selected_propeller_disk.val().BoundingBox()
+    assert (prop_box.ylen, prop_box.zlen) == pytest.approx((prop.length_mm, prop.height_mm))
+    assert (prop_box.xmin + prop_box.xmax) / 2 == pytest.approx(prop.x_mm)
+    assert layout.high_current_route == hardware.high_current_route
+    assert tuple(item_id for item_id, _ in layout.antenna_keepout_envelopes) == tuple(item.id for item in hardware.antenna_keepouts)
+
+
+def test_hardware_manifest_does_not_false_claim_battery_removal_closure():
+    layout = master_layout_from_config(load_aircraft_config(CONFIG), load_hardware_config(HARDWARE))
+
+    # The manifest includes a candidate pack and hatch dimensions, but CG/mass
+    # moments have not closed.  The CAD reference must not imply a clearance-
+    # passed removal path or replace the current typed aircraft battery study.
+    assert layout.battery_removal_validated is False
+    assert "flight_battery" not in dict(layout.selected_hardware_envelopes)
+    assert layout.battery_envelope is not None
+    assert layout.battery_travel_envelope is not None

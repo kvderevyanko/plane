@@ -130,7 +130,7 @@ electrical:
   avionics_logic_rail_v: 5.0
   servo_rail_v: 6.0
   hotel_load_low_w: 7.0
-  hotel_load_nominal_w: 15.0
+  hotel_load_nominal_w: 16.0
   hotel_load_high_w: 25.0
 
 # Battery data reserves a removable-pack envelope. The Li-ion direction is

@@ -12,6 +12,7 @@ from dataclasses import dataclass
 import cadquery as cq
 
 from scripts.config import AircraftConfig
+from scripts.hardware import HardwareConfig
 
 
 REFERENCE_THICKNESS_MM = 0.25
@@ -36,6 +37,15 @@ class MasterLayout:
     battery_envelope: cq.Workplane | None
     battery_travel_envelope: cq.Workplane | None
     avionics_envelopes: tuple[tuple[str, cq.Workplane], ...]
+    # Selected commercial hardware is optional because aircraft geometry must
+    # remain renderable without an implementation manifest.  The flight
+    # battery is deliberately excluded below: its actual rail/hatch/removal
+    # integration is blocked by the open CG mass-moment closure.
+    selected_hardware_envelopes: tuple[tuple[str, cq.Workplane], ...]
+    selected_propeller_disk: cq.Workplane | None
+    high_current_route: tuple[tuple[float, float, float], ...]
+    antenna_keepout_envelopes: tuple[tuple[str, cq.Workplane], ...]
+    battery_removal_validated: bool
     # These are display-only axes from the wing AC to the tail AC.  They are
     # explicitly not boom tubes and do not select the still-TBD wing hardpoint.
     boom_axis_segments: tuple[tuple[tuple[float, float, float], tuple[float, float, float]], ...]
@@ -267,8 +277,54 @@ def _avionics_envelopes(config: AircraftConfig) -> tuple[tuple[str, cq.Workplane
     )
 
 
-def master_layout_from_config(config: AircraftConfig) -> MasterLayout:
-    """Return a master layout built exclusively from typed source parameters."""
+def _selected_hardware_layout(hardware: HardwareConfig | None) -> tuple[
+        tuple[tuple[str, cq.Workplane], ...], cq.Workplane | None,
+        tuple[tuple[float, float, float], ...], tuple[tuple[str, cq.Workplane], ...],
+    ]:
+    """Return display solids supplied solely by the commercial manifest.
+
+    A component box is intentionally a dimensional installation envelope, not
+    an inferred CAD model.  The propeller receives a radial YZ disk; its YAML
+    ``length`` and ``height`` record the diameter, not box axes.  Flight-battery
+    removal/hatch geometry is not returned as passing because mass/CG closure
+    has explicitly blocked that integration gate.
+    """
+    if hardware is None:
+        return (), None, (), ()
+    boxes: list[tuple[str, cq.Workplane]] = []
+    propeller_disk: cq.Workplane | None = None
+    for component in hardware.selected_components:
+        if component.id == "flight_battery":
+            continue
+        if component.id == "propulsion_propeller":
+            assert component.length_mm is not None
+            assert component.x_mm is not None and component.y_mm is not None and component.z_mm is not None
+            propeller_disk = (
+                cq.Workplane("YZ").circle(component.length_mm / 2.0).extrude(REFERENCE_THICKNESS_MM)
+                .translate((component.x_mm - REFERENCE_THICKNESS_MM / 2.0, component.y_mm, component.z_mm))
+            )
+            continue
+        if component.has_installation_envelope:
+            boxes.append((component.id, _centered_box(
+                length_mm=component.length_mm, width_mm=component.width_mm, height_mm=component.height_mm,
+                x_mm=component.x_mm, y_mm=component.y_mm, z_mm=component.z_mm,
+            )))
+    keepouts = tuple(
+        (item.id, _centered_box(
+            length_mm=item.length_mm, width_mm=item.width_mm, height_mm=item.height_mm,
+            x_mm=item.x_mm, y_mm=item.y_mm, z_mm=item.z_mm,
+        ))
+        for item in hardware.antenna_keepouts if item.has_installation_envelope
+    )
+    return tuple(boxes), propeller_disk, hardware.high_current_route, keepouts
+
+
+def master_layout_from_config(config: AircraftConfig, hardware: HardwareConfig | None = None) -> MasterLayout:
+    """Return a layout from typed aircraft configuration and optional manifest.
+
+    ``hardware`` never overrides aircraft geometry.  Its selected commercial
+    component envelopes supplement the preliminary aircraft installation view.
+    """
     known_mass_items = tuple(
         (component.id, component.x_mm, component.y_mm, component.z_mm)
         for component in config.mass_budget.components
@@ -277,6 +333,7 @@ def master_layout_from_config(config: AircraftConfig) -> MasterLayout:
     horizontal_tail, elevator = _horizontal_tail_reference(config)
     vertical_fins, rudders = _vertical_tail_reference(config)
     battery_envelope, battery_travel_envelope = _battery_envelopes(config)
+    selected_hardware_envelopes, selected_propeller_disk, high_current_route, antenna_keepout_envelopes = _selected_hardware_layout(hardware)
     return MasterLayout(
         wing=_wing_reference(config),
         horizontal_tail=horizontal_tail,
@@ -289,6 +346,11 @@ def master_layout_from_config(config: AircraftConfig) -> MasterLayout:
         battery_envelope=battery_envelope,
         battery_travel_envelope=battery_travel_envelope,
         avionics_envelopes=_avionics_envelopes(config),
+        selected_hardware_envelopes=selected_hardware_envelopes,
+        selected_propeller_disk=selected_propeller_disk,
+        high_current_route=high_current_route,
+        antenna_keepout_envelopes=antenna_keepout_envelopes,
+        battery_removal_validated=False,
         boom_axis_segments=_boom_axis_segments(config),
         mac_leading_edge_x_mm=config.wing.mean_aerodynamic_chord_leading_edge_x_mm,
         mac_mm=config.wing.mean_aerodynamic_chord_mm,

@@ -103,7 +103,7 @@
       "discharge_note": "verify cell and parallel-count voltage sag at 2.3--5.8C peak",
       "energy_mass_cases": [
         {
-          "broad_peak_pack_c_rate": 5.48,
+          "broad_peak_pack_c_rate": 5.488,
           "estimated_pack_mass_g": {
             "max": 625.0,
             "min": 520.8333333333334
@@ -112,7 +112,7 @@
           "usable_energy_wh": 100.0
         },
         {
-          "broad_peak_pack_c_rate": 3.6533333333333333,
+          "broad_peak_pack_c_rate": 3.6586666666666665,
           "estimated_pack_mass_g": {
             "max": 937.5,
             "min": 781.25
@@ -121,7 +121,7 @@
           "usable_energy_wh": 150.0
         },
         {
-          "broad_peak_pack_c_rate": 2.74,
+          "broad_peak_pack_c_rate": 2.744,
           "estimated_pack_mass_g": {
             "max": 1250.0,
             "min": 1041.6666666666667
@@ -130,7 +130,7 @@
           "usable_energy_wh": 200.0
         },
         {
-          "broad_peak_pack_c_rate": 2.192,
+          "broad_peak_pack_c_rate": 2.1952,
           "estimated_pack_mass_g": {
             "max": 1562.5,
             "min": 1302.0833333333333
@@ -149,7 +149,7 @@
       "discharge_note": "typically easier peak-current margin; verify actual pack C rating and sag",
       "energy_mass_cases": [
         {
-          "broad_peak_pack_c_rate": 5.48,
+          "broad_peak_pack_c_rate": 5.488,
           "estimated_pack_mass_g": {
             "max": 833.3333333333334,
             "min": 657.8947368421053
@@ -158,7 +158,7 @@
           "usable_energy_wh": 100.0
         },
         {
-          "broad_peak_pack_c_rate": 3.6533333333333333,
+          "broad_peak_pack_c_rate": 3.6586666666666665,
           "estimated_pack_mass_g": {
             "max": 1250.0,
             "min": 986.8421052631578
@@ -167,7 +167,7 @@
           "usable_energy_wh": 150.0
         },
         {
-          "broad_peak_pack_c_rate": 2.74,
+          "broad_peak_pack_c_rate": 2.744,
           "estimated_pack_mass_g": {
             "max": 1666.6666666666667,
             "min": 1315.7894736842106
@@ -176,7 +176,7 @@
           "usable_energy_wh": 200.0
         },
         {
-          "broad_peak_pack_c_rate": 2.192,
+          "broad_peak_pack_c_rate": 2.1952,
           "estimated_pack_mass_g": {
             "max": 2083.3333333333335,
             "min": 1644.7368421052631
@@ -197,7 +197,7 @@
     "hotel_load_battery_bus_w": {
       "high": 25.0,
       "low": 7.0,
-      "nominal": 15.0
+      "nominal": 16.0
     },
     "loaded_voltage_screening_v": {
       "4S": 14.0,
@@ -250,43 +250,43 @@
       "usable_energy_wh": 250.0
     },
     {
-      "endurance_h": 0.9391852046800597,
-      "hotel_battery_bus_w": 15.0,
+      "endurance_h": 0.9304465879882239,
+      "hotel_battery_bus_w": 16.0,
       "hotel_case": "nominal",
       "propulsion_w": 91.47527186511176,
       "speed_km_h": 60.0,
-      "still_air_range_km": 56.351112280803584,
-      "total_electrical_w": 106.47527186511176,
+      "still_air_range_km": 55.826795279293435,
+      "total_electrical_w": 107.47527186511176,
       "usable_energy_wh": 100.0
     },
     {
-      "endurance_h": 1.4087778070200896,
-      "hotel_battery_bus_w": 15.0,
+      "endurance_h": 1.3956698819823359,
+      "hotel_battery_bus_w": 16.0,
       "hotel_case": "nominal",
       "propulsion_w": 91.47527186511176,
       "speed_km_h": 60.0,
-      "still_air_range_km": 84.52666842120537,
-      "total_electrical_w": 106.47527186511176,
+      "still_air_range_km": 83.74019291894015,
+      "total_electrical_w": 107.47527186511176,
       "usable_energy_wh": 150.0
     },
     {
-      "endurance_h": 1.8783704093601195,
-      "hotel_battery_bus_w": 15.0,
+      "endurance_h": 1.8608931759764478,
+      "hotel_battery_bus_w": 16.0,
       "hotel_case": "nominal",
       "propulsion_w": 91.47527186511176,
       "speed_km_h": 60.0,
-      "still_air_range_km": 112.70222456160717,
-      "total_electrical_w": 106.47527186511176,
+      "still_air_range_km": 111.65359055858687,
+      "total_electrical_w": 107.47527186511176,
       "usable_energy_wh": 200.0
     },
     {
-      "endurance_h": 2.3479630117001493,
-      "hotel_battery_bus_w": 15.0,
+      "endurance_h": 2.3261164699705597,
+      "hotel_battery_bus_w": 16.0,
       "hotel_case": "nominal",
       "propulsion_w": 91.47527186511176,
       "speed_km_h": 60.0,
-      "still_air_range_km": 140.87778070200895,
-      "total_electrical_w": 106.47527186511176,
+      "still_air_range_km": 139.5669881982336,
+      "total_electrical_w": 107.47527186511176,
       "usable_energy_wh": 250.0
     },
     {
@@ -370,43 +370,43 @@
       "usable_energy_wh": 250.0
     },
     {
-      "endurance_h": 0.6657248514446769,
-      "hotel_battery_bus_w": 15.0,
+      "endurance_h": 0.6613222647799003,
+      "hotel_battery_bus_w": 16.0,
       "hotel_case": "nominal",
       "propulsion_w": 135.2122082163403,
       "speed_km_h": 70.0,
-      "still_air_range_km": 46.60073960112738,
-      "total_electrical_w": 150.2122082163403,
+      "still_air_range_km": 46.29255853459302,
+      "total_electrical_w": 151.2122082163403,
       "usable_energy_wh": 100.0
     },
     {
-      "endurance_h": 0.9985872771670152,
-      "hotel_battery_bus_w": 15.0,
+      "endurance_h": 0.9919833971698504,
+      "hotel_battery_bus_w": 16.0,
       "hotel_case": "nominal",
       "propulsion_w": 135.2122082163403,
       "speed_km_h": 70.0,
-      "still_air_range_km": 69.90110940169106,
-      "total_electrical_w": 150.2122082163403,
+      "still_air_range_km": 69.43883780188953,
+      "total_electrical_w": 151.2122082163403,
       "usable_energy_wh": 150.0
     },
     {
-      "endurance_h": 1.3314497028893537,
-      "hotel_battery_bus_w": 15.0,
+      "endurance_h": 1.3226445295598006,
+      "hotel_battery_bus_w": 16.0,
       "hotel_case": "nominal",
       "propulsion_w": 135.2122082163403,
       "speed_km_h": 70.0,
-      "still_air_range_km": 93.20147920225476,
-      "total_electrical_w": 150.2122082163403,
+      "still_air_range_km": 92.58511706918604,
+      "total_electrical_w": 151.2122082163403,
       "usable_energy_wh": 200.0
     },
     {
-      "endurance_h": 1.664312128611692,
-      "hotel_battery_bus_w": 15.0,
+      "endurance_h": 1.6533056619497506,
+      "hotel_battery_bus_w": 16.0,
       "hotel_case": "nominal",
       "propulsion_w": 135.2122082163403,
       "speed_km_h": 70.0,
-      "still_air_range_km": 116.50184900281843,
-      "total_electrical_w": 150.2122082163403,
+      "still_air_range_km": 115.73139633648255,
+      "total_electrical_w": 151.2122082163403,
       "usable_energy_wh": 250.0
     },
     {
@@ -490,43 +490,43 @@
       "usable_energy_wh": 250.0
     },
     {
-      "endurance_h": 0.47207838160931886,
-      "hotel_battery_bus_w": 15.0,
+      "endurance_h": 0.46986027283748255,
+      "hotel_battery_bus_w": 16.0,
       "hotel_case": "nominal",
       "propulsion_w": 196.82922983911956,
       "speed_km_h": 80.0,
-      "still_air_range_km": 37.76627052874551,
-      "total_electrical_w": 211.82922983911956,
+      "still_air_range_km": 37.588821826998604,
+      "total_electrical_w": 212.82922983911956,
       "usable_energy_wh": 100.0
     },
     {
-      "endurance_h": 0.7081175724139783,
-      "hotel_battery_bus_w": 15.0,
+      "endurance_h": 0.7047904092562238,
+      "hotel_battery_bus_w": 16.0,
       "hotel_case": "nominal",
       "propulsion_w": 196.82922983911956,
       "speed_km_h": 80.0,
-      "still_air_range_km": 56.64940579311826,
-      "total_electrical_w": 211.82922983911956,
+      "still_air_range_km": 56.3832327404979,
+      "total_electrical_w": 212.82922983911956,
       "usable_energy_wh": 150.0
     },
     {
-      "endurance_h": 0.9441567632186377,
-      "hotel_battery_bus_w": 15.0,
+      "endurance_h": 0.9397205456749651,
+      "hotel_battery_bus_w": 16.0,
       "hotel_case": "nominal",
       "propulsion_w": 196.82922983911956,
       "speed_km_h": 80.0,
-      "still_air_range_km": 75.53254105749102,
-      "total_electrical_w": 211.82922983911956,
+      "still_air_range_km": 75.17764365399721,
+      "total_electrical_w": 212.82922983911956,
       "usable_energy_wh": 200.0
     },
     {
-      "endurance_h": 1.1801959540232971,
-      "hotel_battery_bus_w": 15.0,
+      "endurance_h": 1.1746506820937064,
+      "hotel_battery_bus_w": 16.0,
       "hotel_case": "nominal",
       "propulsion_w": 196.82922983911956,
       "speed_km_h": 80.0,
-      "still_air_range_km": 94.41567632186377,
-      "total_electrical_w": 211.82922983911956,
+      "still_air_range_km": 93.97205456749651,
+      "total_electrical_w": 212.82922983911956,
       "usable_energy_wh": 250.0
     },
     {
@@ -610,43 +610,43 @@
       "usable_energy_wh": 250.0
     },
     {
-      "endurance_h": 0.3431505553013442,
-      "hotel_battery_bus_w": 15.0,
+      "endurance_h": 0.34197705912395715,
+      "hotel_battery_bus_w": 16.0,
       "hotel_case": "nominal",
       "propulsion_w": 276.4172757557775,
       "speed_km_h": 90.0,
-      "still_air_range_km": 30.88354997712098,
-      "total_electrical_w": 291.4172757557775,
+      "still_air_range_km": 30.777935321156143,
+      "total_electrical_w": 292.4172757557775,
       "usable_energy_wh": 100.0
     },
     {
-      "endurance_h": 0.5147258329520163,
-      "hotel_battery_bus_w": 15.0,
+      "endurance_h": 0.5129655886859357,
+      "hotel_battery_bus_w": 16.0,
       "hotel_case": "nominal",
       "propulsion_w": 276.4172757557775,
       "speed_km_h": 90.0,
-      "still_air_range_km": 46.325324965681475,
-      "total_electrical_w": 291.4172757557775,
+      "still_air_range_km": 46.16690298173421,
+      "total_electrical_w": 292.4172757557775,
       "usable_energy_wh": 150.0
     },
     {
-      "endurance_h": 0.6863011106026884,
-      "hotel_battery_bus_w": 15.0,
+      "endurance_h": 0.6839541182479143,
+      "hotel_battery_bus_w": 16.0,
       "hotel_case": "nominal",
       "propulsion_w": 276.4172757557775,
       "speed_km_h": 90.0,
-      "still_air_range_km": 61.76709995424196,
-      "total_electrical_w": 291.4172757557775,
+      "still_air_range_km": 61.555870642312286,
+      "total_electrical_w": 292.4172757557775,
       "usable_energy_wh": 200.0
     },
     {
-      "endurance_h": 0.8578763882533605,
-      "hotel_battery_bus_w": 15.0,
+      "endurance_h": 0.8549426478098928,
+      "hotel_battery_bus_w": 16.0,
       "hotel_case": "nominal",
       "propulsion_w": 276.4172757557775,
       "speed_km_h": 90.0,
-      "still_air_range_km": 77.20887494280245,
-      "total_electrical_w": 291.4172757557775,
+      "still_air_range_km": 76.94483830289036,
+      "total_electrical_w": 292.4172757557775,
       "usable_energy_wh": 250.0
     },
     {
@@ -697,12 +697,12 @@
     "short_burst_current_a": 45.0,
     "thermal": "measured continuous rating with forced/ram airflow at installed location"
   },
-  "generated_utc": "2026-09-01T00:40:41.164894+00:00",
+  "generated_utc": "2026-09-01T01:09:43.940852+00:00",
   "hotel_load_envelope": {
     "battery_bus_continuous_w": {
       "high": 25.0,
       "low": 7.0,
-      "nominal": 15.0
+      "nominal": 16.0
     },
     "servo_transient": {
       "note": "short-duration BEC sizing input; do not add as a continuous endurance load without duty data",
@@ -743,7 +743,7 @@
       "avionics_rail": "independent clean regulated 5 V",
       "hotel_battery_bus_w_low_nominal_high": [
         7.0,
-        15.0,
+        16.0,
         25.0
       ],
       "servo_rail": "dedicated regulated 6 V; final voltage/current follows selected servos"
@@ -773,44 +773,44 @@
     {
       "cases": [
         {
-          "battery_bus_total_w": 150.2122082163403,
+          "battery_bus_total_w": 151.2122082163403,
           "case": "70_kmh_central_cruise",
-          "connector_loss_w_with_2_mohm_pair": 0.23024191323703236,
-          "current_a_at_loaded_v": 10.729443444024307,
-          "hotel_w": 15.0,
-          "minimum_copper_area_mm2_for_2pct_wire_loss": 0.6606271606249251,
+          "connector_loss_w_with_2_mohm_pair": 0.23331767258838626,
+          "current_a_at_loaded_v": 10.800872015452878,
+          "hotel_w": 16.0,
+          "minimum_copper_area_mm2_for_2pct_wire_loss": 0.6650251198085987,
           "propulsion_w": 135.2122082163403,
-          "wire_loss_w_with_2_5_mm2_0_5_m_one_way": 0.7938741168412875
+          "wire_loss_w_with_2_5_mm2_0_5_m_one_way": 0.8044793350847557
         },
         {
-          "battery_bus_total_w": 211.82922983911956,
+          "battery_bus_total_w": 212.82922983911956,
           "case": "80_kmh_central_cruise",
-          "connector_loss_w_with_2_mohm_pair": 0.4578737001452504,
-          "current_a_at_loaded_v": 15.130659274222825,
-          "hotel_w": 15.0,
-          "minimum_copper_area_mm2_for_2pct_wire_loss": 0.9316163067414338,
+          "connector_loss_w_with_2_mohm_pair": 0.4622069497338039,
+          "current_a_at_loaded_v": 15.202087845651397,
+          "hotel_w": 16.0,
+          "minimum_copper_area_mm2_for_2pct_wire_loss": 0.9360142659251073,
           "propulsion_w": 196.82922983911956,
-          "wire_loss_w_with_2_5_mm2_0_5_m_one_way": 1.5787485181008232
+          "wire_loss_w_with_2_5_mm2_0_5_m_one_way": 1.5936895626821557
         },
         {
-          "battery_bus_total_w": 505.0,
+          "battery_bus_total_w": 506.0,
           "case": "490_w_climb_integration_screen",
-          "connector_loss_w_with_2_mohm_pair": 2.6022959183673464,
-          "current_a_at_loaded_v": 36.07142857142857,
-          "hotel_w": 15.0,
-          "minimum_copper_area_mm2_for_2pct_wire_loss": 2.2209693877551016,
+          "connector_loss_w_with_2_mohm_pair": 2.6126122448979596,
+          "current_a_at_loaded_v": 36.142857142857146,
+          "hotel_w": 16.0,
+          "minimum_copper_area_mm2_for_2pct_wire_loss": 2.2253673469387754,
           "propulsion_w": 490.0,
-          "wire_loss_w_with_2_5_mm2_0_5_m_one_way": 8.97271632653061
+          "wire_loss_w_with_2_5_mm2_0_5_m_one_way": 9.008287020408163
         },
         {
-          "battery_bus_total_w": 685.0,
+          "battery_bus_total_w": 686.0,
           "case": "670_w_broader_screening_envelope",
-          "connector_loss_w_with_2_mohm_pair": 4.788010204081633,
-          "current_a_at_loaded_v": 48.92857142857143,
-          "hotel_w": 15.0,
-          "minimum_copper_area_mm2_for_2pct_wire_loss": 3.012602040816326,
+          "connector_loss_w_with_2_mohm_pair": 4.8020000000000005,
+          "current_a_at_loaded_v": 49.0,
+          "hotel_w": 16.0,
+          "minimum_copper_area_mm2_for_2pct_wire_loss": 3.017,
           "propulsion_w": 670.0,
-          "wire_loss_w_with_2_5_mm2_0_5_m_one_way": 16.509059183673468
+          "wire_loss_w_with_2_5_mm2_0_5_m_one_way": 16.557295999999997
         }
       ],
       "loaded_v": 14.0,
@@ -821,44 +821,44 @@
     {
       "cases": [
         {
-          "battery_bus_total_w": 150.2122082163403,
+          "battery_bus_total_w": 151.2122082163403,
           "case": "70_kmh_central_cruise",
-          "connector_loss_w_with_2_mohm_pair": 0.10232973921645881,
-          "current_a_at_loaded_v": 7.152962296016204,
-          "hotel_w": 15.0,
-          "minimum_copper_area_mm2_for_2pct_wire_loss": 0.29361207138885553,
+          "connector_loss_w_with_2_mohm_pair": 0.10369674337261608,
+          "current_a_at_loaded_v": 7.2005813436352515,
+          "hotel_w": 16.0,
+          "minimum_copper_area_mm2_for_2pct_wire_loss": 0.2955667199149326,
           "propulsion_w": 135.2122082163403,
-          "wire_loss_w_with_2_5_mm2_0_5_m_one_way": 0.3528329408183499
+          "wire_loss_w_with_2_5_mm2_0_5_m_one_way": 0.35754637114878024
         },
         {
-          "battery_bus_total_w": 211.82922983911956,
+          "battery_bus_total_w": 212.82922983911956,
           "case": "80_kmh_central_cruise",
-          "connector_loss_w_with_2_mohm_pair": 0.203499422286778,
-          "current_a_at_loaded_v": 10.087106182815218,
-          "hotel_w": 15.0,
-          "minimum_copper_area_mm2_for_2pct_wire_loss": 0.4140516918850818,
+          "connector_loss_w_with_2_mohm_pair": 0.20542531099280176,
+          "current_a_at_loaded_v": 10.134725230434265,
+          "hotel_w": 16.0,
+          "minimum_copper_area_mm2_for_2pct_wire_loss": 0.41600634041115886,
           "propulsion_w": 196.82922983911956,
-          "wire_loss_w_with_2_5_mm2_0_5_m_one_way": 0.7016660080448104
+          "wire_loss_w_with_2_5_mm2_0_5_m_one_way": 0.7083064723031803
         },
         {
-          "battery_bus_total_w": 505.0,
+          "battery_bus_total_w": 506.0,
           "case": "490_w_climb_integration_screen",
-          "connector_loss_w_with_2_mohm_pair": 1.1565759637188209,
-          "current_a_at_loaded_v": 24.047619047619047,
-          "hotel_w": 15.0,
-          "minimum_copper_area_mm2_for_2pct_wire_loss": 0.9870975056689343,
+          "connector_loss_w_with_2_mohm_pair": 1.1611609977324262,
+          "current_a_at_loaded_v": 24.095238095238095,
+          "hotel_w": 16.0,
+          "minimum_copper_area_mm2_for_2pct_wire_loss": 0.9890521541950111,
           "propulsion_w": 490.0,
-          "wire_loss_w_with_2_5_mm2_0_5_m_one_way": 3.9878739229024944
+          "wire_loss_w_with_2_5_mm2_0_5_m_one_way": 4.003683120181406
         },
         {
-          "battery_bus_total_w": 685.0,
+          "battery_bus_total_w": 686.0,
           "case": "670_w_broader_screening_envelope",
-          "connector_loss_w_with_2_mohm_pair": 2.1280045351473924,
-          "current_a_at_loaded_v": 32.61904761904762,
-          "hotel_w": 15.0,
-          "minimum_copper_area_mm2_for_2pct_wire_loss": 1.3389342403628115,
+          "connector_loss_w_with_2_mohm_pair": 2.134222222222222,
+          "current_a_at_loaded_v": 32.666666666666664,
+          "hotel_w": 16.0,
+          "minimum_copper_area_mm2_for_2pct_wire_loss": 1.3408888888888884,
           "propulsion_w": 670.0,
-          "wire_loss_w_with_2_5_mm2_0_5_m_one_way": 7.337359637188208
+          "wire_loss_w_with_2_5_mm2_0_5_m_one_way": 7.3587982222222195
         }
       ],
       "loaded_v": 21.0,

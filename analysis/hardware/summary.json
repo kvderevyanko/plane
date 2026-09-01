@@ -1,0 +1,347 @@
+{
+  "schema": "lr1600-hardware-baseline-mass-cg-v1",
+  "status": "mass_and_cg_closure_blocked_before_fuselage_design; selected_hardware_is_preliminary_only",
+  "source_inputs": {
+    "aircraft": "config/aircraft.yaml",
+    "hardware": "config/hardware.yaml",
+    "mass_values": "hardware manifest only"
+  },
+  "selected_preliminary_hardware": {
+    "propeller": {
+      "model": "LP14010E / 14x10E Thin Electric",
+      "mass_g": 34.02,
+      "source_url": "https://www.apcprop.com/product/14x10e/"
+    },
+    "motor": {
+      "model": "KDE4215XF-465",
+      "mass_g": 195.0,
+      "source_url": "https://www.kdedirect.com/products/kde4215xf-465"
+    },
+    "esc": {
+      "model": "Skywalker 60A V2 / 30216101",
+      "mass_g": 68.0,
+      "source_url": "https://www.hobbywing.com/en/uploads/file/20250930/64b726be7a56c9f415385f77683cdc46.pdf"
+    },
+    "battery": {
+      "model": "INR-18650-P30B 6S2P preliminary pack",
+      "mass_g": 624.0,
+      "source_url": "https://www.molicel.com/wp-content/uploads/Product-Data-Sheet-of-INR-18650-P30B-80111-1.pdf"
+    }
+  },
+  "requirement_checks": {
+    "motor_partial_kv_current_datasheet_screen": true,
+    "motor_mass_within_original_120_180g_envelope": false,
+    "motor_continuous_550w_evidence_closed": false,
+    "motor_prop_6s_apc14x10_operating_point_validated": false,
+    "esc_satisfies_continuous_and_burst_envelope": true,
+    "selected_14in_prop_boom_spacing_mm_required": 435.59999999999997,
+    "selected_14in_prop_current_460mm_boom_spacing_valid": true,
+    "15in_is_not_baseline": true
+  },
+  "battery_electrical": {
+    "cell": "Molicel INR-18650-P30B",
+    "topology": "6S2P",
+    "rows": [
+      {
+        "case": "70_kmh_central_cruise",
+        "battery_bus_w": 150.0,
+        "pack_current_a": 7.142857142857143,
+        "per_cell_current_a": 3.5714285714285716,
+        "percent_of_documented_30a_continuous": 11.904761904761905,
+        "first_order_cell_sag_v_at_17mohm_50pct_soc": 0.06071428571428572,
+        "first_order_6s_cell_only_sag_v": 0.3642857142857143,
+        "constant_power_cell_only_sag_solution_at_21_6v_50pct_soc": {
+          "pack_current_a": 7.188460379044013,
+          "per_cell_current_a": 3.5942301895220066,
+          "loaded_pack_voltage_v": 20.866777041337514
+        }
+      },
+      {
+        "case": "80_kmh_central_cruise",
+        "battery_bus_w": 212.0,
+        "pack_current_a": 10.095238095238095,
+        "per_cell_current_a": 5.0476190476190474,
+        "percent_of_documented_30a_continuous": 16.825396825396822,
+        "first_order_cell_sag_v_at_17mohm_50pct_soc": 0.08580952380952381,
+        "first_order_6s_cell_only_sag_v": 0.5148571428571429,
+        "constant_power_cell_only_sag_solution_at_21_6v_50pct_soc": {
+          "pack_current_a": 10.317499088879696,
+          "per_cell_current_a": 5.158749544439848,
+          "loaded_pack_voltage_v": 20.547615092934272
+        }
+      },
+      {
+        "case": "490_w_climb_plus_15_w_hotel",
+        "battery_bus_w": 505.0,
+        "pack_current_a": 24.047619047619047,
+        "per_cell_current_a": 12.023809523809524,
+        "percent_of_documented_30a_continuous": 40.07936507936508,
+        "first_order_cell_sag_v_at_17mohm_50pct_soc": 0.20440476190476192,
+        "first_order_6s_cell_only_sag_v": 1.2264285714285714,
+        "constant_power_cell_only_sag_solution_at_21_6v_50pct_soc": {
+          "pack_current_a": 26.761608049567933,
+          "per_cell_current_a": 13.380804024783966,
+          "loaded_pack_voltage_v": 18.87031597894407
+        }
+      },
+      {
+        "case": "670_w_broader_plus_15_w_hotel",
+        "battery_bus_w": 685.0,
+        "pack_current_a": 32.61904761904762,
+        "per_cell_current_a": 16.30952380952381,
+        "percent_of_documented_30a_continuous": 54.365079365079374,
+        "first_order_cell_sag_v_at_17mohm_50pct_soc": 0.2772619047619048,
+        "first_order_6s_cell_only_sag_v": 1.663571428571429,
+        "constant_power_cell_only_sag_solution_at_21_6v_50pct_soc": {
+          "pack_current_a": 38.83471025442679,
+          "per_cell_current_a": 19.417355127213394,
+          "loaded_pack_voltage_v": 17.63885955404847
+        }
+      }
+    ],
+    "nominal_energy_wh_typical": 129.6,
+    "usable_energy_wh_at_80_percent": 103.68,
+    "complete_pack_mass_g_design_estimate": 624.0,
+    "caveat": "DCIR sag is cell-only at documented 50% SOC; busbar, connector, temperature, aging and low-SOC effects require bench validation."
+  },
+  "mass_budget": {
+    "resolved_non_fuselage_components": {
+      "mass_g": 2179.95,
+      "x_cg_mm": 201.6014292070919,
+      "y_cg_mm": -0.023853758113718208,
+      "z_cg_mm": 0.26835477877932984,
+      "component_ids": [
+        "propulsion_motor",
+        "propulsion_propeller",
+        "propulsion_esc",
+        "flight_battery",
+        "aileron_servo_left",
+        "aileron_servo_right",
+        "rudder_servo_left",
+        "rudder_servo_right",
+        "elevator_servo",
+        "flight_controller",
+        "gnss_compass",
+        "rc_receiver",
+        "telemetry_radio",
+        "airspeed_sensor",
+        "fpv_camera",
+        "vtx",
+        "servo_regulator",
+        "logic_regulator",
+        "current_voltage_sensor",
+        "wing_structure_including_joiner",
+        "tail_boom_pair",
+        "empennage_structure",
+        "linkages_and_wing_servo_installation",
+        "propulsion_mount_and_adapter",
+        "wiring_connectors_and_fasteners"
+      ]
+    },
+    "target_mass_g": 2400.0,
+    "remaining_fuselage_group_constraint_g": 220.05000000000018,
+    "structural_sensitivity_remaining_fuselage_g": {
+      "low": 389.96000000000015,
+      "central": 220.05000000000018,
+      "high": 50.140000000000214
+    },
+    "motor_leads_disposition": "KDE 195g bare motor is used; its 250g with supplied leads/bullets is not added separately because the 85g wiring/connectors estimate explicitly includes motor leads/bullets. Confirm by measurement.",
+    "closure": "NOT a verified all-up mass: residual must contain shell/frame, tray, hatch, boom attachments, protection/skid and any omitted installation mass."
+  },
+  "cg_closure": {
+    "current_tray_mm": {
+      "min": -30.0,
+      "nominal": 0.0,
+      "max": 30.0
+    },
+    "current_tray_estimated_cg_with_favourable_minus_100mm_fuselage_group": [
+      {
+        "battery_x_mm": -30.0,
+        "assumed_fuselage_group_x_mm": -100.0,
+        "estimated_cg_x_mm": 166.14834816666666,
+        "estimated_cg_mac_fraction": 0.6821320328688525
+      },
+      {
+        "battery_x_mm": 0.0,
+        "assumed_fuselage_group_x_mm": -100.0,
+        "estimated_cg_x_mm": 173.94834816666668,
+        "estimated_cg_mac_fraction": 0.7166566230327869
+      },
+      {
+        "battery_x_mm": 30.0,
+        "assumed_fuselage_group_x_mm": -100.0,
+        "estimated_cg_x_mm": 181.74834816666666,
+        "estimated_cg_mac_fraction": 0.7511812131967213
+      }
+    ],
+    "battery_x_solver": [
+      {
+        "fuselage_group_x_assumption_mm": -200.0,
+        "target_mac_fraction": 0.24,
+        "target_cg_x_mm": 66.25925925925927,
+        "required_battery_x_mm": -378.9243804131053,
+        "inside_current_tray_travel": false
+      },
+      {
+        "fuselage_group_x_assumption_mm": -200.0,
+        "target_mac_fraction": 0.25,
+        "target_cg_x_mm": 68.51851851851852,
+        "required_battery_x_mm": -370.23492172364666,
+        "inside_current_tray_travel": false
+      },
+      {
+        "fuselage_group_x_assumption_mm": -200.0,
+        "target_mac_fraction": 0.26,
+        "target_cg_x_mm": 70.77777777777777,
+        "required_battery_x_mm": -361.54546303418795,
+        "inside_current_tray_travel": false
+      },
+      {
+        "fuselage_group_x_assumption_mm": -200.0,
+        "target_mac_fraction": 0.28,
+        "target_cg_x_mm": 75.2962962962963,
+        "required_battery_x_mm": -344.16654565527057,
+        "inside_current_tray_travel": false
+      },
+      {
+        "fuselage_group_x_assumption_mm": -100.0,
+        "target_mac_fraction": 0.24,
+        "target_cg_x_mm": 66.25925925925927,
+        "required_battery_x_mm": -414.1888034900284,
+        "inside_current_tray_travel": false
+      },
+      {
+        "fuselage_group_x_assumption_mm": -100.0,
+        "target_mac_fraction": 0.25,
+        "target_cg_x_mm": 68.51851851851852,
+        "required_battery_x_mm": -405.49934480056976,
+        "inside_current_tray_travel": false
+      },
+      {
+        "fuselage_group_x_assumption_mm": -100.0,
+        "target_mac_fraction": 0.26,
+        "target_cg_x_mm": 70.77777777777777,
+        "required_battery_x_mm": -396.80988611111104,
+        "inside_current_tray_travel": false
+      },
+      {
+        "fuselage_group_x_assumption_mm": -100.0,
+        "target_mac_fraction": 0.28,
+        "target_cg_x_mm": 75.2962962962963,
+        "required_battery_x_mm": -379.43096873219366,
+        "inside_current_tray_travel": false
+      },
+      {
+        "fuselage_group_x_assumption_mm": 0.0,
+        "target_mac_fraction": 0.24,
+        "target_cg_x_mm": 66.25925925925927,
+        "required_battery_x_mm": -449.4532265669515,
+        "inside_current_tray_travel": false
+      },
+      {
+        "fuselage_group_x_assumption_mm": 0.0,
+        "target_mac_fraction": 0.25,
+        "target_cg_x_mm": 68.51851851851852,
+        "required_battery_x_mm": -440.7637678774929,
+        "inside_current_tray_travel": false
+      },
+      {
+        "fuselage_group_x_assumption_mm": 0.0,
+        "target_mac_fraction": 0.26,
+        "target_cg_x_mm": 70.77777777777777,
+        "required_battery_x_mm": -432.07430918803414,
+        "inside_current_tray_travel": false
+      },
+      {
+        "fuselage_group_x_assumption_mm": 0.0,
+        "target_mac_fraction": 0.28,
+        "target_cg_x_mm": 75.2962962962963,
+        "required_battery_x_mm": -414.6953918091168,
+        "inside_current_tray_travel": false
+      }
+    ],
+    "result": "No 24-28% MAC target is reachable with the current X=0 +/-30 mm tray in the central ledger screen. No ballast-free initial-CG closure is claimed.",
+    "required_next_inputs": [
+      "measured/analytical wing mass centroid",
+      "empennage mass and centroid",
+      "full installation/fuselage group mass moments",
+      "actual pack build dimensions and mass"
+    ],
+    "provisional_packaging_reservation_only": "Do not set a new bay coordinate. Solver-only central sensitivity spans roughly X=-450 to -344 mm; obtain mass moments before reserving a physical rail/hatch."
+  },
+  "propeller_operating_screen": {
+    "method": "UIUC Volume-4 APC14x10E coefficient data with T=Ct*rho*n^2*D^4 and P=Cp*rho*n^3*D^5; RPMs at 90 km/h use limited interpolation/extrapolation and are not a motor+prop test.",
+    "uiuc_source_url": "https://m-selig.ae.illinois.edu/props/volume-4/data/apce_14x10_2148od_5983.txt",
+    "central_cases": [
+      {
+        "speed_km_h": 60,
+        "thrust_n": 3.04,
+        "rpm": 4500,
+        "advance_ratio": 0.625,
+        "shaft_power_w": 86,
+        "eta": 0.805
+      },
+      {
+        "speed_km_h": 70,
+        "thrust_n": 3.85,
+        "rpm": 4900,
+        "advance_ratio": 0.67,
+        "shaft_power_w": 95,
+        "eta": 0.785
+      },
+      {
+        "speed_km_h": 80,
+        "thrust_n": 4.91,
+        "rpm": 5580,
+        "advance_ratio": 0.672,
+        "shaft_power_w": 139,
+        "eta": 0.782
+      },
+      {
+        "speed_km_h": 90,
+        "thrust_n": 6.13,
+        "rpm": 6265,
+        "advance_ratio": 0.673,
+        "shaft_power_w": 196,
+        "eta": 0.781
+      }
+    ],
+    "status": "screening_only; pusher operating point and APC RPM limit remain unvalidated"
+  },
+  "motor_shortlist": [
+    {
+      "model": "KDE4215XF-465",
+      "status": "selected_candidate_pending_combo_validation",
+      "kv": 465,
+      "mass_g_bare": 195
+    },
+    {
+      "model": "KDE3520XF-400",
+      "status": "fallback_pending_combo_validation",
+      "kv": 400,
+      "mass_g_bare": 190
+    },
+    {
+      "model": "AXI 4120/20 Gold Line V3",
+      "status": "fallback_mass_penalty",
+      "kv": 465,
+      "mass_g": 315
+    }
+  ],
+  "hotel_load": {
+    "low_w": 7.0,
+    "nominal_w_hardware_backed_design_estimate": 16.0,
+    "high_w": 25.0,
+    "servo_transient_w_theoretical_simultaneous_stall": 61.2,
+    "note": "Average servo power is not inferred from stall current."
+  },
+  "tbd": [
+    "motor+APC14x10E 6S pusher bench map and installed thermal test",
+    "APC current RPM limit verification",
+    "exact fuse/anti-spark/monitor-only BMS and time-current validation",
+    "ASP D-DLVR primary manual evidence",
+    "actual pack, tray/hatch removal clearance and retention proof",
+    "fuselage/empennage/wing measured mass moments",
+    "RF legality, compass survey, antenna range and installed cooling"
+  ]
+}

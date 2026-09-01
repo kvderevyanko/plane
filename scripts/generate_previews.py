@@ -23,6 +23,7 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from cad.common.calibration_coupon import make_solid
 from cad.master_layout.model import MasterLayout, master_layout_from_config
 from scripts.config import DEFAULT_CONFIG_PATH, load_aircraft_config
+from scripts.hardware import DEFAULT_HARDWARE_PATH, load_hardware_config
 
 if TYPE_CHECKING:
     from scripts.config import AircraftConfig
@@ -115,6 +116,23 @@ def _render_master_layout_view(layout: MasterLayout, destination: Path, *, eleva
         box = envelope.val().BoundingBox()
         axis.text((box.xmin + box.xmax) / 2.0, (box.ymin + box.ymax) / 2.0, box.zmax + 5.0, component_id, color="#41356d", fontsize=6)
 
+    for component_id, envelope in layout.selected_hardware_envelopes:
+        component_faces = _mesh_faces(envelope)
+        faces_by_model.extend(component_faces)
+        axis.add_collection3d(Poly3DCollection(component_faces, facecolor="#70c1b3", edgecolor="#176b5d", linewidth=.35, alpha=.78))
+        box = envelope.val().BoundingBox()
+        axis.text((box.xmin + box.xmax) / 2.0, (box.ymin + box.ymax) / 2.0, box.zmax + 5.0, component_id, color="#145447", fontsize=6)
+    if layout.selected_propeller_disk is not None:
+        prop_faces = _mesh_faces(layout.selected_propeller_disk)
+        faces_by_model.extend(prop_faces)
+        axis.add_collection3d(Poly3DCollection(prop_faces, facecolor="#4d908e", edgecolor="#1f5d5b", linewidth=.4, alpha=.42))
+    for keepout_id, envelope in layout.antenna_keepout_envelopes:
+        keepout_faces = _mesh_faces(envelope)
+        faces_by_model.extend(keepout_faces)
+        axis.add_collection3d(Poly3DCollection(keepout_faces, facecolor="#f9c74f", edgecolor="#a15c00", linewidth=.25, alpha=.10))
+        box = envelope.val().BoundingBox()
+        axis.text((box.xmin + box.xmax) / 2.0, (box.ymin + box.ymax) / 2.0, box.zmax + 5.0, keepout_id, color="#8d5200", fontsize=6)
+
     xs = [point[0] for face in faces_by_model for point in face]
     ys = [point[1] for face in faces_by_model for point in face]
     zs = [point[2] for face in faces_by_model for point in face]
@@ -132,6 +150,9 @@ def _render_master_layout_view(layout: MasterLayout, destination: Path, *, eleva
         axis.scatter([layout.first_flight_cg_x_mm], [0], [12], color="#5b2c83", marker="D", s=32, depthshade=False)
     for start, end in layout.boom_axis_segments:
         axis.plot([start[0], end[0]], [start[1], end[1]], [start[2], end[2]], color="#536878", linestyle="--", linewidth=1.5)
+    if layout.high_current_route:
+        route_x, route_y, route_z = zip(*layout.high_current_route, strict=True)
+        axis.plot(route_x, route_y, route_z, color="#c1121f", linestyle="-.", linewidth=2.0)
     for component_id, x_mm, y_mm, z_mm in layout.known_mass_items:
         axis.scatter([x_mm], [y_mm], [z_mm], color="#b3261e", s=28, depthshade=False)
         axis.text(x_mm, y_mm, z_mm + 8, component_id, color="#7f1712", fontsize=7)
@@ -150,7 +171,9 @@ def _render_master_layout_view(layout: MasterLayout, destination: Path, *, eleva
     tail_note = "Tail/boom axes: preliminary design assumption" if layout.horizontal_tail is not None else "Tail/boom axes: TBD"
     first_flight_note = "First-flight marker: preliminary only" if layout.first_flight_cg_x_mm is not None else "First-flight marker: TBD"
     packaging_note = "Typed packaging envelopes: preliminary design assumptions" if (layout.motor_envelope or layout.esc_envelope or layout.battery_envelope or layout.avionics_envelopes) else "Packaging envelopes: TBD"
-    figure.text(0.02, 0.02, f"Datum: root leading edge | +X aft (red), +Y right (green), +Z up (blue)\nMAC: {layout.mac_mm:.3f} mm | {cg_note}\n{tail_note} | {first_flight_note}\n{packaging_note}", fontsize=8)
+    hardware_note = "Commercial hardware: selected preliminary envelopes; bench/installation validation required" if layout.selected_hardware_envelopes else "Commercial hardware envelopes: not loaded"
+    battery_note = "Battery removal/hatch clearance: NOT validated (CG/mass-moment closure blocked)"
+    figure.text(0.02, 0.02, f"Datum: root leading edge | +X aft (red), +Y right (green), +Z up (blue)\nMAC: {layout.mac_mm:.3f} mm | {cg_note}\n{tail_note} | {first_flight_note}\n{packaging_note}\n{hardware_note}\n{battery_note}", fontsize=8)
     figure.tight_layout(pad=0)
     figure.savefig(destination, transparent=False, bbox_inches="tight", pad_inches=0.02)
     plt.close(figure)
@@ -158,7 +181,8 @@ def _render_master_layout_view(layout: MasterLayout, destination: Path, *, eleva
 
 def generate_master_layout_previews(config: "AircraftConfig", output: Path) -> dict[str, Path]:
     """Write the three disposable views of the reference-only master layout."""
-    layout = master_layout_from_config(config)
+    hardware = load_hardware_config(DEFAULT_HARDWARE_PATH) if DEFAULT_HARDWARE_PATH.is_file() else None
+    layout = master_layout_from_config(config, hardware)
     for name, elevation, azimuth in (("master_layout_iso", 25, -55), ("master_layout_top", 90, -90), ("master_layout_side", 0, -90)):
         _render_master_layout_view(layout, output / MASTER_LAYOUT_VIEW_FILES[name], elevation=elevation, azimuth=azimuth)
     return {name: output / filename for name, filename in MASTER_LAYOUT_VIEW_FILES.items()}

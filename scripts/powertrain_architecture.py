@@ -39,7 +39,7 @@ VOLTAGE_ARCHITECTURES = (
     {"name": "4S", "nominal_v": 14.8, "loaded_v": 14.0, "max_charged_v": 16.8},
     {"name": "6S", "nominal_v": 22.2, "loaded_v": 21.0, "max_charged_v": 25.2},
 )
-HOTEL_LOAD_CASES_W = {"low": 7.0, "nominal": 15.0, "high": 25.0}
+HOTEL_LOAD_CASES_W = {"low": 7.0, "nominal": 16.0, "high": 25.0}
 USABLE_ENERGY_WH = (100.0, 150.0, 200.0, 250.0)
 USABLE_FRACTION = 0.80
 COPPER_RESISTIVITY_OHM_MM2_PER_M = 0.01724
@@ -125,7 +125,7 @@ def _central_propulsion_power(config: Any, clean_cases: list[dict[str, Any]], sp
 
 def _power_cases(config: Any, clean_cases: list[dict[str, Any]]) -> tuple[PowerCase, ...]:
     # 490/670 W originate from the existing propulsion integration screens;
-    # 15 W is used for a comparable nominal-hotel electrical architecture case.
+    # 16 W is the preliminary hardware-backed nominal-hotel estimate.
     return (
         PowerCase("70_kmh_central_cruise", _central_propulsion_power(config, clean_cases, 70.0), HOTEL_LOAD_CASES_W["nominal"]),
         PowerCase("80_kmh_central_cruise", _central_propulsion_power(config, clean_cases, 80.0), HOTEL_LOAD_CASES_W["nominal"]),

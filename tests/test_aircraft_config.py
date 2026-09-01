@@ -70,7 +70,7 @@ def test_repository_aircraft_yaml_loads_and_has_expected_planform():
     assert config.propulsion.propeller.diameter_min_mm == pytest.approx(330.2)
     assert config.propulsion.propeller.diameter_max_mm == pytest.approx(355.6)
     assert config.propulsion.esc.x_mm == pytest.approx(320.0)
-    assert config.electrical.hotel_load_nominal_w == pytest.approx(15.0)
+    assert config.electrical.hotel_load_nominal_w == pytest.approx(16.0)
     assert config.battery.chemistry_direction == "li_ion_preliminary"
     assert config.battery.mass_min_g == pytest.approx(520.0)
     assert config.battery.mass_max_g == pytest.approx(940.0)
