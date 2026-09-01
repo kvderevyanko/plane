@@ -3,8 +3,8 @@
 ## Scope and source of truth
 
 This module establishes a common reference for subsequent fuselage, twin-boom,
-empennage, propulsion, battery, and avionics work. It is **not** a fuselage or
-tail design, and it does not alter the wing. The wing representation is only a
+empennage, propulsion, battery, and avionics work. It is **not** external
+fuselage CAD or a hardware selection, and it does not alter the wing. The wing representation is only a
 reference geometry read from the typed
 [`config/aircraft.yaml`](../config/aircraft.yaml) model. That YAML file,
 loaded through [`scripts/config.py`](../scripts/config.py), is the single
@@ -48,12 +48,13 @@ flight.
 Each `mass_budget.components` entry has a stable `id`, human-readable `name`,
 `status`, `mass_g`, `x_mm`, `y_mm`, and `z_mm`. `side` plus a matching
 `pair_id` records left/right symmetric pairs explicitly; each physical member
-remains an individual point mass. A `known` entry requires all four numerical
-values. A `tbd` entry may use `null` for any unmeasured value and remains
-visible in calculation output. Negative and non-finite values are rejected.
+remains an individual point mass. A `known` or `design_estimate` entry requires
+all four numerical values. A `tbd` entry may use `null` for any unmeasured
+value and remains visible in calculation output. Negative and non-finite
+values are rejected.
 
-[`scripts/mass_properties.py`](../scripts/mass_properties.py) calculates only
-complete `known` entries:
+[`scripts/mass_properties.py`](../scripts/mass_properties.py) calculates a
+measurement-backed subtotal from complete `known` entries:
 
 ```text
 total mass = Σ mi
@@ -62,10 +63,12 @@ Ycg = Σ(mi × Yi) / Σmi
 Zcg = Σ(mi × Zi) / Σmi
 ```
 
-It returns the complete unresolved list with any known subtotal. If even one
-entry is `tbd`, `is_final_aircraft_cg` is false: the subtotal must never be
-labelled as final aircraft CG. The repository ledger currently contains only
-deliberate TBD placeholders, so it produces no numerical aircraft CG.
+It returns the complete unresolved list with any known subtotal. If every item
+is populated but one or more are `design_estimate`, the same calculator emits
+a separately named **estimated configuration CG**; it is never a final
+measured-aircraft CG. If even one entry is `tbd`, neither estimate nor subtotal
+may be labelled final. The repository ledger currently contains deliberate TBD
+placeholders, so it produces no numerical aircraft CG.
 
 ## Current master-layout output
 
@@ -79,17 +82,22 @@ axes run from the wing AC reference to the tail AC reference: they are neither
 boom tubes nor selected wing hardpoints. Horizontal-tail and fin leading edges
 are derived by aligning their quarter-chord reference with the typed tail AC.
 
-The propeller overlay is an explicitly non-aircraft radial-clearance inset for
-the 10/12/14/15-inch study disks. It plots typed boom axes in Y/Z only and
-states that no propeller X plane has been configured. It does not draw a motor,
-propeller installation, fuselage, battery, ESC, boom tube section, or
-electronics volume. The preview workflow creates `master_layout_iso.png`,
+When their typed preliminary sections are defined, the model additionally
+draws simple bounding envelopes for the min/max propeller disks at the typed
+propeller X/Z plane, motor, battery and full battery-X travel, plus every
+component in `avionics.components`. These are installation-volume references,
+not selected commercial hardware, mass markers, fuselage skin, wiring, or
+mounting geometry. The battery travel solid spans its configured X adjustment
+endpoints; the pack solid is centred in that typed travel interval. The ESC is
+also rendered only because `propulsion.esc` now supplies an explicit typed
+bounding envelope; its still-TBD mass-ledger item is deliberately not treated
+as a measured mass marker. The preview workflow creates `master_layout_iso.png`,
 `master_layout_top.png`, and `master_layout_side.png` in `generated/previews/`
 and lists them in its gallery.
 
 Before any fuselage geometry can be created, determine at minimum: real
-component masses/envelopes; battery form factor and allowable travel; motor,
-propeller and ESC installation envelope; wing-to-fuselage and boom structural
-interfaces; boom geometry/material; empennage planform and control authority;
-and avionics/antenna/GNSS/EMI installation constraints. Those data must be
-entered as sourced configuration values rather than guessed CAD dimensions.
+component masses; selected battery form factor; ESC envelope; wing-to-fuselage
+and boom structural interfaces; boom geometry/material; empennage planform and
+control authority; and avionics/antenna/GNSS/EMI installation constraints.
+Those data must be entered as sourced configuration values rather than guessed
+CAD dimensions.

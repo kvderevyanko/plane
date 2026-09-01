@@ -87,6 +87,140 @@ booms:
     outer_diameter_mm: null
     inner_diameter_mm: null
 
+# Preliminary powertrain architecture. Envelopes are requirements and simple
+# installation volumes, never a commercial motor/ESC/propeller selection.
+propulsion:
+  status: initial_design_assumption
+  nominal_series_count: 6
+  propeller:
+    diameter_min_mm: 330.2
+    diameter_max_mm: 355.6
+    pitch_min_mm: 228.6
+    pitch_max_mm: 254.0
+    cruise_rpm_min: 4500.0
+    cruise_rpm_max: 9000.0
+  motor:
+    kv_min_rpm_per_v: 365.0
+    kv_max_rpm_per_v: 570.0
+    continuous_electrical_power_w: 550.0
+    peak_electrical_power_w: 700.0
+    continuous_current_a: 35.0
+    peak_current_a: 45.0
+    mass_min_g: 120.0
+    mass_max_g: 180.0
+    envelope_length_mm: 70.0
+    envelope_diameter_mm: 50.0
+  esc:
+    length_mm: 55.0
+    width_mm: 35.0
+    height_mm: 18.0
+    x_mm: 320.0
+    y_mm: 0.0
+    z_mm: 0.0
+  propeller_plane_x_mm: 430.0
+  motor_cg_x_mm: 395.0
+  motor_axis_z_mm: 0.0
+
+# Propulsion and avionics rails are intentionally independent. Values are
+# preliminary electrical requirements, not a selected ESC/BEC or pack curve.
+electrical:
+  status: initial_design_assumption
+  propulsion_bus_nominal_voltage_v: 22.2
+  propulsion_bus_loaded_min_voltage_v: 21.0
+  avionics_logic_rail_v: 5.0
+  servo_rail_v: 6.0
+  hotel_load_low_w: 7.0
+  hotel_load_nominal_w: 15.0
+  hotel_load_high_w: 25.0
+
+# Battery data reserves a removable-pack envelope. The Li-ion direction is
+# conditional on verified cells/parallel-count sag and peak-current evidence.
+battery:
+  status: initial_design_assumption
+  chemistry_direction: li_ion_preliminary
+  usable_energy_preferred_min_wh: 100.0
+  usable_energy_preferred_max_wh: 150.0
+  mass_min_g: 520.0
+  mass_max_g: 940.0
+  package_length_mm: 190.0
+  package_width_mm: 65.0
+  package_height_mm: 45.0
+  nominal_x_mm: 0.0  # provisional rail centre; CG closure remains required
+  x_adjustment_min_mm: -30.0
+  x_adjustment_max_mm: 30.0
+  y_mm: 0.0
+  z_mm: 0.0
+  tray_status: preliminary_design_assumption
+
+# Display/package envelopes only: source-based placement references rather
+# than chosen boards, antennas, cameras or external fuselage geometry.
+avionics:
+  status: initial_design_assumption
+  components:
+    - id: flight_controller
+      length_mm: 55.0
+      width_mm: 55.0
+      height_mm: 20.0
+      x_mm: 135.0
+      y_mm: 0.0
+      z_mm: 0.0
+    - id: gnss_compass
+      length_mm: 65.0
+      width_mm: 65.0
+      height_mm: 20.0
+      x_mm: -80.0
+      y_mm: 0.0
+      z_mm: 55.0
+    - id: rc_receiver
+      length_mm: 50.0
+      width_mm: 30.0
+      height_mm: 15.0
+      x_mm: 130.0
+      y_mm: 45.0
+      z_mm: 0.0
+    - id: telemetry
+      length_mm: 45.0
+      width_mm: 30.0
+      height_mm: 15.0
+      x_mm: 130.0
+      y_mm: -45.0
+      z_mm: 0.0
+    - id: airspeed_sensor
+      length_mm: 40.0
+      width_mm: 30.0
+      height_mm: 15.0
+      x_mm: 190.0
+      y_mm: 0.0
+      z_mm: 0.0
+    - id: fpv_camera
+      length_mm: 30.0
+      width_mm: 30.0
+      height_mm: 30.0
+      x_mm: -145.0
+      y_mm: 0.0
+      z_mm: 0.0
+    - id: vtx
+      length_mm: 45.0
+      width_mm: 30.0
+      height_mm: 15.0
+      x_mm: 220.0
+      y_mm: -45.0
+      z_mm: 0.0
+    - id: bec_dc_dc
+      length_mm: 50.0
+      width_mm: 30.0
+      height_mm: 20.0
+      x_mm: 220.0
+      y_mm: 45.0
+      z_mm: 0.0
+    - id: current_voltage_sensor
+      length_mm: 45.0
+      width_mm: 25.0
+      height_mm: 15.0
+      x_mm: 280.0
+      y_mm: 0.0
+      z_mm: 0.0
+
 # Planned aircraft-level mass ledger.  `tbd` is deliberate: no unmeasured mass
 # or location may be invented merely to produce an apparent aircraft CG.
 mass_budget:

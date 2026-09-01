@@ -1,0 +1,599 @@
+{
+  "status": "study_cases_only_not_hardware_or_fuselage_geometry",
+  "coordinate_system": "root-wing-LE datum; +X aft; mm",
+  "cg_targets_mm": {
+    "design_min": 66.25925925925927,
+    "design_max": 75.2962962962963,
+    "first_flight_preliminary": 68.51851851851852
+  },
+  "battery_study_cases": [
+    {
+      "usable_energy_wh": 100.0,
+      "mass_g": 570.0,
+      "envelope": {
+        "length_mm": 150.0,
+        "width_mm": 55.0,
+        "height_mm": 42.0
+      }
+    },
+    {
+      "usable_energy_wh": 150.0,
+      "mass_g": 850.0,
+      "envelope": {
+        "length_mm": 190.0,
+        "width_mm": 65.0,
+        "height_mm": 45.0
+      }
+    },
+    {
+      "usable_energy_wh": 200.0,
+      "mass_g": 1140.0,
+      "envelope": {
+        "length_mm": 230.0,
+        "width_mm": 70.0,
+        "height_mm": 50.0
+      }
+    },
+    {
+      "usable_energy_wh": 250.0,
+      "mass_g": 1420.0,
+      "envelope": {
+        "length_mm": 270.0,
+        "width_mm": 75.0,
+        "height_mm": 55.0
+      }
+    }
+  ],
+  "cg_translation_sensitivity_mm": {
+    "100": {
+      "-30": -7.125,
+      "-20": -4.75,
+      "-10": -2.375,
+      "0": 0.0,
+      "10": 2.375,
+      "20": 4.75,
+      "30": 7.125
+    },
+    "150": {
+      "-30": -10.625,
+      "-20": -7.083333333333334,
+      "-10": -3.541666666666667,
+      "0": 0.0,
+      "10": 3.541666666666667,
+      "20": 7.083333333333334,
+      "30": 10.625
+    },
+    "200": {
+      "-30": -14.25,
+      "-20": -9.5,
+      "-10": -4.75,
+      "0": 0.0,
+      "10": 4.75,
+      "20": 9.5,
+      "30": 14.25
+    },
+    "250": {
+      "-30": -17.75,
+      "-20": -11.833333333333334,
+      "-10": -5.916666666666667,
+      "0": 0.0,
+      "10": 5.916666666666667,
+      "20": 11.833333333333334,
+      "30": 17.75
+    }
+  },
+  "non_battery_mass_cg_sensitivity": [
+    {
+      "battery_usable_energy_wh": 100.0,
+      "battery_mass_g": 570.0,
+      "non_battery_mass_g": 1400.0,
+      "non_battery_x_mm": 50.0,
+      "estimated_configuration_mass_g": 1970.0,
+      "battery_x_for_design_cg_min_mm": 106.19428200129958,
+      "battery_x_for_first_flight_cg_mm": 114.0025990903184,
+      "battery_x_for_design_cg_max_mm": 137.42755035737494
+    },
+    {
+      "battery_usable_energy_wh": 100.0,
+      "battery_mass_g": 570.0,
+      "non_battery_mass_g": 1400.0,
+      "non_battery_x_mm": 75.0,
+      "estimated_configuration_mass_g": 1970.0,
+      "battery_x_for_design_cg_min_mm": 44.790773229369755,
+      "battery_x_for_first_flight_cg_mm": 52.599090318388576,
+      "battery_x_for_design_cg_max_mm": 76.0240415854451
+    },
+    {
+      "battery_usable_energy_wh": 100.0,
+      "battery_mass_g": 570.0,
+      "non_battery_mass_g": 1400.0,
+      "non_battery_x_mm": 100.0,
+      "estimated_configuration_mass_g": 1970.0,
+      "battery_x_for_design_cg_min_mm": -16.61273554256007,
+      "battery_x_for_first_flight_cg_mm": -8.804418453541247,
+      "battery_x_for_design_cg_max_mm": 14.620532813515277
+    },
+    {
+      "battery_usable_energy_wh": 100.0,
+      "battery_mass_g": 570.0,
+      "non_battery_mass_g": 1600.0,
+      "non_battery_x_mm": 50.0,
+      "estimated_configuration_mass_g": 2170.0,
+      "battery_x_for_design_cg_min_mm": 111.89928525016248,
+      "battery_x_for_first_flight_cg_mm": 120.50032488628982,
+      "battery_x_for_design_cg_max_mm": 146.3034437946719
+    },
+    {
+      "battery_usable_energy_wh": 100.0,
+      "battery_mass_g": 570.0,
+      "non_battery_mass_g": 1600.0,
+      "non_battery_x_mm": 75.0,
+      "estimated_configuration_mass_g": 2170.0,
+      "battery_x_for_design_cg_min_mm": 41.72384665367125,
+      "battery_x_for_first_flight_cg_mm": 50.32488628979859,
+      "battery_x_for_design_cg_max_mm": 76.12800519818066
+    },
+    {
+      "battery_usable_energy_wh": 100.0,
+      "battery_mass_g": 570.0,
+      "non_battery_mass_g": 1600.0,
+      "non_battery_x_mm": 100.0,
+      "estimated_configuration_mass_g": 2170.0,
+      "battery_x_for_design_cg_min_mm": -28.451591942819977,
+      "battery_x_for_first_flight_cg_mm": -19.850552306692638,
+      "battery_x_for_design_cg_max_mm": 5.952566601689435
+    },
+    {
+      "battery_usable_energy_wh": 100.0,
+      "battery_mass_g": 570.0,
+      "non_battery_mass_g": 1800.0,
+      "non_battery_x_mm": 50.0,
+      "estimated_configuration_mass_g": 2370.0,
+      "battery_x_for_design_cg_min_mm": 117.60428849902539,
+      "battery_x_for_first_flight_cg_mm": 126.99805068226118,
+      "battery_x_for_design_cg_max_mm": 155.17933723196884
+    },
+    {
+      "battery_usable_energy_wh": 100.0,
+      "battery_mass_g": 570.0,
+      "non_battery_mass_g": 1800.0,
+      "non_battery_x_mm": 75.0,
+      "estimated_configuration_mass_g": 2370.0,
+      "battery_x_for_design_cg_min_mm": 38.65692007797275,
+      "battery_x_for_first_flight_cg_mm": 48.05068226120856,
+      "battery_x_for_design_cg_max_mm": 76.23196881091623
+    },
+    {
+      "battery_usable_energy_wh": 100.0,
+      "battery_mass_g": 570.0,
+      "non_battery_mass_g": 1800.0,
+      "non_battery_x_mm": 100.0,
+      "estimated_configuration_mass_g": 2370.0,
+      "battery_x_for_design_cg_min_mm": -40.29044834307988,
+      "battery_x_for_first_flight_cg_mm": -30.896686159844077,
+      "battery_x_for_design_cg_max_mm": -2.715399610136407
+    },
+    {
+      "battery_usable_energy_wh": 100.0,
+      "battery_mass_g": 570.0,
+      "non_battery_mass_g": 2000.0,
+      "non_battery_x_mm": 50.0,
+      "estimated_configuration_mass_g": 2570.0,
+      "battery_x_for_design_cg_min_mm": 123.30929174788828,
+      "battery_x_for_first_flight_cg_mm": 133.4957764782326,
+      "battery_x_for_design_cg_max_mm": 164.05523066926577
+    },
+    {
+      "battery_usable_energy_wh": 100.0,
+      "battery_mass_g": 570.0,
+      "non_battery_mass_g": 2000.0,
+      "non_battery_x_mm": 75.0,
+      "estimated_configuration_mass_g": 2570.0,
+      "battery_x_for_design_cg_min_mm": 35.58999350227425,
+      "battery_x_for_first_flight_cg_mm": 45.776478232618565,
+      "battery_x_for_design_cg_max_mm": 76.33593242365174
+    },
+    {
+      "battery_usable_energy_wh": 100.0,
+      "battery_mass_g": 570.0,
+      "non_battery_mass_g": 2000.0,
+      "non_battery_x_mm": 100.0,
+      "estimated_configuration_mass_g": 2570.0,
+      "battery_x_for_design_cg_min_mm": -52.12930474333979,
+      "battery_x_for_first_flight_cg_mm": -41.94282001299547,
+      "battery_x_for_design_cg_max_mm": -11.3833658219623
+    },
+    {
+      "battery_usable_energy_wh": 150.0,
+      "battery_mass_g": 850.0,
+      "non_battery_mass_g": 1400.0,
+      "non_battery_x_mm": 50.0,
+      "estimated_configuration_mass_g": 2250.0,
+      "battery_x_for_design_cg_min_mm": 93.03921568627452,
+      "battery_x_for_first_flight_cg_mm": 99.01960784313724,
+      "battery_x_for_design_cg_max_mm": 116.96078431372551
+    },
+    {
+      "battery_usable_energy_wh": 150.0,
+      "battery_mass_g": 850.0,
+      "non_battery_mass_g": 1400.0,
+      "non_battery_x_mm": 75.0,
+      "estimated_configuration_mass_g": 2250.0,
+      "battery_x_for_design_cg_min_mm": 51.86274509803923,
+      "battery_x_for_first_flight_cg_mm": 57.84313725490195,
+      "battery_x_for_design_cg_max_mm": 75.78431372549022
+    },
+    {
+      "battery_usable_energy_wh": 150.0,
+      "battery_mass_g": 850.0,
+      "non_battery_mass_g": 1400.0,
+      "non_battery_x_mm": 100.0,
+      "estimated_configuration_mass_g": 2250.0,
+      "battery_x_for_design_cg_min_mm": 10.686274509803933,
+      "battery_x_for_first_flight_cg_mm": 16.666666666666654,
+      "battery_x_for_design_cg_max_mm": 34.607843137254925
+    },
+    {
+      "battery_usable_energy_wh": 150.0,
+      "battery_mass_g": 850.0,
+      "non_battery_mass_g": 1600.0,
+      "non_battery_x_mm": 50.0,
+      "estimated_configuration_mass_g": 2450.0,
+      "battery_x_for_design_cg_min_mm": 96.8649237472767,
+      "battery_x_for_first_flight_cg_mm": 103.37690631808279,
+      "battery_x_for_design_cg_max_mm": 122.91285403050112
+    },
+    {
+      "battery_usable_energy_wh": 150.0,
+      "battery_mass_g": 850.0,
+      "non_battery_mass_g": 1600.0,
+      "non_battery_x_mm": 75.0,
+      "estimated_configuration_mass_g": 2450.0,
+      "battery_x_for_design_cg_min_mm": 49.80610021786494,
+      "battery_x_for_first_flight_cg_mm": 56.31808278867102,
+      "battery_x_for_design_cg_max_mm": 75.85403050108935
+    },
+    {
+      "battery_usable_energy_wh": 150.0,
+      "battery_mass_g": 850.0,
+      "non_battery_mass_g": 1600.0,
+      "non_battery_x_mm": 100.0,
+      "estimated_configuration_mass_g": 2450.0,
+      "battery_x_for_design_cg_min_mm": 2.747276688453173,
+      "battery_x_for_first_flight_cg_mm": 9.259259259259252,
+      "battery_x_for_design_cg_max_mm": 28.795206971677594
+    },
+    {
+      "battery_usable_energy_wh": 150.0,
+      "battery_mass_g": 850.0,
+      "non_battery_mass_g": 1800.0,
+      "non_battery_x_mm": 50.0,
+      "estimated_configuration_mass_g": 2650.0,
+      "battery_x_for_design_cg_min_mm": 100.69063180827888,
+      "battery_x_for_first_flight_cg_mm": 107.73420479302833,
+      "battery_x_for_design_cg_max_mm": 128.8649237472767
+    },
+    {
+      "battery_usable_energy_wh": 150.0,
+      "battery_mass_g": 850.0,
+      "non_battery_mass_g": 1800.0,
+      "non_battery_x_mm": 75.0,
+      "estimated_configuration_mass_g": 2650.0,
+      "battery_x_for_design_cg_min_mm": 47.74945533769065,
+      "battery_x_for_first_flight_cg_mm": 54.79302832244009,
+      "battery_x_for_design_cg_max_mm": 75.92374727668847
+    },
+    {
+      "battery_usable_energy_wh": 150.0,
+      "battery_mass_g": 850.0,
+      "non_battery_mass_g": 1800.0,
+      "non_battery_x_mm": 100.0,
+      "estimated_configuration_mass_g": 2650.0,
+      "battery_x_for_design_cg_min_mm": -5.191721132897587,
+      "battery_x_for_first_flight_cg_mm": 1.8518518518518505,
+      "battery_x_for_design_cg_max_mm": 22.98257080610023
+    },
+    {
+      "battery_usable_energy_wh": 150.0,
+      "battery_mass_g": 850.0,
+      "non_battery_mass_g": 2000.0,
+      "non_battery_x_mm": 50.0,
+      "estimated_configuration_mass_g": 2850.0,
+      "battery_x_for_design_cg_min_mm": 104.51633986928107,
+      "battery_x_for_first_flight_cg_mm": 112.09150326797386,
+      "battery_x_for_design_cg_max_mm": 134.8169934640523
+    },
+    {
+      "battery_usable_energy_wh": 150.0,
+      "battery_mass_g": 850.0,
+      "non_battery_mass_g": 2000.0,
+      "non_battery_x_mm": 75.0,
+      "estimated_configuration_mass_g": 2850.0,
+      "battery_x_for_design_cg_min_mm": 45.69281045751636,
+      "battery_x_for_first_flight_cg_mm": 53.26797385620915,
+      "battery_x_for_design_cg_max_mm": 75.9934640522876
+    },
+    {
+      "battery_usable_energy_wh": 150.0,
+      "battery_mass_g": 850.0,
+      "non_battery_mass_g": 2000.0,
+      "non_battery_x_mm": 100.0,
+      "estimated_configuration_mass_g": 2850.0,
+      "battery_x_for_design_cg_min_mm": -13.130718954248348,
+      "battery_x_for_first_flight_cg_mm": -5.555555555555552,
+      "battery_x_for_design_cg_max_mm": 17.169934640522904
+    },
+    {
+      "battery_usable_energy_wh": 200.0,
+      "battery_mass_g": 1140.0,
+      "non_battery_mass_g": 1400.0,
+      "non_battery_x_mm": 50.0,
+      "estimated_configuration_mass_g": 2540.0,
+      "battery_x_for_design_cg_min_mm": 86.22677063027942,
+      "battery_x_for_first_flight_cg_mm": 91.26055880441847,
+      "battery_x_for_design_cg_max_mm": 106.36192332683562
+    },
+    {
+      "battery_usable_energy_wh": 200.0,
+      "battery_mass_g": 1140.0,
+      "non_battery_mass_g": 1400.0,
+      "non_battery_x_mm": 75.0,
+      "estimated_configuration_mass_g": 2540.0,
+      "battery_x_for_design_cg_min_mm": 55.52501624431451,
+      "battery_x_for_first_flight_cg_mm": 60.558804418453555,
+      "battery_x_for_design_cg_max_mm": 75.66016894087072
+    },
+    {
+      "battery_usable_energy_wh": 200.0,
+      "battery_mass_g": 1140.0,
+      "non_battery_mass_g": 1400.0,
+      "non_battery_x_mm": 100.0,
+      "estimated_configuration_mass_g": 2540.0,
+      "battery_x_for_design_cg_min_mm": 24.823261858349596,
+      "battery_x_for_first_flight_cg_mm": 29.85705003248864,
+      "battery_x_for_design_cg_max_mm": 44.9584145549058
+    },
+    {
+      "battery_usable_energy_wh": 200.0,
+      "battery_mass_g": 1140.0,
+      "non_battery_mass_g": 1600.0,
+      "non_battery_x_mm": 50.0,
+      "estimated_configuration_mass_g": 2740.0,
+      "battery_x_for_design_cg_min_mm": 89.07927225471087,
+      "battery_x_for_first_flight_cg_mm": 94.50942170240415,
+      "battery_x_for_design_cg_max_mm": 110.79987004548411
+    },
+    {
+      "battery_usable_energy_wh": 200.0,
+      "battery_mass_g": 1140.0,
+      "non_battery_mass_g": 1600.0,
+      "non_battery_x_mm": 75.0,
+      "estimated_configuration_mass_g": 2740.0,
+      "battery_x_for_design_cg_min_mm": 53.991552956465256,
+      "battery_x_for_first_flight_cg_mm": 59.42170240415854,
+      "battery_x_for_design_cg_max_mm": 75.7121507472385
+    },
+    {
+      "battery_usable_energy_wh": 200.0,
+      "battery_mass_g": 1140.0,
+      "non_battery_mass_g": 1600.0,
+      "non_battery_x_mm": 100.0,
+      "estimated_configuration_mass_g": 2740.0,
+      "battery_x_for_design_cg_min_mm": 18.903833658219643,
+      "battery_x_for_first_flight_cg_mm": 24.33398310591292,
+      "battery_x_for_design_cg_max_mm": 40.62443144899288
+    },
+    {
+      "battery_usable_energy_wh": 200.0,
+      "battery_mass_g": 1140.0,
+      "non_battery_mass_g": 1800.0,
+      "non_battery_x_mm": 50.0,
+      "estimated_configuration_mass_g": 2940.0,
+      "battery_x_for_design_cg_min_mm": 91.93177387914233,
+      "battery_x_for_first_flight_cg_mm": 97.75828460038986,
+      "battery_x_for_design_cg_max_mm": 115.23781676413256
+    },
+    {
+      "battery_usable_energy_wh": 200.0,
+      "battery_mass_g": 1140.0,
+      "non_battery_mass_g": 1800.0,
+      "non_battery_x_mm": 75.0,
+      "estimated_configuration_mass_g": 2940.0,
+      "battery_x_for_design_cg_min_mm": 52.458089668616005,
+      "battery_x_for_first_flight_cg_mm": 58.28460038986354,
+      "battery_x_for_design_cg_max_mm": 75.76413255360625
+    },
+    {
+      "battery_usable_energy_wh": 200.0,
+      "battery_mass_g": 1140.0,
+      "non_battery_mass_g": 1800.0,
+      "non_battery_x_mm": 100.0,
+      "estimated_configuration_mass_g": 2940.0,
+      "battery_x_for_design_cg_min_mm": 12.984405458089691,
+      "battery_x_for_first_flight_cg_mm": 18.810916179337227,
+      "battery_x_for_design_cg_max_mm": 36.29044834307993
+    },
+    {
+      "battery_usable_energy_wh": 200.0,
+      "battery_mass_g": 1140.0,
+      "non_battery_mass_g": 2000.0,
+      "non_battery_x_mm": 50.0,
+      "estimated_configuration_mass_g": 3140.0,
+      "battery_x_for_design_cg_min_mm": 94.78427550357377,
+      "battery_x_for_first_flight_cg_mm": 101.00714749837557,
+      "battery_x_for_design_cg_max_mm": 119.67576348278105
+    },
+    {
+      "battery_usable_energy_wh": 200.0,
+      "battery_mass_g": 1140.0,
+      "non_battery_mass_g": 2000.0,
+      "non_battery_x_mm": 75.0,
+      "estimated_configuration_mass_g": 3140.0,
+      "battery_x_for_design_cg_min_mm": 50.92462638076675,
+      "battery_x_for_first_flight_cg_mm": 57.147498375568546,
+      "battery_x_for_design_cg_max_mm": 75.81611435997402
+    },
+    {
+      "battery_usable_energy_wh": 200.0,
+      "battery_mass_g": 1140.0,
+      "non_battery_mass_g": 2000.0,
+      "non_battery_x_mm": 100.0,
+      "estimated_configuration_mass_g": 3140.0,
+      "battery_x_for_design_cg_min_mm": 7.064977257959739,
+      "battery_x_for_first_flight_cg_mm": 13.287849252761532,
+      "battery_x_for_design_cg_max_mm": 31.956465237167013
+    },
+    {
+      "battery_usable_energy_wh": 250.0,
+      "battery_mass_g": 1420.0,
+      "non_battery_mass_g": 1400.0,
+      "non_battery_x_mm": 50.0,
+      "estimated_configuration_mass_g": 2820.0,
+      "battery_x_for_design_cg_min_mm": 82.28951486697966,
+      "battery_x_for_first_flight_cg_mm": 86.77621283255085,
+      "battery_x_for_design_cg_max_mm": 100.2363067292645
+    },
+    {
+      "battery_usable_energy_wh": 250.0,
+      "battery_mass_g": 1420.0,
+      "non_battery_mass_g": 1400.0,
+      "non_battery_x_mm": 75.0,
+      "estimated_configuration_mass_g": 2820.0,
+      "battery_x_for_design_cg_min_mm": 57.641627543036,
+      "battery_x_for_first_flight_cg_mm": 62.1283255086072,
+      "battery_x_for_design_cg_max_mm": 75.58841940532083
+    },
+    {
+      "battery_usable_energy_wh": 250.0,
+      "battery_mass_g": 1420.0,
+      "non_battery_mass_g": 1400.0,
+      "non_battery_x_mm": 100.0,
+      "estimated_configuration_mass_g": 2820.0,
+      "battery_x_for_design_cg_min_mm": 32.99374021909234,
+      "battery_x_for_first_flight_cg_mm": 37.480438184663534,
+      "battery_x_for_design_cg_max_mm": 50.94053208137718
+    },
+    {
+      "battery_usable_energy_wh": 250.0,
+      "battery_mass_g": 1420.0,
+      "non_battery_mass_g": 1600.0,
+      "non_battery_x_mm": 50.0,
+      "estimated_configuration_mass_g": 3020.0,
+      "battery_x_for_design_cg_min_mm": 84.5795513823683,
+      "battery_x_for_first_flight_cg_mm": 89.38445487741262,
+      "battery_x_for_design_cg_max_mm": 103.79916536254565
+    },
+    {
+      "battery_usable_energy_wh": 250.0,
+      "battery_mass_g": 1420.0,
+      "non_battery_mass_g": 1600.0,
+      "non_battery_x_mm": 75.0,
+      "estimated_configuration_mass_g": 3020.0,
+      "battery_x_for_design_cg_min_mm": 56.410537297861254,
+      "battery_x_for_first_flight_cg_mm": 61.21544079290558,
+      "battery_x_for_design_cg_max_mm": 75.63015127803861
+    },
+    {
+      "battery_usable_energy_wh": 250.0,
+      "battery_mass_g": 1420.0,
+      "non_battery_mass_g": 1600.0,
+      "non_battery_x_mm": 100.0,
+      "estimated_configuration_mass_g": 3020.0,
+      "battery_x_for_design_cg_min_mm": 28.24152321335421,
+      "battery_x_for_first_flight_cg_mm": 33.04642670839854,
+      "battery_x_for_design_cg_max_mm": 47.46113719353157
+    },
+    {
+      "battery_usable_energy_wh": 250.0,
+      "battery_mass_g": 1420.0,
+      "non_battery_mass_g": 1800.0,
+      "non_battery_x_mm": 50.0,
+      "estimated_configuration_mass_g": 3220.0,
+      "battery_x_for_design_cg_min_mm": 86.86958789775693,
+      "battery_x_for_first_flight_cg_mm": 91.99269692227439,
+      "battery_x_for_design_cg_max_mm": 107.36202399582683
+    },
+    {
+      "battery_usable_energy_wh": 250.0,
+      "battery_mass_g": 1420.0,
+      "non_battery_mass_g": 1800.0,
+      "non_battery_x_mm": 75.0,
+      "estimated_configuration_mass_g": 3220.0,
+      "battery_x_for_design_cg_min_mm": 55.1794470526865,
+      "battery_x_for_first_flight_cg_mm": 60.30255607720397,
+      "battery_x_for_design_cg_max_mm": 75.67188315075641
+    },
+    {
+      "battery_usable_energy_wh": 250.0,
+      "battery_mass_g": 1420.0,
+      "non_battery_mass_g": 1800.0,
+      "non_battery_x_mm": 100.0,
+      "estimated_configuration_mass_g": 3220.0,
+      "battery_x_for_design_cg_min_mm": 23.489306207616078,
+      "battery_x_for_first_flight_cg_mm": 28.612415232133547,
+      "battery_x_for_design_cg_max_mm": 43.98174230568599
+    },
+    {
+      "battery_usable_energy_wh": 250.0,
+      "battery_mass_g": 1420.0,
+      "non_battery_mass_g": 2000.0,
+      "non_battery_x_mm": 50.0,
+      "estimated_configuration_mass_g": 3420.0,
+      "battery_x_for_design_cg_min_mm": 89.15962441314555,
+      "battery_x_for_first_flight_cg_mm": 94.60093896713616,
+      "battery_x_for_design_cg_max_mm": 110.92488262910801
+    },
+    {
+      "battery_usable_energy_wh": 250.0,
+      "battery_mass_g": 1420.0,
+      "non_battery_mass_g": 2000.0,
+      "non_battery_x_mm": 75.0,
+      "estimated_configuration_mass_g": 3420.0,
+      "battery_x_for_design_cg_min_mm": 53.94835680751175,
+      "battery_x_for_first_flight_cg_mm": 59.38967136150235,
+      "battery_x_for_design_cg_max_mm": 75.7136150234742
+    },
+    {
+      "battery_usable_energy_wh": 250.0,
+      "battery_mass_g": 1420.0,
+      "non_battery_mass_g": 2000.0,
+      "non_battery_x_mm": 100.0,
+      "estimated_configuration_mass_g": 3420.0,
+      "battery_x_for_design_cg_min_mm": 18.737089201877946,
+      "battery_x_for_first_flight_cg_mm": 24.17840375586855,
+      "battery_x_for_design_cg_max_mm": 40.502347417840404
+    }
+  ],
+  "mass_properties_reuse_input_contract": {
+    "required": [
+      "resolved/design-estimate non_battery_mass_g",
+      "resolved/design-estimate non_battery_x_mm",
+      "battery mass_g",
+      "battery X travel limits"
+    ],
+    "calculation": "battery_x_for_target_cg_mm(non_battery_mass_g, non_battery_x_mm, battery_case, target_cg_x_mm)",
+    "output_status": "estimated configuration CG only until every ledger item is measured/known"
+  },
+  "internal_payload_envelope_mm": {
+    "minimum_internal_width_mm": 120.0,
+    "minimum_internal_height_mm": 90.0,
+    "battery_bay_length_mm": 280.0,
+    "useful_internal_fuselage_length_mm": 580.0,
+    "battery_adjustment_travel_mm": 60.0
+  },
+  "component_placement_constraints": {
+    "battery": "principal movable mass; removable rail/tray; positive retention; no cell compression",
+    "esc": "place in airflow near motor but upstream of propeller plane; minimize high-current loop",
+    "flight_controller": "vibration-isolated near CG; serviceable; separated from high-current wiring",
+    "gnss_compass": "remote from motor, ESC and high-current conductors; final separation requires hardware/EMI validation",
+    "receiver_vtx": "separate antennas and keep VTX thermal load away from GNSS/receiver",
+    "motor_propeller": "pusher X/Z plane remains TBD until typed propulsion geometry is selected"
+  },
+  "tbd": [
+    "selected battery chemistry, cell layout, measured mass and outer dimensions",
+    "non-battery resolved mass and X moment needed to solve an actual battery X window",
+    "motor propeller plane, motor envelope and ESC envelope",
+    "external fuselage skin, wing attachment geometry, hatch and retention proof load",
+    "measured EMI separation, cooling flow and wiring/connector routing"
+  ]
+}

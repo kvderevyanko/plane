@@ -362,7 +362,7 @@
       "usable_energy_wh": 250.0
     }
   ],
-  "generated_utc": "2026-08-31T16:23:49.809555+00:00",
+  "generated_utc": "2026-09-01T00:40:39.440159+00:00",
   "hardware_selection": {
     "battery": null,
     "esc": null,
@@ -648,6 +648,6 @@
     "fuselage/tail/boom geometry and measured full-aircraft CdA",
     "launch method and ground-run inputs",
     "propeller clearance and maximum diameter",
-    "initial CG"
+    "all-up measured CG and mass ledger closure"
   ]
 }

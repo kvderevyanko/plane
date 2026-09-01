@@ -20,19 +20,29 @@ class MassPropertiesError(ValueError):
 
 @dataclass(frozen=True)
 class MassProperties:
-    """Known-mass subtotal and the unresolved work that prevents final CG."""
+    """Known subtotal plus an explicitly distinct preliminary estimate."""
 
     total_mass_g: float
     x_cg_mm: float | None
     y_cg_mm: float | None
     z_cg_mm: float | None
     included_component_ids: tuple[str, ...]
+    estimated_total_mass_g: float | None
+    estimated_x_cg_mm: float | None
+    estimated_y_cg_mm: float | None
+    estimated_z_cg_mm: float | None
+    design_estimate_components: tuple[MassComponentConfig, ...]
     unresolved_components: tuple[MassComponentConfig, ...]
 
     @property
     def is_final_aircraft_cg(self) -> bool:
-        """True only when every configured component is resolved and nonzero total exists."""
-        return not self.unresolved_components and self.total_mass_g > 0.0
+        """True only when every configured component is measured/known."""
+        return not self.unresolved_components and not self.design_estimate_components and self.total_mass_g > 0.0
+
+    @property
+    def has_estimated_configuration_cg(self) -> bool:
+        """True only for a complete ledger containing design estimates."""
+        return not self.unresolved_components and bool(self.design_estimate_components) and self.estimated_total_mass_g is not None
 
 
 def _finite(value: float | None, field: str, component_id: str) -> float:
@@ -45,8 +55,8 @@ def _finite(value: float | None, field: str, component_id: str) -> float:
 
 
 def _validate_component(component: MassComponentConfig) -> None:
-    if component.status not in {"known", "tbd"}:
-        raise MassPropertiesError(f"{component.id}.status must be known or tbd")
+    if component.status not in {"known", "design_estimate", "tbd"}:
+        raise MassPropertiesError(f"{component.id}.status must be known, design_estimate, or tbd")
     if component.status == "tbd":
         # Values collected before the item is fully located remain explicitly
         # unresolved, but any supplied value still needs to be physically sane.
@@ -68,16 +78,18 @@ def _validate_component(component: MassComponentConfig) -> None:
 
 
 def calculate_mass_properties(components: Iterable[MassComponentConfig]) -> MassProperties:
-    """Calculate mass and CG from only complete, ``known`` point-mass items.
+    """Calculate known subtotal and a separate all-item estimated CG when valid.
 
-    ``Xcg = Σ(m_i X_i) / Σm_i`` (and identically for Y/Z).  Every ``tbd``
-    component is returned in ``unresolved_components``.  Therefore callers
-    must inspect :attr:`MassProperties.is_final_aircraft_cg` before presenting
-    a result as an aircraft-level CG.
+    ``known`` values form the measurement-backed subtotal. ``design_estimate``
+    values are accumulated only into a separate result which is emitted only
+    if no ``tbd`` values remain; that result must never be labelled final.
     """
     total_mass_g = 0.0
     x_moment = y_moment = z_moment = 0.0
     included: list[str] = []
+    estimated_mass_g = 0.0
+    estimated_x_moment = estimated_y_moment = estimated_z_moment = 0.0
+    design_estimates: list[MassComponentConfig] = []
     unresolved: list[MassComponentConfig] = []
     seen_ids: set[str] = set()
 
@@ -94,19 +106,37 @@ def calculate_mass_properties(components: Iterable[MassComponentConfig]) -> Mass
 
         mass = float(component.mass_g)
         x_mm, y_mm, z_mm = float(component.x_mm), float(component.y_mm), float(component.z_mm)
-        total_mass_g += mass
-        x_moment += mass * x_mm
-        y_moment += mass * y_mm
-        z_moment += mass * z_mm
-        included.append(component.id)
+        if component.status == "known":
+            total_mass_g += mass
+            x_moment += mass * x_mm
+            y_moment += mass * y_mm
+            z_moment += mass * z_mm
+            included.append(component.id)
+        else:
+            estimated_mass_g += mass
+            estimated_x_moment += mass * x_mm
+            estimated_y_moment += mass * y_mm
+            estimated_z_moment += mass * z_mm
+            design_estimates.append(component)
+
+    all_item_mass_g = total_mass_g + estimated_mass_g
+    estimate_is_complete = not unresolved and bool(design_estimates) and all_item_mass_g > 0.0
+    estimated_result = (
+        all_item_mass_g if estimate_is_complete else None,
+        (x_moment + estimated_x_moment) / all_item_mass_g if estimate_is_complete else None,
+        (y_moment + estimated_y_moment) / all_item_mass_g if estimate_is_complete else None,
+        (z_moment + estimated_z_moment) / all_item_mass_g if estimate_is_complete else None,
+    )
 
     if total_mass_g == 0.0:
-        return MassProperties(0.0, None, None, None, tuple(included), tuple(unresolved))
+        return MassProperties(0.0, None, None, None, tuple(included), *estimated_result, tuple(design_estimates), tuple(unresolved))
     return MassProperties(
         total_mass_g,
         x_moment / total_mass_g,
         y_moment / total_mass_g,
         z_moment / total_mass_g,
         tuple(included),
+        *estimated_result,
+        tuple(design_estimates),
         tuple(unresolved),
     )

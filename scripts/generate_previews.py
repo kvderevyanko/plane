@@ -91,6 +91,10 @@ def _render_master_layout_view(layout: MasterLayout, destination: Path, *, eleva
         (layout.elevator, "#e07a16", "#8b3b00"),
         (layout.vertical_fins, "#e5c07b", "#7b5e00"),
         (layout.rudders, "#e07a16", "#8b3b00"),
+        (layout.battery_travel_envelope, "#f6d55c", "#8f6d00"),
+        (layout.battery_envelope, "#ed553b", "#8b2e20"),
+        (layout.motor_envelope, "#8ecae6", "#1d5f73"),
+        (layout.esc_envelope, "#83c5be", "#276b68"),
     )
     faces_by_model = []
     for model, fill, edge in models:
@@ -99,6 +103,17 @@ def _render_master_layout_view(layout: MasterLayout, destination: Path, *, eleva
         model_faces = _mesh_faces(model)
         faces_by_model.extend(model_faces)
         axis.add_collection3d(Poly3DCollection(model_faces, facecolor=fill, edgecolor=edge, linewidth=0.25))
+
+    for disk in layout.propeller_disks:
+        disk_faces = _mesh_faces(disk)
+        faces_by_model.extend(disk_faces)
+        axis.add_collection3d(Poly3DCollection(disk_faces, facecolor="#a7c957", edgecolor="#386641", linewidth=0.25, alpha=.30))
+    for component_id, envelope in layout.avionics_envelopes:
+        component_faces = _mesh_faces(envelope)
+        faces_by_model.extend(component_faces)
+        axis.add_collection3d(Poly3DCollection(component_faces, facecolor="#bdb2ff", edgecolor="#5a4b9a", linewidth=0.25, alpha=.72))
+        box = envelope.val().BoundingBox()
+        axis.text((box.xmin + box.xmax) / 2.0, (box.ymin + box.ymax) / 2.0, box.zmax + 5.0, component_id, color="#41356d", fontsize=6)
 
     xs = [point[0] for face in faces_by_model for point in face]
     ys = [point[1] for face in faces_by_model for point in face]
@@ -134,30 +149,11 @@ def _render_master_layout_view(layout: MasterLayout, destination: Path, *, eleva
     cg_note = "CG band: not defined (TBD)" if layout.cg_x_range_mm is None else "CG band: initial design assumption"
     tail_note = "Tail/boom axes: preliminary design assumption" if layout.horizontal_tail is not None else "Tail/boom axes: TBD"
     first_flight_note = "First-flight marker: preliminary only" if layout.first_flight_cg_x_mm is not None else "First-flight marker: TBD"
-    figure.text(0.02, 0.02, f"Datum: root leading edge | +X aft (red), +Y right (green), +Z up (blue)\nMAC: {layout.mac_mm:.3f} mm | {cg_note}\n{tail_note} | {first_flight_note}", fontsize=8)
-    _render_propeller_clearance_inset(figure, layout)
+    packaging_note = "Typed packaging envelopes: preliminary design assumptions" if (layout.motor_envelope or layout.esc_envelope or layout.battery_envelope or layout.avionics_envelopes) else "Packaging envelopes: TBD"
+    figure.text(0.02, 0.02, f"Datum: root leading edge | +X aft (red), +Y right (green), +Z up (blue)\nMAC: {layout.mac_mm:.3f} mm | {cg_note}\n{tail_note} | {first_flight_note}\n{packaging_note}", fontsize=8)
     figure.tight_layout(pad=0)
     figure.savefig(destination, transparent=False, bbox_inches="tight", pad_inches=0.02)
     plt.close(figure)
-
-
-def _render_propeller_clearance_inset(figure: plt.Figure, layout: MasterLayout) -> None:
-    """Add a non-aircraft radial-clearance study; no propeller X plane is implied."""
-    inset = figure.add_axes((0.78, 0.65, 0.18, 0.26))
-    inset.set_aspect("equal")
-    for diameter_mm, color in ((254, "#4c78a8"), (305, "#59a14f"), (356, "#f28e2b"), (381, "#e15759")):
-        inset.add_patch(plt.Circle((0, 0), diameter_mm / 2.0, fill=False, color=color, linewidth=1.0))
-        inset.text(0, diameter_mm / 2.0 + 8, f"{diameter_mm / 25.4:.0f} in", color=color, ha="center", va="bottom", fontsize=5)
-    # ±Y axes derive from typed boom placement.  The inset is deliberately a
-    # cross-section, because the pusher propeller X remains TBD with
-    # fuselage/motor integration.
-    if layout.boom_axis_segments:
-        for start, _ in layout.boom_axis_segments:
-            inset.scatter([start[1]], [start[2]], color="#536878", marker="x", s=16, zorder=3)
-    inset.axhline(0, color="#536878", linewidth=.6)
-    inset.axvline(0, color="#536878", linewidth=.6)
-    inset.set(xlim=(-270, 270), ylim=(-270, 270), xticks=[], yticks=[], title="10–15 in disk studies\n(no prop X configured)")
-    inset.title.set_fontsize(5)
 
 
 def generate_master_layout_previews(config: "AircraftConfig", output: Path) -> dict[str, Path]:

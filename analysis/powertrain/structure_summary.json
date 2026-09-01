@@ -1,0 +1,229 @@
+{
+  "schema": "lr1600-powertrain-structure-v1",
+  "generated_utc": "2026-09-01T00:40:42.947708+00:00",
+  "status": "preliminary structural interface requirements; no production design or hardware selection",
+  "known_from_aircraft_config": {
+    "target_mass_g": 2400.0,
+    "design_load_factor_g": 4.0,
+    "gravity_m_s2": 9.80665,
+    "tail_arm_mm": 650.0,
+    "boom_axis_y_mm_each": [
+      -230.0,
+      230.0
+    ],
+    "boom_center_spacing_mm": 460.0,
+    "boom_requirement_measured_EI_Nm2": 125.0,
+    "boom_requirement_measured_GJ_Nm2": 105.0
+  },
+  "design_assumptions": {
+    "battery_landing_ejection_factor_g": 6.0,
+    "structural_proof_factor": 1.5,
+    "battery_primary_load_paths": 2,
+    "battery_nominal_pack_specific_energy_assumption_Wh_per_kg": 220.0,
+    "battery_usable_energy_fraction_assumption": 0.8,
+    "battery_retention_study_masses_g": [
+      570.0,
+      850.0,
+      1140.0,
+      1420.0
+    ],
+    "motor_electrical_power_screen_w": [
+      490.0,
+      670.0
+    ],
+    "motor_and_esc_efficiency_for_torque_screen": [
+      0.87,
+      0.98
+    ],
+    "motor_peak_rpm_screen": 6500.0,
+    "dynamic_propulsive_thrust_screen_n": 10.05,
+    "motor_mass_study_g": [
+      120.0,
+      180.0,
+      220.0
+    ],
+    "motor_cg_offset_from_mount_mm": 60.0
+  },
+  "battery_retention": {
+    "cases": [
+      {
+        "usable_energy_wh": 100.0,
+        "study_mass_g": 570.0,
+        "study_envelope_mm": {
+          "length_mm": 150.0,
+          "width_mm": 55.0,
+          "height_mm": 42.0
+        },
+        "flight_4g_inertial_load_n_per_principal_direction": 22.359161999999998,
+        "landing_ejection_6g_assumption_n_per_principal_direction": 33.538743,
+        "proof_load_n_per_principal_direction": 50.308114499999995,
+        "two_primary_stops_nominal_share_n": 25.154057249999997,
+        "load_directions_to_prove": [
+          "+X",
+          "-X",
+          "+Z (anti-ejection)",
+          "-Z",
+          "+Y",
+          "-Y"
+        ]
+      },
+      {
+        "usable_energy_wh": 150.0,
+        "study_mass_g": 850.0,
+        "study_envelope_mm": {
+          "length_mm": 190.0,
+          "width_mm": 65.0,
+          "height_mm": 45.0
+        },
+        "flight_4g_inertial_load_n_per_principal_direction": 33.34261,
+        "landing_ejection_6g_assumption_n_per_principal_direction": 50.01391499999999,
+        "proof_load_n_per_principal_direction": 75.02087249999998,
+        "two_primary_stops_nominal_share_n": 37.51043624999999,
+        "load_directions_to_prove": [
+          "+X",
+          "-X",
+          "+Z (anti-ejection)",
+          "-Z",
+          "+Y",
+          "-Y"
+        ]
+      },
+      {
+        "usable_energy_wh": 200.0,
+        "study_mass_g": 1140.0,
+        "study_envelope_mm": {
+          "length_mm": 230.0,
+          "width_mm": 70.0,
+          "height_mm": 50.0
+        },
+        "flight_4g_inertial_load_n_per_principal_direction": 44.718323999999996,
+        "landing_ejection_6g_assumption_n_per_principal_direction": 67.077486,
+        "proof_load_n_per_principal_direction": 100.61622899999999,
+        "two_primary_stops_nominal_share_n": 50.308114499999995,
+        "load_directions_to_prove": [
+          "+X",
+          "-X",
+          "+Z (anti-ejection)",
+          "-Z",
+          "+Y",
+          "-Y"
+        ]
+      },
+      {
+        "usable_energy_wh": 250.0,
+        "study_mass_g": 1420.0,
+        "study_envelope_mm": {
+          "length_mm": 270.0,
+          "width_mm": 75.0,
+          "height_mm": 55.0
+        },
+        "flight_4g_inertial_load_n_per_principal_direction": 55.70177199999999,
+        "landing_ejection_6g_assumption_n_per_principal_direction": 83.552658,
+        "proof_load_n_per_principal_direction": 125.32898699999998,
+        "two_primary_stops_nominal_share_n": 62.66449349999999,
+        "load_directions_to_prove": [
+          "+X",
+          "-X",
+          "+Z (anti-ejection)",
+          "-Z",
+          "+Y",
+          "-Y"
+        ]
+      }
+    ],
+    "requirements": [
+      "Use a full-area non-compressive cradle/support under the pack; inertia must react through tray hard-stops and straps, never through compressed cells.",
+      "Provide indexed longitudinal positions over the packaging-study 60-mm travel, positive primary end-stops, and independent secondary anti-ejection retention.",
+      "Primary hard-stops, rails and their airframe anchors must each be designed for the declared proof direction/load; a symmetric two-stop division is not redundancy evidence.",
+      "Do not make the battery hatch, foam skin, hook-and-loop alone, wire harness or cell shrink-wrap a primary structural load path.",
+      "Protect the connector/cable exit from chafe, isolate the pack from pusher-prop ingress and allow inspection/removal without battery compression."
+    ],
+    "expected_failure_modes": [
+      "rail or stop pull-out / plywood bearing-crushing at an insert",
+      "latch opening, strap tear or anchor debond leading to pack ejection",
+      "local pack abrasion, puncture or compression from an undersupported tray",
+      "3-D printed retention creep/softening under battery or VTX thermal exposure"
+    ],
+    "proof_framework": {
+      "article": "representative tray, rails, stops, secondary latch and its actual airframe attachment; use a dimensionally representative inert dummy, not a live Li-ion/LiPo pack",
+      "loading": "apply the listed proof load separately in all six directions through a broad cradle/contact fixture; do not load a real cell at a point",
+      "acceptance": [
+        "no latch release or pack migration beyond indexed tolerance",
+        "no permanent set, cracking, delamination, fastener/insert movement or rail slip",
+        "repeat removal/reinstallation and verify connector clearance after proof"
+      ],
+      "limit": "This screen does not establish crashworthiness. Flight/landing acceleration spectra and selected-pack vulnerability remain TBD."
+    }
+  },
+  "pusher_motor_interface": {
+    "cases": [
+      {
+        "electrical_power_screen_w": 490.0,
+        "shaft_power_screen_w": 417.774,
+        "rpm_screen": 6500.0,
+        "shaft_reaction_torque_nm": 0.6137612048794475,
+        "proof_torque_nm": 0.9206418073191713,
+        "dynamic_propulsive_thrust_screen_n": 10.05,
+        "proof_axial_thrust_n": 15.075000000000001
+      },
+      {
+        "electrical_power_screen_w": 670.0,
+        "shaft_power_screen_w": 571.242,
+        "rpm_screen": 6500.0,
+        "shaft_reaction_torque_nm": 0.8392245046310812,
+        "proof_torque_nm": 1.258836756946622,
+        "dynamic_propulsive_thrust_screen_n": 10.05,
+        "proof_axial_thrust_n": 15.075000000000001
+      },
+      {
+        "motor_mass_study_g": 120.0,
+        "mount_offset_study_mm": 60.0,
+        "4g_motor_inertial_load_n": 4.707191999999999,
+        "4g_mount_bending_moment_nm": 0.28243152,
+        "proof_bending_moment_nm": 0.42364727999999996
+      },
+      {
+        "motor_mass_study_g": 180.0,
+        "mount_offset_study_mm": 60.0,
+        "4g_motor_inertial_load_n": 7.060788,
+        "4g_mount_bending_moment_nm": 0.42364727999999996,
+        "proof_bending_moment_nm": 0.6354709199999999
+      },
+      {
+        "motor_mass_study_g": 220.0,
+        "mount_offset_study_mm": 60.0,
+        "4g_motor_inertial_load_n": 8.629852,
+        "4g_mount_bending_moment_nm": 0.5177911199999999,
+        "proof_bending_moment_nm": 0.7766866799999999
+      }
+    ],
+    "requirements": [
+      "Transmit axial thrust, shaft reaction torque, motor inertial bending and off-axis installation loads into a structural cross-member tied to both booms/primary fuselage structure; do not react them through foam alone.",
+      "Use an anti-rotation torque path with paired shear features/webs. A single 3-D printed tab, adhesive-only joint or unsupported thin plywood tongue is not an acceptable primary torque path.",
+      "Provide a manufacturer-specific bolt-circle/shaft/adaptor interface only after motor selection; then check bolt bearing, net section, insert pull-out, adhesive peel and local carbon crushing using actual dimensions.",
+      "Keep motor cooling and ESC airflow paths clear, retain all high-current wiring against vibration/chafe, and maintain verified propeller/boom/elevator clearance under deflection."
+    ],
+    "expected_failure_modes": [
+      "motor fastener bearing/pull-out or local crushing/splitting at insert",
+      "cross-member torsion, boom-clamp slip or adhesive peel under shaft reaction torque",
+      "mount bending/fatigue or resonance from motor mass and unbalance",
+      "thermal creep/delamination of a printed or bonded local mount"
+    ],
+    "proof_framework": {
+      "article": "representative motor-interface cross-member, boom/fuselage attachments, fasteners/inserts and cooling provisions",
+      "loading": "separately apply axial load along prop axis, torque through a calibrated arm, and transverse motor-CG load at the selected offset. Use proof values only after selected hardware confirms peak torque/static thrust.",
+      "acceptance": [
+        "no permanent alignment change, fastener movement, cracking, delamination or clamp slip",
+        "re-check prop-disk clearances and tail/boom relative alignment after proof"
+      ],
+      "limit": "The present 10.05-N value is a dynamic climb requirement, not selected-prop static thrust. The selected launch method and propeller map can govern a larger axial load."
+    }
+  },
+  "tbd_before_release": [
+    "selected battery chemistry, pack mass/dimensions, allowable support pressure and pack-specific retention instructions",
+    "selected motor mass, bolt pattern, CG offset, propeller static thrust/torque map, balance and vibration data",
+    "motor prop plane, axis Z, cross-member geometry, fuselage structural load path and boom attachment detail",
+    "actual rail/stop material, adhesive/fastener allowables, local bearing/net-section coupons and representative proof results",
+    "landing/crash acceleration spectrum, thermal environment and wiring/connector retention details"
+  ]
+}

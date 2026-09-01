@@ -27,6 +27,15 @@ class MasterLayout:
     elevator: cq.Workplane | None
     vertical_fins: cq.Workplane | None
     rudders: cq.Workplane | None
+    # Packaging solids are simple typed installation envelopes, not selected
+    # hardware or a fuselage skin.  Their stable identifiers make previews and
+    # tests independent of an assumed avionics inventory.
+    propeller_disks: tuple[cq.Workplane, ...]
+    motor_envelope: cq.Workplane | None
+    esc_envelope: cq.Workplane | None
+    battery_envelope: cq.Workplane | None
+    battery_travel_envelope: cq.Workplane | None
+    avionics_envelopes: tuple[tuple[str, cq.Workplane], ...]
     # These are display-only axes from the wing AC to the tail AC.  They are
     # explicitly not boom tubes and do not select the still-TBD wing hardpoint.
     boom_axis_segments: tuple[tuple[tuple[float, float, float], tuple[float, float, float]], ...]
@@ -174,6 +183,90 @@ def _first_flight_cg_x(config: AircraftConfig) -> float | None:
     return config.wing.mean_aerodynamic_chord_leading_edge_x_mm + recommendation.x_mac_fraction * config.wing.mean_aerodynamic_chord_mm
 
 
+def _centered_box(*, length_mm: float, width_mm: float, height_mm: float,
+                  x_mm: float, y_mm: float, z_mm: float) -> cq.Workplane:
+    """Return a display-only bounding box centred at a typed aircraft point."""
+    return cq.Workplane("XY").box(length_mm, width_mm, height_mm).translate((x_mm, y_mm, z_mm))
+
+
+def _propeller_disk_references(config: AircraftConfig) -> tuple[cq.Workplane, ...]:
+    """Return min/max typed pusher disk envelopes in the configured prop plane."""
+    propulsion = config.propulsion
+    if not propulsion.is_defined or propulsion.propeller is None or propulsion.propeller_plane_x_mm is None or propulsion.motor_axis_z_mm is None:
+        return ()
+    # YZ is normal to the aircraft +X propulsion axis, so this is an actual
+    # radial disk at the typed pusher plane. Thickness is only tessellation.
+    return tuple(
+        cq.Workplane("YZ").circle(diameter_mm / 2.0).extrude(REFERENCE_THICKNESS_MM)
+        .translate((propulsion.propeller_plane_x_mm - REFERENCE_THICKNESS_MM / 2.0, 0.0, propulsion.motor_axis_z_mm))
+        for diameter_mm in (propulsion.propeller.diameter_min_mm, propulsion.propeller.diameter_max_mm)
+    )
+
+
+def _motor_envelope(config: AircraftConfig) -> cq.Workplane | None:
+    propulsion = config.propulsion
+    if not propulsion.is_defined or propulsion.motor is None or propulsion.motor_cg_x_mm is None or propulsion.motor_axis_z_mm is None:
+        return None
+    return _centered_box(
+        length_mm=propulsion.motor.envelope_length_mm,
+        width_mm=propulsion.motor.envelope_diameter_mm,
+        height_mm=propulsion.motor.envelope_diameter_mm,
+        x_mm=propulsion.motor_cg_x_mm,
+        y_mm=0.0,
+        z_mm=propulsion.motor_axis_z_mm,
+    )
+
+
+def _esc_envelope(config: AircraftConfig) -> cq.Workplane | None:
+    """Return only the typed ESC installation bounding box."""
+    propulsion = config.propulsion
+    if not propulsion.is_defined or propulsion.esc is None:
+        return None
+    esc = propulsion.esc
+    return _centered_box(
+        length_mm=esc.length_mm, width_mm=esc.width_mm, height_mm=esc.height_mm,
+        x_mm=esc.x_mm, y_mm=esc.y_mm, z_mm=esc.z_mm,
+    )
+
+
+def _battery_envelopes(config: AircraftConfig) -> tuple[cq.Workplane | None, cq.Workplane | None]:
+    """Return the typed pack volume and its full typed X travel swept volume."""
+    battery = config.battery
+    if not battery.is_defined:
+        return None, None
+    assert battery.package_length_mm is not None
+    assert battery.package_width_mm is not None
+    assert battery.package_height_mm is not None
+    assert battery.x_adjustment_min_mm is not None
+    assert battery.x_adjustment_max_mm is not None
+    assert battery.y_mm is not None and battery.z_mm is not None
+    assert battery.nominal_x_mm is not None
+    centre_x = battery.nominal_x_mm
+    pack = _centered_box(
+        length_mm=battery.package_length_mm, width_mm=battery.package_width_mm,
+        height_mm=battery.package_height_mm, x_mm=centre_x, y_mm=battery.y_mm, z_mm=battery.z_mm,
+    )
+    travel = _centered_box(
+        length_mm=battery.package_length_mm + battery.x_adjustment_max_mm - battery.x_adjustment_min_mm,
+        width_mm=battery.package_width_mm, height_mm=battery.package_height_mm,
+        x_mm=centre_x, y_mm=battery.y_mm, z_mm=battery.z_mm,
+    )
+    return pack, travel
+
+
+def _avionics_envelopes(config: AircraftConfig) -> tuple[tuple[str, cq.Workplane], ...]:
+    """Build only the explicitly typed avionics/package bounding boxes."""
+    if not config.avionics.is_defined:
+        return ()
+    return tuple(
+        (component.id, _centered_box(
+            length_mm=component.length_mm, width_mm=component.width_mm, height_mm=component.height_mm,
+            x_mm=component.x_mm, y_mm=component.y_mm, z_mm=component.z_mm,
+        ))
+        for component in config.avionics.components
+    )
+
+
 def master_layout_from_config(config: AircraftConfig) -> MasterLayout:
     """Return a master layout built exclusively from typed source parameters."""
     known_mass_items = tuple(
@@ -183,12 +276,19 @@ def master_layout_from_config(config: AircraftConfig) -> MasterLayout:
     )
     horizontal_tail, elevator = _horizontal_tail_reference(config)
     vertical_fins, rudders = _vertical_tail_reference(config)
+    battery_envelope, battery_travel_envelope = _battery_envelopes(config)
     return MasterLayout(
         wing=_wing_reference(config),
         horizontal_tail=horizontal_tail,
         elevator=elevator,
         vertical_fins=vertical_fins,
         rudders=rudders,
+        propeller_disks=_propeller_disk_references(config),
+        motor_envelope=_motor_envelope(config),
+        esc_envelope=_esc_envelope(config),
+        battery_envelope=battery_envelope,
+        battery_travel_envelope=battery_travel_envelope,
+        avionics_envelopes=_avionics_envelopes(config),
         boom_axis_segments=_boom_axis_segments(config),
         mac_leading_edge_x_mm=config.wing.mean_aerodynamic_chord_leading_edge_x_mm,
         mac_mm=config.wing.mean_aerodynamic_chord_mm,

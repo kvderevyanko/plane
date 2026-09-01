@@ -266,12 +266,122 @@ class BoomsConfig:
 
 
 @dataclass(frozen=True)
+class PropellerEnvelopeConfig:
+    diameter_min_mm: float
+    diameter_max_mm: float
+    pitch_min_mm: float
+    pitch_max_mm: float
+    cruise_rpm_min: float
+    cruise_rpm_max: float
+
+
+@dataclass(frozen=True)
+class MotorEnvelopeConfig:
+    kv_min_rpm_per_v: float
+    kv_max_rpm_per_v: float
+    continuous_electrical_power_w: float
+    peak_electrical_power_w: float
+    continuous_current_a: float
+    peak_current_a: float
+    mass_min_g: float
+    mass_max_g: float
+    envelope_length_mm: float
+    envelope_diameter_mm: float
+
+
+@dataclass(frozen=True)
+class EscEnvelopeConfig:
+    length_mm: float
+    width_mm: float
+    height_mm: float
+    x_mm: float
+    y_mm: float
+    z_mm: float
+
+
+@dataclass(frozen=True)
+class PropulsionConfig:
+    status: Literal["tbd", "initial_design_assumption"]
+    nominal_series_count: int | None
+    propeller: PropellerEnvelopeConfig | None
+    motor: MotorEnvelopeConfig | None
+    esc: EscEnvelopeConfig | None
+    propeller_plane_x_mm: float | None
+    motor_cg_x_mm: float | None
+    motor_axis_z_mm: float | None
+
+    @property
+    def is_defined(self) -> bool:
+        return self.status == "initial_design_assumption"
+
+
+@dataclass(frozen=True)
+class ElectricalConfig:
+    status: Literal["tbd", "initial_design_assumption"]
+    propulsion_bus_nominal_voltage_v: float | None
+    propulsion_bus_loaded_min_voltage_v: float | None
+    avionics_logic_rail_v: float | None
+    servo_rail_v: float | None
+    hotel_load_low_w: float | None
+    hotel_load_nominal_w: float | None
+    hotel_load_high_w: float | None
+
+    @property
+    def is_defined(self) -> bool:
+        return self.status == "initial_design_assumption"
+
+
+@dataclass(frozen=True)
+class BatteryConfig:
+    status: Literal["tbd", "initial_design_assumption"]
+    chemistry_direction: Literal["tbd", "li_ion_preliminary", "lipo_preliminary"]
+    usable_energy_preferred_min_wh: float | None
+    usable_energy_preferred_max_wh: float | None
+    mass_min_g: float | None
+    mass_max_g: float | None
+    package_length_mm: float | None
+    package_width_mm: float | None
+    package_height_mm: float | None
+    nominal_x_mm: float | None
+    x_adjustment_min_mm: float | None
+    x_adjustment_max_mm: float | None
+    y_mm: float | None
+    z_mm: float | None
+    tray_status: Literal["tbd", "preliminary_design_assumption"]
+
+    @property
+    def is_defined(self) -> bool:
+        return self.status == "initial_design_assumption"
+
+
+@dataclass(frozen=True)
+class AvionicsComponentEnvelopeConfig:
+    id: str
+    length_mm: float
+    width_mm: float
+    height_mm: float
+    x_mm: float
+    y_mm: float
+    z_mm: float
+
+
+@dataclass(frozen=True)
+class AvionicsConfig:
+    status: Literal["tbd", "initial_design_assumption"]
+    components: tuple[AvionicsComponentEnvelopeConfig, ...]
+
+    @property
+    def is_defined(self) -> bool:
+        return self.status == "initial_design_assumption"
+
+
+@dataclass(frozen=True)
 class MassComponentConfig:
     """One point-mass ledger entry in the common aircraft coordinate system."""
 
     id: str
     name: str
-    status: Literal["known", "tbd"]
+    status: Literal["known", "design_estimate", "tbd"]
     mass_g: float | None
     x_mm: float | None
     y_mm: float | None
@@ -282,6 +392,10 @@ class MassComponentConfig:
     @property
     def is_resolved(self) -> bool:
         return self.status == "known"
+
+    @property
+    def is_design_estimate(self) -> bool:
+        return self.status == "design_estimate"
 
 
 @dataclass(frozen=True)
@@ -300,6 +414,10 @@ class AircraftConfig:
     cg: CGConfig
     tail: TailConfig
     booms: BoomsConfig
+    propulsion: PropulsionConfig
+    electrical: ElectricalConfig
+    battery: BatteryConfig
+    avionics: AvionicsConfig
     mass_budget: MassBudgetConfig
 
 
@@ -312,7 +430,7 @@ def load_aircraft_config(path: Path = DEFAULT_CONFIG_PATH) -> AircraftConfig:
     except yaml.YAMLError as error:
         raise ConfigurationError(f"Invalid YAML in {path}: {error}") from error
 
-    top_level = {"project", "wing", "spar", "materials", "aircraft", "layout", "cg", "tail", "booms", "mass_budget"}
+    top_level = {"project", "wing", "spar", "materials", "aircraft", "layout", "cg", "tail", "booms", "propulsion", "electrical", "battery", "avionics", "mass_budget"}
     missing, unknown = top_level - set(document), set(document) - top_level
     if missing:
         raise ConfigurationError(f"Configuration is missing required sections: {sorted(missing)}")
@@ -501,6 +619,118 @@ def load_aircraft_config(path: Path = DEFAULT_CONFIG_PATH) -> AircraftConfig:
             raise ConfigurationError("defined booms need positive lateral offset and complete axes")
         booms_config = BoomsConfig("initial_design_assumption", boom_y, boom_z, tail_config.aerodynamic_center_x_mm, section_config)
 
+    propulsion = _section(document, "propulsion", {"status", "nominal_series_count", "propeller", "motor", "esc", "propeller_plane_x_mm", "motor_cg_x_mm", "motor_axis_z_mm"})
+    if propulsion["status"] not in {"tbd", "initial_design_assumption"}:
+        raise ConfigurationError("propulsion.status must be 'tbd' or 'initial_design_assumption'")
+    series_count = propulsion["nominal_series_count"]
+    propeller_raw, motor_raw, esc_raw = propulsion["propeller"], propulsion["motor"], propulsion["esc"]
+    installation = tuple(_nullable_number(propulsion[key], f"propulsion.{key}") for key in ("propeller_plane_x_mm", "motor_cg_x_mm", "motor_axis_z_mm"))
+    if propulsion["status"] == "tbd":
+        if series_count is not None or propeller_raw is not None or motor_raw is not None or esc_raw is not None or any(value is not None for value in installation):
+            raise ConfigurationError("tbd propulsion must use null architecture and envelopes")
+        propulsion_config = PropulsionConfig("tbd", None, None, None, None, None, None, None)
+    else:
+        if isinstance(series_count, bool) or not isinstance(series_count, int) or series_count not in {3, 4, 6}:
+            raise ConfigurationError("defined propulsion.nominal_series_count must be 3, 4, or 6")
+        propeller = _mapping(propeller_raw, "propulsion.propeller")
+        propeller_keys = {"diameter_min_mm", "diameter_max_mm", "pitch_min_mm", "pitch_max_mm", "cruise_rpm_min", "cruise_rpm_max"}
+        if set(propeller) != propeller_keys:
+            raise ConfigurationError("propulsion.propeller has missing or unknown keys")
+        propeller_config = PropellerEnvelopeConfig(*(_positive(propeller[key], f"propulsion.propeller.{key}") for key in (
+            "diameter_min_mm", "diameter_max_mm", "pitch_min_mm", "pitch_max_mm", "cruise_rpm_min", "cruise_rpm_max",
+        )))
+        if propeller_config.diameter_min_mm > propeller_config.diameter_max_mm or propeller_config.pitch_min_mm > propeller_config.pitch_max_mm or propeller_config.cruise_rpm_min > propeller_config.cruise_rpm_max:
+            raise ConfigurationError("propulsion.propeller range minimum must not exceed maximum")
+        motor = _mapping(motor_raw, "propulsion.motor")
+        motor_keys = {"kv_min_rpm_per_v", "kv_max_rpm_per_v", "continuous_electrical_power_w", "peak_electrical_power_w", "continuous_current_a", "peak_current_a", "mass_min_g", "mass_max_g", "envelope_length_mm", "envelope_diameter_mm"}
+        if set(motor) != motor_keys:
+            raise ConfigurationError("propulsion.motor has missing or unknown keys")
+        motor_config = MotorEnvelopeConfig(*(_positive(motor[key], f"propulsion.motor.{key}") for key in (
+            "kv_min_rpm_per_v", "kv_max_rpm_per_v", "continuous_electrical_power_w", "peak_electrical_power_w", "continuous_current_a", "peak_current_a", "mass_min_g", "mass_max_g", "envelope_length_mm", "envelope_diameter_mm",
+        )))
+        if motor_config.kv_min_rpm_per_v > motor_config.kv_max_rpm_per_v or motor_config.continuous_electrical_power_w > motor_config.peak_electrical_power_w or motor_config.continuous_current_a > motor_config.peak_current_a or motor_config.mass_min_g > motor_config.mass_max_g:
+            raise ConfigurationError("propulsion.motor range/continuous values are inconsistent")
+        esc = _mapping(esc_raw, "propulsion.esc")
+        esc_keys = {"length_mm", "width_mm", "height_mm", "x_mm", "y_mm", "z_mm"}
+        if set(esc) != esc_keys:
+            raise ConfigurationError("propulsion.esc has missing or unknown keys")
+        esc_dimensions = tuple(_positive(esc[key], f"propulsion.esc.{key}") for key in ("length_mm", "width_mm", "height_mm"))
+        esc_location = tuple(_number(esc[key], f"propulsion.esc.{key}") for key in ("x_mm", "y_mm", "z_mm"))
+        esc_config = EscEnvelopeConfig(*esc_dimensions, *esc_location)
+        if any(value is None for value in installation):
+            raise ConfigurationError("defined propulsion needs propeller plane, motor CG, and motor-axis Z")
+        propeller_x, motor_x, motor_z = installation
+        propulsion_config = PropulsionConfig("initial_design_assumption", series_count, propeller_config, motor_config, esc_config, propeller_x, motor_x, motor_z)
+
+    electrical = _section(document, "electrical", {"status", "propulsion_bus_nominal_voltage_v", "propulsion_bus_loaded_min_voltage_v", "avionics_logic_rail_v", "servo_rail_v", "hotel_load_low_w", "hotel_load_nominal_w", "hotel_load_high_w"})
+    if electrical["status"] not in {"tbd", "initial_design_assumption"}:
+        raise ConfigurationError("electrical.status must be 'tbd' or 'initial_design_assumption'")
+    electrical_values = tuple(_nullable_number(electrical[key], f"electrical.{key}") for key in (
+        "propulsion_bus_nominal_voltage_v", "propulsion_bus_loaded_min_voltage_v", "avionics_logic_rail_v", "servo_rail_v", "hotel_load_low_w", "hotel_load_nominal_w", "hotel_load_high_w",
+    ))
+    if electrical["status"] == "tbd":
+        if any(value is not None for value in electrical_values):
+            raise ConfigurationError("tbd electrical must use null values")
+        electrical_config = ElectricalConfig("tbd", *(None for _ in electrical_values))
+    else:
+        if any(value is None or value <= 0 for value in electrical_values):
+            raise ConfigurationError("defined electrical values must be positive")
+        bus_nominal, bus_loaded, logic_rail, servo_rail, hotel_low, hotel_nominal, hotel_high = electrical_values
+        if bus_loaded > bus_nominal or hotel_low > hotel_nominal or hotel_nominal > hotel_high:
+            raise ConfigurationError("electrical voltage/load bounds are inconsistent")
+        electrical_config = ElectricalConfig("initial_design_assumption", *electrical_values)
+
+    battery = _section(document, "battery", {"status", "chemistry_direction", "usable_energy_preferred_min_wh", "usable_energy_preferred_max_wh", "mass_min_g", "mass_max_g", "package_length_mm", "package_width_mm", "package_height_mm", "nominal_x_mm", "x_adjustment_min_mm", "x_adjustment_max_mm", "y_mm", "z_mm", "tray_status"})
+    if battery["status"] not in {"tbd", "initial_design_assumption"}:
+        raise ConfigurationError("battery.status must be 'tbd' or 'initial_design_assumption'")
+    chemistry = battery["chemistry_direction"]
+    tray_status = battery["tray_status"]
+    if chemistry not in {"tbd", "li_ion_preliminary", "lipo_preliminary"}:
+        raise ConfigurationError("battery.chemistry_direction is invalid")
+    if tray_status not in {"tbd", "preliminary_design_assumption"}:
+        raise ConfigurationError("battery.tray_status is invalid")
+    battery_values = tuple(_nullable_number(battery[key], f"battery.{key}") for key in (
+        "usable_energy_preferred_min_wh", "usable_energy_preferred_max_wh", "mass_min_g", "mass_max_g", "package_length_mm", "package_width_mm", "package_height_mm", "nominal_x_mm", "x_adjustment_min_mm", "x_adjustment_max_mm", "y_mm", "z_mm",
+    ))
+    if battery["status"] == "tbd":
+        if chemistry != "tbd" or tray_status != "tbd" or any(value is not None for value in battery_values):
+            raise ConfigurationError("tbd battery must use tbd/null values")
+        battery_config = BatteryConfig("tbd", "tbd", *(None for _ in battery_values), "tbd")
+    else:
+        if chemistry == "tbd" or tray_status != "preliminary_design_assumption" or any(value is None for value in battery_values):
+            raise ConfigurationError("defined battery needs chemistry, tray status, and all envelope values")
+        energy_min, energy_max, mass_min, mass_max, length, width, height, nominal_x, x_min, x_max, y_mm, z_mm = battery_values
+        if min(energy_min, mass_min, length, width, height) <= 0 or energy_min > energy_max or mass_min > mass_max or x_min >= x_max:
+            raise ConfigurationError("battery envelope/range values are inconsistent")
+        battery_config = BatteryConfig("initial_design_assumption", chemistry, *battery_values, tray_status)
+
+    avionics = _section(document, "avionics", {"status", "components"})
+    if avionics["status"] not in {"tbd", "initial_design_assumption"}:
+        raise ConfigurationError("avionics.status must be 'tbd' or 'initial_design_assumption'")
+    components_raw = avionics["components"]
+    if avionics["status"] == "tbd":
+        if components_raw is not None:
+            raise ConfigurationError("tbd avionics must use null components")
+        avionics_config = AvionicsConfig("tbd", ())
+    else:
+        if not isinstance(components_raw, list) or not components_raw:
+            raise ConfigurationError("defined avionics.components must be a non-empty list")
+        component_ids: set[str] = set()
+        avionics_components: list[AvionicsComponentEnvelopeConfig] = []
+        component_keys = {"id", "length_mm", "width_mm", "height_mm", "x_mm", "y_mm", "z_mm"}
+        for index, item_raw in enumerate(components_raw):
+            item = _mapping(item_raw, f"avionics.components[{index}]")
+            if set(item) != component_keys:
+                raise ConfigurationError("avionics component has missing or unknown keys")
+            component_id = _non_empty_string(item["id"], f"avionics.components[{index}].id")
+            if component_id in component_ids:
+                raise ConfigurationError(f"duplicate avionics component id: {component_id}")
+            component_ids.add(component_id)
+            dimensions = tuple(_positive(item[key], f"avionics.components[{index}].{key}") for key in ("length_mm", "width_mm", "height_mm"))
+            location = tuple(_number(item[key], f"avionics.components[{index}].{key}") for key in ("x_mm", "y_mm", "z_mm"))
+            avionics_components.append(AvionicsComponentEnvelopeConfig(component_id, *dimensions, *location))
+        avionics_config = AvionicsConfig("initial_design_assumption", tuple(avionics_components))
+
     mass_budget = _section(document, "mass_budget", {"components"})
     components_raw = mass_budget["components"]
     if not isinstance(components_raw, list):
@@ -522,14 +752,14 @@ def load_aircraft_config(path: Path = DEFAULT_CONFIG_PATH) -> AircraftConfig:
         ids.add(component_id)
         name = _non_empty_string(item["name"], f"mass_budget.components[{index}].name")
         status = item["status"]
-        if status not in {"known", "tbd"}:
-            raise ConfigurationError(f"mass_budget.components[{index}].status must be 'known' or 'tbd'")
+        if status not in {"known", "design_estimate", "tbd"}:
+            raise ConfigurationError(f"mass_budget.components[{index}].status must be 'known', 'design_estimate', or 'tbd'")
         mass_g = _nullable_number(item["mass_g"], f"mass_budget.components[{index}].mass_g")
         if mass_g is not None and mass_g < 0:
             raise ConfigurationError(f"mass_budget.components[{index}].mass_g must not be negative")
         coordinates = tuple(_nullable_number(item[key], f"mass_budget.components[{index}].{key}") for key in ("x_mm", "y_mm", "z_mm"))
-        if status == "known" and (mass_g is None or any(value is None for value in coordinates)):
-            raise ConfigurationError(f"known mass_budget.components[{index}] needs mass_g and all coordinates")
+        if status in {"known", "design_estimate"} and (mass_g is None or any(value is None for value in coordinates)):
+            raise ConfigurationError(f"resolved mass_budget.components[{index}] needs mass_g and all coordinates")
         side = item["side"]
         if side not in {"left", "right", "center"}:
             raise ConfigurationError(f"mass_budget.components[{index}].side must be left, right, or center")
@@ -552,5 +782,6 @@ def load_aircraft_config(path: Path = DEFAULT_CONFIG_PATH) -> AircraftConfig:
 
     return AircraftConfig(
         ProjectConfig(project["name"], project["units"]), wing_config, spar_config,
-        materials_config, aircraft_config, layout_config, cg_config, tail_config, booms_config, mass_budget_config,
+        materials_config, aircraft_config, layout_config, cg_config, tail_config, booms_config,
+        propulsion_config, electrical_config, battery_config, avionics_config, mass_budget_config,
     )

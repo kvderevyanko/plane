@@ -1,0 +1,514 @@
+{
+  "generated_utc": "2026-09-01T00:45:30.633964+00:00",
+  "status": "preliminary_design_assumption; no commercial propeller, motor, or battery selected",
+  "known_from_config": {
+    "target_mass_g": 2400.0,
+    "boom_axis_y_mm_each": [
+      -230.0,
+      230.0
+    ],
+    "boom_axis_z_mm": 0.0,
+    "boom_center_spacing_mm": 460.0,
+    "selected_preliminary_propeller": {
+      "diameter_mm": [
+        330.2,
+        355.6
+      ],
+      "pitch_mm": [
+        228.6,
+        254.0
+      ],
+      "cruise_rpm": [
+        4500.0,
+        9000.0
+      ]
+    },
+    "selected_preliminary_motor_kv_rpm_per_v": [
+      365.0,
+      570.0
+    ]
+  },
+  "method_limits": [
+    "Aircraft required thrust comes from the existing wing-polar plus full-aircraft CdA sensitivity model.",
+    "Pitch speed is no-slip geometric pitch speed; it is not a propeller thrust or efficiency prediction.",
+    "Disk loading uses required aircraft thrust divided by ideal swept-disk area; it excludes induced inflow and blade geometry.",
+    "A measured thrust/power/RPM/airspeed map and installed thermal test remain mandatory before hardware selection."
+  ],
+  "design_assumptions": {
+    "air_density_kg_m3": 1.225,
+    "maximum_cruise_TAS_km_h": 90.0,
+    "pitch_speed_margin_over_maximum_TAS": [
+      1.15,
+      1.35
+    ],
+    "screen_boom_outer_diameter_mm": 20.0,
+    "screen_boom_clearance_mm": 30.0,
+    "loaded_bus_voltage_by_architecture_study_v": {
+      "4": 14.0,
+      "6": 21.0
+    },
+    "loaded_rpm_fraction": [
+      0.75,
+      0.85
+    ],
+    "motor_efficiency_for_power_to_torque_screen": 0.87,
+    "esc_efficiency_for_power_to_torque_screen": 0.98
+  },
+  "aircraft_thrust_requirement": {
+    "cruise": [
+      {
+        "speed_km_h": 60.0,
+        "required_thrust_n": {
+          "minimum": 2.020847521562243,
+          "maximum": 4.4027919660066885
+        },
+        "central_cda_required_thrust_n": 3.041680854895577
+      },
+      {
+        "speed_km_h": 70.0,
+        "required_thrust_n": {
+          "minimum": 2.4642425962229657,
+          "maximum": 5.706333645605682
+        },
+        "central_cda_required_thrust_n": 3.8537101888155583
+      },
+      {
+        "speed_km_h": 80.0,
+        "required_thrust_n": {
+          "minimum": 3.0938207749895605,
+          "maximum": 7.3283886762241295
+        },
+        "central_cda_required_thrust_n": 4.908635589804375
+      },
+      {
+        "speed_km_h": 90.0,
+        "required_thrust_n": {
+          "minimum": 3.8306326020437726,
+          "maximum": 9.190007602043773
+        },
+        "central_cda_required_thrust_n": 6.127507602043773
+      }
+    ],
+    "60_km_h_4_m_s_climb_study": {
+      "required_thrust_n": {
+        "minimum": 7.669477921562242,
+        "maximum": 10.051422366006687
+      },
+      "central_cda_required_thrust_n": 8.690311254895576
+    }
+  },
+  "propeller_working_envelope": [
+    {
+      "diameter_in": 12.0,
+      "diameter_mm": 304.79999999999995,
+      "integration_note": "fallback / higher-RPM",
+      "disk_area_m2": 0.07296587699003966,
+      "rpm_study_range": {
+        "minimum": 8500.0,
+        "maximum": 10000.0
+      },
+      "pitch_in_study_values": [
+        7.0,
+        8.0,
+        9.0
+      ],
+      "tip_speed_m_s": {
+        "minimum": 135.65397078200724,
+        "maximum": 159.59290680236148
+      },
+      "tip_mach_isa_screen": {
+        "minimum": 0.3989822670059036,
+        "maximum": 0.46939090235988673
+      },
+      "pitch_speed_km_h_full_study_bounds": {
+        "minimum": 90.678,
+        "maximum": 137.16
+      },
+      "pitch_speed_covering_90_km_h_with_margin": {
+        "target_km_h": {
+          "minimum": 103.49999999999999,
+          "maximum": 121.50000000000001
+        },
+        "pitch_rpm_combinations": [
+          {
+            "pitch_in": 7.0,
+            "rpm_for_minimum_pitch_speed": 9701.912260967378,
+            "rpm_for_maximum_pitch_speed": 11389.201349831274,
+            "compatible_rpm_range": {
+              "minimum": 9701.912260967378,
+              "maximum": 10000.0
+            }
+          },
+          {
+            "pitch_in": 8.0,
+            "rpm_for_minimum_pitch_speed": 8489.173228346455,
+            "rpm_for_maximum_pitch_speed": 9965.551181102363,
+            "compatible_rpm_range": {
+              "minimum": 8500.0,
+              "maximum": 9965.551181102363
+            }
+          },
+          {
+            "pitch_in": 9.0,
+            "rpm_for_minimum_pitch_speed": 7545.931758530183,
+            "rpm_for_maximum_pitch_speed": 8858.267716535434,
+            "compatible_rpm_range": {
+              "minimum": 8500.0,
+              "maximum": 8858.267716535434
+            }
+          }
+        ]
+      },
+      "required_thrust_disk_loading_n_m2": {
+        "cruise_60_to_90_km_h_cda_sensitivity": {
+          "minimum": 27.69578883891305,
+          "maximum": 125.94938868888359
+        },
+        "60_km_h_4_m_s_climb_high_cda_study": 137.75510938323643
+      },
+      "boom_radial_clearance_screen": {
+        "screen_boom_OD_mm": 20.0,
+        "required_clearance_mm": 30.0,
+        "margin_mm": 37.60000000000002,
+        "passes": true
+      }
+    },
+    {
+      "diameter_in": 13.0,
+      "diameter_mm": 330.2,
+      "integration_note": "preferred study",
+      "disk_area_m2": 0.08563356396747711,
+      "rpm_study_range": {
+        "minimum": 7200.0,
+        "maximum": 9000.0
+      },
+      "pitch_in_study_values": [
+        8.0,
+        9.0,
+        10.0
+      ],
+      "tip_speed_m_s": {
+        "minimum": 124.48246730584196,
+        "maximum": 155.60308413230248
+      },
+      "tip_mach_isa_screen": {
+        "minimum": 0.36612490384071167,
+        "maximum": 0.45765612980088966
+      },
+      "pitch_speed_km_h_full_study_bounds": {
+        "minimum": 87.7824,
+        "maximum": 137.16
+      },
+      "pitch_speed_covering_90_km_h_with_margin": {
+        "target_km_h": {
+          "minimum": 103.49999999999999,
+          "maximum": 121.50000000000001
+        },
+        "pitch_rpm_combinations": [
+          {
+            "pitch_in": 8.0,
+            "rpm_for_minimum_pitch_speed": 8489.173228346455,
+            "rpm_for_maximum_pitch_speed": 9965.551181102363,
+            "compatible_rpm_range": {
+              "minimum": 8489.173228346455,
+              "maximum": 9000.0
+            }
+          },
+          {
+            "pitch_in": 9.0,
+            "rpm_for_minimum_pitch_speed": 7545.931758530183,
+            "rpm_for_maximum_pitch_speed": 8858.267716535434,
+            "compatible_rpm_range": {
+              "minimum": 7545.931758530183,
+              "maximum": 8858.267716535434
+            }
+          },
+          {
+            "pitch_in": 10.0,
+            "rpm_for_minimum_pitch_speed": 6791.338582677165,
+            "rpm_for_maximum_pitch_speed": 7972.440944881891,
+            "compatible_rpm_range": {
+              "minimum": 7200.0,
+              "maximum": 7972.440944881891
+            }
+          }
+        ]
+      },
+      "required_thrust_disk_loading_n_m2": {
+        "cruise_60_to_90_km_h_cda_sensitivity": {
+          "minimum": 23.598778655641887,
+          "maximum": 107.31782231478837
+        },
+        "60_km_h_4_m_s_climb_high_cda_study": 117.37713462240262
+      },
+      "boom_radial_clearance_screen": {
+        "screen_boom_OD_mm": 20.0,
+        "required_clearance_mm": 30.0,
+        "margin_mm": 24.900000000000006,
+        "passes": true
+      }
+    },
+    {
+      "diameter_in": 14.0,
+      "diameter_mm": 355.59999999999997,
+      "integration_note": "preferred study; lowest disk loading",
+      "disk_area_m2": 0.09931466590310954,
+      "rpm_study_range": {
+        "minimum": 6500.0,
+        "maximum": 8200.0
+      },
+      "pitch_in_study_values": [
+        9.0,
+        10.0,
+        11.0
+      ],
+      "tip_speed_m_s": {
+        "minimum": 121.02462099179078,
+        "maximum": 152.67721417425915
+      },
+      "tip_mach_isa_screen": {
+        "minimum": 0.35595476762291406,
+        "maximum": 0.4490506299242916
+      },
+      "pitch_speed_km_h_full_study_bounds": {
+        "minimum": 89.154,
+        "maximum": 137.4648
+      },
+      "pitch_speed_covering_90_km_h_with_margin": {
+        "target_km_h": {
+          "minimum": 103.49999999999999,
+          "maximum": 121.50000000000001
+        },
+        "pitch_rpm_combinations": [
+          {
+            "pitch_in": 9.0,
+            "rpm_for_minimum_pitch_speed": 7545.931758530183,
+            "rpm_for_maximum_pitch_speed": 8858.267716535434,
+            "compatible_rpm_range": {
+              "minimum": 7545.931758530183,
+              "maximum": 8200.0
+            }
+          },
+          {
+            "pitch_in": 10.0,
+            "rpm_for_minimum_pitch_speed": 6791.338582677165,
+            "rpm_for_maximum_pitch_speed": 7972.440944881891,
+            "compatible_rpm_range": {
+              "minimum": 6791.338582677165,
+              "maximum": 7972.440944881891
+            }
+          },
+          {
+            "pitch_in": 11.0,
+            "rpm_for_minimum_pitch_speed": 6173.94416607015,
+            "rpm_for_maximum_pitch_speed": 7247.673586256265,
+            "compatible_rpm_range": {
+              "minimum": 6500.0,
+              "maximum": 7247.673586256265
+            }
+          }
+        ]
+      },
+      "required_thrust_disk_loading_n_m2": {
+        "cruise_60_to_90_km_h_cda_sensitivity": {
+          "minimum": 20.3479264938953,
+          "maximum": 92.53424475101652
+        },
+        "60_km_h_4_m_s_climb_high_cda_study": 101.20783546523492
+      },
+      "boom_radial_clearance_screen": {
+        "screen_boom_OD_mm": 20.0,
+        "required_clearance_mm": 30.0,
+        "margin_mm": 12.200000000000017,
+        "passes": true
+      }
+    }
+  ],
+  "preferred_preliminary_envelope": {
+    "diameter_in": [
+      13.0,
+      14.000000000000002
+    ],
+    "preferred_pitch_in": [
+      9.0,
+      10.0
+    ],
+    "configured_cruise_rpm": [
+      4500.0,
+      9000.0
+    ],
+    "rpm_schedule_for_60_to_90_km_h_TAS": [
+      {
+        "TAS_km_h": 60.0,
+        "target_no_slip_pitch_speed_km_h": {
+          "minimum": 69.0,
+          "maximum": 81.0
+        },
+        "by_pitch": [
+          {
+            "pitch_in": 9.0,
+            "rpm": {
+              "minimum": 5030.621172353456,
+              "maximum": 5905.511811023623
+            }
+          },
+          {
+            "pitch_in": 10.0,
+            "rpm": {
+              "minimum": 4527.55905511811,
+              "maximum": 5314.96062992126
+            }
+          }
+        ]
+      },
+      {
+        "TAS_km_h": 70.0,
+        "target_no_slip_pitch_speed_km_h": {
+          "minimum": 80.5,
+          "maximum": 94.5
+        },
+        "by_pitch": [
+          {
+            "pitch_in": 9.0,
+            "rpm": {
+              "minimum": 5869.0580344123655,
+              "maximum": 6889.76377952756
+            }
+          },
+          {
+            "pitch_in": 10.0,
+            "rpm": {
+              "minimum": 5282.152230971128,
+              "maximum": 6200.787401574803
+            }
+          }
+        ]
+      },
+      {
+        "TAS_km_h": 80.0,
+        "target_no_slip_pitch_speed_km_h": {
+          "minimum": 92.0,
+          "maximum": 108.0
+        },
+        "by_pitch": [
+          {
+            "pitch_in": 9.0,
+            "rpm": {
+              "minimum": 6707.494896471275,
+              "maximum": 7874.0157480314965
+            }
+          },
+          {
+            "pitch_in": 10.0,
+            "rpm": {
+              "minimum": 6036.745406824147,
+              "maximum": 7086.614173228347
+            }
+          }
+        ]
+      },
+      {
+        "TAS_km_h": 90.0,
+        "target_no_slip_pitch_speed_km_h": {
+          "minimum": 103.49999999999999,
+          "maximum": 121.50000000000001
+        },
+        "by_pitch": [
+          {
+            "pitch_in": 9.0,
+            "rpm": {
+              "minimum": 7545.931758530183,
+              "maximum": 8858.267716535434
+            }
+          },
+          {
+            "pitch_in": 10.0,
+            "rpm": {
+              "minimum": 6791.338582677165,
+              "maximum": 7972.440944881891
+            }
+          }
+        ]
+      }
+    ],
+    "top_speed_rpm_screen": {
+      "13_in": [
+        7200.0,
+        9000.0
+      ],
+      "14_in": [
+        6500.0,
+        8200.0
+      ]
+    },
+    "selected_motor_kv_rpm_per_v": [
+      365.0,
+      570.0
+    ],
+    "basis": "13\u201314 inch reduces required disk loading relative to 12 inch while passing the current 460 mm radial-clearance screen.  The shared 9\u201310 inch pitch band spans the 60\u201390 km/h pitch-speed screen at throttle-dependent RPM.  14 inch has only about 12 mm screen margin, so actual boom Z, prop plane, deflection, spinner and mount geometry must be verified."
+  },
+  "motor_implications": {
+    "shaft_torque": {
+      "central_cruise_aerodynamic_power_w": {
+        "70_km_h": 74.93325367141362,
+        "80_km_h": 109.08079088454167
+      },
+      "central_cruise_shaft_power_w_with_propeller_efficiency_0_65": {
+        "70_km_h": 115.28192872525173,
+        "80_km_h": 167.81660136083335
+      },
+      "central_cruise_torque_nm": {
+        "70_km_h_at_6500_to_7200_rpm": {
+          "minimum": 0.15289740671492813,
+          "maximum": 0.16936328128422806
+        },
+        "80_km_h_at_7000_to_8000_rpm": {
+          "minimum": 0.20031631229594038,
+          "maximum": 0.2289329283382176
+        }
+      },
+      "electrical_power_integration_screen": [
+        {
+          "electrical_power_w": 490.0,
+          "motor_shaft_power_w": 417.774,
+          "torque_nm_at_6500_rpm": 0.6137612048794475
+        },
+        {
+          "electrical_power_w": 670.0,
+          "motor_shaft_power_w": 571.242,
+          "torque_nm_at_6500_rpm": 0.8392245046310812
+        }
+      ]
+    },
+    "kv_by_voltage_architecture": {
+      "4S": {
+        "loaded_voltage_study_v": 14.0,
+        "loaded_rpm_fraction_study": [
+          0.75,
+          0.85
+        ],
+        "required_no_load_kv_for_13_to_14_in_rpm_envelope": {
+          "minimum": 546.218487394958,
+          "maximum": 857.1428571428571
+        }
+      },
+      "6S": {
+        "loaded_voltage_study_v": 21.0,
+        "loaded_rpm_fraction_study": [
+          0.75,
+          0.85
+        ],
+        "required_no_load_kv_for_13_to_14_in_rpm_envelope": {
+          "minimum": 364.1456582633054,
+          "maximum": 571.4285714285714
+        }
+      }
+    }
+  },
+  "tbd_before_selection": [
+    "Measured propeller thrust, power, RPM and efficiency map versus 60\u201390 km/h airspeed.",
+    "Installed propeller plane, boom Z offset, local boom deflection and spinner/mount geometry.",
+    "Actual loaded-voltage curve, motor resistance/current limit and thermal capability.",
+    "Noise, blade count, pitch geometry and motor shaft/adaptor interface."
+  ]
+}

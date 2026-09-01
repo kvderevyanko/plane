@@ -17,8 +17,11 @@ by this study.
   They are used only for wing profile/induced drag.  In particular, the
   previously recorded wing-only drag near 80/90 km/h is not treated as total
   aircraft drag.
-- CG remains TBD.  The motor, ESC and flight-battery entries in the mass ledger
-  remain TBD and unchanged.
+- The preliminary stability integration defines a 24--28% MAC design CG band,
+  but the all-up measured CG remains unresolved. The motor, ESC and
+  flight-battery ledger entries remain TBD rather than being mislabelled as
+  measured masses. [Powertrain Architecture v1](powertrain-architecture.md)
+  supplies the subsequent 6S, hotel-load and packaging integration.
 
 ## Derived model
 

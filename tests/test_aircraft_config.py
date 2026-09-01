@@ -65,6 +65,17 @@ def test_repository_aircraft_yaml_loads_and_has_expected_planform():
     assert config.tail.horizontal.area_m2 == pytest.approx(.063)
     assert config.tail.vertical.total_area_m2 == pytest.approx(.0531691)
     assert config.booms.lateral_offset_mm == pytest.approx(230)
+    assert config.propulsion.is_defined
+    assert config.propulsion.nominal_series_count == 6
+    assert config.propulsion.propeller.diameter_min_mm == pytest.approx(330.2)
+    assert config.propulsion.propeller.diameter_max_mm == pytest.approx(355.6)
+    assert config.propulsion.esc.x_mm == pytest.approx(320.0)
+    assert config.electrical.hotel_load_nominal_w == pytest.approx(15.0)
+    assert config.battery.chemistry_direction == "li_ion_preliminary"
+    assert config.battery.mass_min_g == pytest.approx(520.0)
+    assert config.battery.mass_max_g == pytest.approx(940.0)
+    assert (config.battery.package_length_mm, config.battery.package_width_mm, config.battery.package_height_mm) == pytest.approx((190.0, 65.0, 45.0))
+    assert {component.id for component in config.avionics.components} >= {"flight_controller", "gnss_compass", "vtx"}
     assert config.wing.mean_aerodynamic_chord_leading_edge_x_mm == pytest.approx(12.037037)
     assert {component.id for component in config.mass_budget.components} >= {"wing_assembly", "tail_boom_left", "tail_boom_right"}
 

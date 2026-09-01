@@ -42,6 +42,18 @@ def test_tbd_items_are_reported_and_block_final_aircraft_cg():
     assert not result.is_final_aircraft_cg
 
 
+def test_design_estimates_produce_an_explicitly_nonfinal_estimated_configuration_cg():
+    estimated = MassComponentConfig("battery", "Battery", "design_estimate", 600.0, 10.0, 0.0, 0.0, "center", None)
+    result = calculate_mass_properties((known("wing", 1800.0, 90.0, 0.0, 0.0), estimated))
+
+    assert result.total_mass_g == pytest.approx(1800.0)
+    assert result.estimated_total_mass_g == pytest.approx(2400.0)
+    assert result.estimated_x_cg_mm == pytest.approx(70.0)
+    assert [item.id for item in result.design_estimate_components] == ["battery"]
+    assert result.has_estimated_configuration_cg
+    assert not result.is_final_aircraft_cg
+
+
 def test_empty_known_subtotal_has_no_cg_and_keeps_tbd_items():
     component = MassComponentConfig("motor", "Motor", "tbd", None, None, None, None, "center", None)
     result = calculate_mass_properties((component,))

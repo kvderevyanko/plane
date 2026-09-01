@@ -286,7 +286,7 @@ def make_summary(config: AircraftConfig, clean_cases: list[dict[str, Any]]) -> d
             "battery_energy_definition": "usable energy already excludes the future battery reserve/unusable fraction; it is not pack nominal energy"},
         "tbd": ["mission endurance and range", "battery chemistry, series count, voltage sag curve, capacity and mass",
                 "final hotel-load inventory and duty cycle", "motor, ESC, propeller and their measured maps", "fuselage/tail/boom geometry and measured full-aircraft CdA",
-                "launch method and ground-run inputs", "propeller clearance and maximum diameter", "initial CG"],
+                "launch method and ground-run inputs", "propeller clearance and maximum diameter", "all-up measured CG and mass ledger closure"],
         "hardware_selection": {"motor": None, "esc": None, "propeller": None, "battery": None,
                                "status": "intentionally unselected while TBD inputs remain"},
         "cruise_2400g": cruise, "climb_2400g": climb, "mass_feedback": mass_feedback,
