@@ -82,9 +82,9 @@ hatch, material and external structure are TBD.
 - FC belongs near CG on vibration isolation; GNSS/compass must be remote from
   motor/ESC/high-current wiring.  Receiver antennas and VTX need separation,
   while VTX needs thermal airflow.
-- The motor/propeller X/Z position, airflow path, final cable routes and all
-  actual component boxes remain TBD until electrical architecture selects
-  typed preliminary envelopes.
+- Typed preliminary motor/propeller/ESC positions provide a packaging view;
+  their airflow, final cable routes, hardware dimensions and installation
+  clearances still require validation.
 
 ## Reproduction
 

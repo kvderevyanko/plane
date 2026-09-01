@@ -127,9 +127,17 @@ def test_master_layout_packaging_envelopes_track_only_typed_configuration():
 
 def test_master_layout_avionics_position_changes_only_with_typed_source(tmp_path: Path):
     changed = tmp_path / "aircraft.yaml"
-    changed.write_text(CONFIG.read_text(encoding="utf-8").replace("      x_mm: 135.0", "      x_mm: 140.0", 1), encoding="utf-8")
+    changed.write_text(CONFIG.read_text(encoding="utf-8").replace("      x_mm: 170.0", "      x_mm: 175.0", 1), encoding="utf-8")
 
     layout = master_layout_from_config(load_aircraft_config(changed))
     flight_controller = dict(layout.avionics_envelopes)["flight_controller"].val().BoundingBox()
 
-    assert (flight_controller.xmin + flight_controller.xmax) / 2.0 == pytest.approx(140.0)
+    assert (flight_controller.xmin + flight_controller.xmax) / 2.0 == pytest.approx(175.0)
+
+
+def test_full_battery_travel_envelope_has_positive_x_clearance_to_typed_avionics():
+    layout = master_layout_from_config(load_aircraft_config(CONFIG))
+    battery = layout.battery_travel_envelope.val().BoundingBox()
+    for component_id, envelope in layout.avionics_envelopes:
+        box = envelope.val().BoundingBox()
+        assert battery.xmax < box.xmin, component_id

@@ -161,7 +161,7 @@ avionics:
       length_mm: 55.0
       width_mm: 55.0
       height_mm: 20.0
-      x_mm: 135.0
+      x_mm: 170.0
       y_mm: 0.0
       z_mm: 0.0
     - id: gnss_compass
@@ -175,21 +175,21 @@ avionics:
       length_mm: 50.0
       width_mm: 30.0
       height_mm: 15.0
-      x_mm: 130.0
+      x_mm: 170.0
       y_mm: 45.0
       z_mm: 0.0
     - id: telemetry
       length_mm: 45.0
       width_mm: 30.0
       height_mm: 15.0
-      x_mm: 130.0
+      x_mm: 170.0
       y_mm: -45.0
       z_mm: 0.0
     - id: airspeed_sensor
       length_mm: 40.0
       width_mm: 30.0
       height_mm: 15.0
-      x_mm: 190.0
+      x_mm: 220.0
       y_mm: 0.0
       z_mm: 0.0
     - id: fpv_camera
@@ -203,21 +203,21 @@ avionics:
       length_mm: 45.0
       width_mm: 30.0
       height_mm: 15.0
-      x_mm: 220.0
+      x_mm: 260.0
       y_mm: -45.0
       z_mm: 0.0
     - id: bec_dc_dc
       length_mm: 50.0
       width_mm: 30.0
       height_mm: 20.0
-      x_mm: 220.0
+      x_mm: 260.0
       y_mm: 45.0
       z_mm: 0.0
     - id: current_voltage_sensor
       length_mm: 45.0
       width_mm: 25.0
       height_mm: 15.0
-      x_mm: 280.0
+      x_mm: 270.0
       y_mm: 0.0
       z_mm: 0.0
 

@@ -587,7 +587,7 @@
     "flight_controller": "vibration-isolated near CG; serviceable; separated from high-current wiring",
     "gnss_compass": "remote from motor, ESC and high-current conductors; final separation requires hardware/EMI validation",
     "receiver_vtx": "separate antennas and keep VTX thermal load away from GNSS/receiver",
-    "motor_propeller": "pusher X/Z plane remains TBD until typed propulsion geometry is selected"
+    "motor_propeller": "typed preliminary pusher plane/envelopes require clearance, airflow and hardware validation"
   },
   "tbd": [
     "selected battery chemistry, cell layout, measured mass and outer dimensions",
