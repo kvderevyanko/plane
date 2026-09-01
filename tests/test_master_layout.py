@@ -189,3 +189,41 @@ def test_hardware_manifest_does_not_false_claim_battery_removal_closure():
     assert "flight_battery" not in dict(layout.selected_hardware_envelopes)
     assert layout.battery_envelope is not None
     assert layout.battery_travel_envelope is not None
+
+
+def test_ground_operations_reference_tracks_typed_rough_field_screen():
+    config = load_aircraft_config(CONFIG)
+    layout = master_layout_from_config(config)
+    ground = config.ground_operations
+
+    assert len(layout.main_wheels) == 2
+    assert layout.nose_wheel is not None
+    assert layout.ground_reference is not None
+    assert tuple(name for name, _ in layout.propeller_tip_clearance_cases_mm) == (
+        "static", "compressed", "tail_low", "full_rough",
+    )
+    assert tuple(value for _, value in layout.propeller_tip_clearance_cases_mm) == pytest.approx((
+        ground.static_propeller_axis_height_mm - ground.propeller_diameter_mm / 2.0,
+        ground.compressed_tip_clearance_mm, ground.rotation_tip_clearance_mm,
+        ground.rough_tip_clearance_mm,
+    ))
+    assert layout.propeller_tip_clearance_dynamic_mm == pytest.approx(ground.rough_tip_clearance_mm)
+    assert layout.propeller_tip_clearance_dynamic_mm >= ground.dynamic_tip_clearance_goal_mm
+    assert [(point[0], point[1]) for point in layout.landing_gear_hardpoints] == pytest.approx([
+        (ground.main_wheel_x_mm, -ground.main_track_mm / 2.0),
+        (ground.main_wheel_x_mm, ground.main_track_mm / 2.0),
+    ])
+
+
+def test_forward_tail_linkage_routes_follow_typed_reference_stations():
+    config = load_aircraft_config(CONFIG)
+    layout = master_layout_from_config(config)
+
+    assert len(layout.linkage_route_segments) == 3
+    assert all(start[0] == pytest.approx(config.linkage_reference.servo_x_mm)
+               for start, _ in layout.linkage_route_segments)
+    assert all(end[0] == pytest.approx(config.tail.aerodynamic_center_x_mm)
+               for _, end in layout.linkage_route_segments)
+    assert [end[1] for _, end in layout.linkage_route_segments] == pytest.approx([
+        0.0, -config.booms.lateral_offset_mm, config.booms.lateral_offset_mm,
+    ])

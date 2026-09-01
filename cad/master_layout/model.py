@@ -46,6 +46,17 @@ class MasterLayout:
     high_current_route: tuple[tuple[float, float, float], ...]
     antenna_keepout_envelopes: tuple[tuple[str, cq.Workplane], ...]
     battery_removal_validated: bool
+    # Ground-operation references are only a clearance screen and simple
+    # seasonal/gear packaging markers.  They are not a landing-gear CAD part,
+    # a fuselage skin, or structural/load approval.
+    main_wheels: tuple[cq.Workplane, ...]
+    nose_wheel: cq.Workplane | None
+    ground_reference: cq.Workplane | None
+    propeller_tip_clearance_static_mm: float | None
+    propeller_tip_clearance_dynamic_mm: float | None
+    propeller_tip_clearance_cases_mm: tuple[tuple[str, float], ...]
+    landing_gear_hardpoints: tuple[tuple[float, float, float], ...]
+    linkage_route_segments: tuple[tuple[tuple[float, float, float], tuple[float, float, float]], ...]
     # These are display-only axes from the wing AC to the tail AC.  They are
     # explicitly not boom tubes and do not select the still-TBD wing hardpoint.
     boom_axis_segments: tuple[tuple[tuple[float, float, float], tuple[float, float, float]], ...]
@@ -264,6 +275,67 @@ def _battery_envelopes(config: AircraftConfig) -> tuple[cq.Workplane | None, cq.
     return pack, travel
 
 
+def _ground_operations_reference(config: AircraftConfig) -> tuple[
+        tuple[cq.Workplane, ...], cq.Workplane | None, cq.Workplane | None,
+        float | None, float | None, tuple[tuple[str, float], ...],
+        tuple[tuple[float, float, float], ...],
+    ]:
+    """Return wheel and floor markers plus the explicit dynamic-tip screen.
+
+    The floor is placed at the configured static ground plane.  During the
+    The full rough-case result is supplied by the explicitly documented
+    structural integration screen. It is deliberately a scalar clearance
+    result rather than fabricated leg CAD.
+    """
+    ground = config.ground_operations
+    propulsion = config.propulsion
+    if not ground.is_defined or not propulsion.is_defined:
+        return (), None, None, None, None, (), ()
+    assert ground.static_propeller_axis_height_mm is not None
+    assert ground.main_wheel_diameter_mm is not None and ground.nose_wheel_diameter_mm is not None
+    assert ground.main_track_mm is not None and ground.main_wheel_x_mm is not None and ground.nose_wheel_x_mm is not None
+    assert ground.propeller_diameter_mm is not None
+    assert ground.compressed_tip_clearance_mm is not None and ground.rotation_tip_clearance_mm is not None
+    assert ground.rough_tip_clearance_mm is not None and ground.hardpoint_z_mm is not None
+    assert propulsion.motor_axis_z_mm is not None
+    # Ground is a thin reference slab, broad enough only for layout visibility.
+    ground_z = propulsion.motor_axis_z_mm - ground.static_propeller_axis_height_mm
+    floor = _centered_box(length_mm=900.0, width_mm=900.0, height_mm=REFERENCE_THICKNESS_MM,
+                          x_mm=80.0, y_mm=0.0, z_mm=ground_z - REFERENCE_THICKNESS_MM / 2.0)
+
+    def wheel_at(x_mm: float, y_mm: float, diameter_mm: float) -> cq.Workplane:
+        # Wheel axle is Y; a 12-mm display thickness makes the circular wheel
+        # visible without claiming tire/wheel hardware dimensions.
+        return (cq.Workplane("XZ").circle(diameter_mm / 2.0).extrude(12.0)
+                .translate((x_mm, y_mm - 6.0, ground_z + diameter_mm / 2.0)))
+
+    half_track = ground.main_track_mm / 2.0
+    mains = (wheel_at(ground.main_wheel_x_mm, -half_track, ground.main_wheel_diameter_mm),
+             wheel_at(ground.main_wheel_x_mm, half_track, ground.main_wheel_diameter_mm))
+    nose = wheel_at(ground.nose_wheel_x_mm, 0.0, ground.nose_wheel_diameter_mm)
+    static_tip = ground.static_propeller_axis_height_mm - ground.propeller_diameter_mm / 2.0
+    cases = (("static", static_tip), ("compressed", ground.compressed_tip_clearance_mm),
+             ("tail_low", ground.rotation_tip_clearance_mm), ("full_rough", ground.rough_tip_clearance_mm))
+    hardpoints = ((ground.main_wheel_x_mm, -half_track, ground.hardpoint_z_mm),
+                  (ground.main_wheel_x_mm, half_track, ground.hardpoint_z_mm))
+    return mains, nose, floor, static_tip, ground.rough_tip_clearance_mm, cases, hardpoints
+
+
+def _linkage_route_segments(config: AircraftConfig) -> tuple[tuple[tuple[float, float, float], tuple[float, float, float]], ...]:
+    """Display declared centre-fuselage tail-actuation routes, not pushrods."""
+    linkage, tail, booms = config.linkage_reference, config.tail, config.booms
+    if not linkage.is_defined or not tail.is_defined or not booms.is_defined:
+        return ()
+    assert linkage.servo_x_mm is not None and tail.aerodynamic_center_x_mm is not None
+    # End stations are the typed tail AC/boom axes. Actual horn positions and
+    # guide locations remain a structural/linkage validation gate.
+    return (
+        ((linkage.servo_x_mm, 0.0, 0.0), (tail.aerodynamic_center_x_mm, 0.0, 0.0)),
+        ((linkage.servo_x_mm, -12.0, 0.0), (tail.aerodynamic_center_x_mm, -booms.lateral_offset_mm, 0.0)),
+        ((linkage.servo_x_mm, 12.0, 0.0), (tail.aerodynamic_center_x_mm, booms.lateral_offset_mm, 0.0)),
+    )
+
+
 def _avionics_envelopes(config: AircraftConfig) -> tuple[tuple[str, cq.Workplane], ...]:
     """Build only the explicitly typed avionics/package bounding boxes."""
     if not config.avionics.is_defined:
@@ -333,6 +405,8 @@ def master_layout_from_config(config: AircraftConfig, hardware: HardwareConfig |
     horizontal_tail, elevator = _horizontal_tail_reference(config)
     vertical_fins, rudders = _vertical_tail_reference(config)
     battery_envelope, battery_travel_envelope = _battery_envelopes(config)
+    (main_wheels, nose_wheel, ground_reference, static_tip_clearance, dynamic_tip_clearance,
+     tip_clearance_cases, landing_gear_hardpoints) = _ground_operations_reference(config)
     selected_hardware_envelopes, selected_propeller_disk, high_current_route, antenna_keepout_envelopes = _selected_hardware_layout(hardware)
     return MasterLayout(
         wing=_wing_reference(config),
@@ -351,6 +425,14 @@ def master_layout_from_config(config: AircraftConfig, hardware: HardwareConfig |
         high_current_route=high_current_route,
         antenna_keepout_envelopes=antenna_keepout_envelopes,
         battery_removal_validated=False,
+        main_wheels=main_wheels,
+        nose_wheel=nose_wheel,
+        ground_reference=ground_reference,
+        propeller_tip_clearance_static_mm=static_tip_clearance,
+        propeller_tip_clearance_dynamic_mm=dynamic_tip_clearance,
+        propeller_tip_clearance_cases_mm=tip_clearance_cases,
+        landing_gear_hardpoints=landing_gear_hardpoints,
+        linkage_route_segments=_linkage_route_segments(config),
         boom_axis_segments=_boom_axis_segments(config),
         mac_leading_edge_x_mm=config.wing.mean_aerodynamic_chord_leading_edge_x_mm,
         mac_mm=config.wing.mean_aerodynamic_chord_mm,

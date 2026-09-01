@@ -355,6 +355,52 @@ class BatteryConfig:
 
 
 @dataclass(frozen=True)
+class GroundOperationsConfig:
+    """Reference-only tricycle-gear inputs and propeller clearance screen.
+
+    These values define no landing-gear part, fuselage skin, or load approval.
+    They make the selected rough-field integration assumption inspectable in
+    the same datum as every other master-layout item.
+    """
+
+    status: Literal["tbd", "initial_design_assumption"]
+    propeller_diameter_mm: float | None
+    dynamic_tip_clearance_goal_mm: float | None
+    static_propeller_axis_height_mm: float | None
+    main_wheel_diameter_mm: float | None
+    nose_wheel_diameter_mm: float | None
+    main_wheel_x_mm: float | None
+    nose_wheel_x_mm: float | None
+    main_track_mm: float | None
+    rotation_tail_down_deg: float | None
+    compressed_tip_clearance_mm: float | None
+    rotation_tip_clearance_mm: float | None
+    rough_tip_clearance_mm: float | None
+    hardpoint_z_mm: float | None
+
+    @property
+    def is_defined(self) -> bool:
+        return self.status == "initial_design_assumption"
+
+
+@dataclass(frozen=True)
+class LinkageReferenceConfig:
+    """Forward-servo route assumptions; not control-system release geometry."""
+
+    status: Literal["tbd", "initial_design_assumption"]
+    servo_x_mm: float | None
+    carbon_rod_outer_diameter_mm: float | None
+    carbon_rod_inner_diameter_mm: float | None
+    elevator_route_length_mm: float | None
+    rudder_route_length_mm: float | None
+    maximum_guide_spacing_mm: float | None
+
+    @property
+    def is_defined(self) -> bool:
+        return self.status == "initial_design_assumption"
+
+
+@dataclass(frozen=True)
 class AvionicsComponentEnvelopeConfig:
     id: str
     length_mm: float
@@ -417,6 +463,8 @@ class AircraftConfig:
     propulsion: PropulsionConfig
     electrical: ElectricalConfig
     battery: BatteryConfig
+    ground_operations: GroundOperationsConfig
+    linkage_reference: LinkageReferenceConfig
     avionics: AvionicsConfig
     mass_budget: MassBudgetConfig
 
@@ -430,7 +478,7 @@ def load_aircraft_config(path: Path = DEFAULT_CONFIG_PATH) -> AircraftConfig:
     except yaml.YAMLError as error:
         raise ConfigurationError(f"Invalid YAML in {path}: {error}") from error
 
-    top_level = {"project", "wing", "spar", "materials", "aircraft", "layout", "cg", "tail", "booms", "propulsion", "electrical", "battery", "avionics", "mass_budget"}
+    top_level = {"project", "wing", "spar", "materials", "aircraft", "layout", "cg", "tail", "booms", "propulsion", "electrical", "battery", "ground_operations", "linkage_reference", "avionics", "mass_budget"}
     missing, unknown = top_level - set(document), set(document) - top_level
     if missing:
         raise ConfigurationError(f"Configuration is missing required sections: {sorted(missing)}")
@@ -704,6 +752,58 @@ def load_aircraft_config(path: Path = DEFAULT_CONFIG_PATH) -> AircraftConfig:
             raise ConfigurationError("battery envelope/range values are inconsistent")
         battery_config = BatteryConfig("initial_design_assumption", chemistry, *battery_values, tray_status)
 
+    ground_operations = _section(document, "ground_operations", {
+        "status", "propeller_diameter_mm", "dynamic_tip_clearance_goal_mm",
+        "static_propeller_axis_height_mm", "main_wheel_diameter_mm",
+        "nose_wheel_diameter_mm", "main_wheel_x_mm", "nose_wheel_x_mm",
+        "main_track_mm", "rotation_tail_down_deg", "compressed_tip_clearance_mm",
+        "rotation_tip_clearance_mm", "rough_tip_clearance_mm", "hardpoint_z_mm",
+    })
+    if ground_operations["status"] not in {"tbd", "initial_design_assumption"}:
+        raise ConfigurationError("ground_operations.status must be 'tbd' or 'initial_design_assumption'")
+    ground_values = tuple(_nullable_number(ground_operations[key], f"ground_operations.{key}") for key in (
+        "propeller_diameter_mm", "dynamic_tip_clearance_goal_mm", "static_propeller_axis_height_mm",
+        "main_wheel_diameter_mm", "nose_wheel_diameter_mm", "main_wheel_x_mm", "nose_wheel_x_mm",
+        "main_track_mm", "rotation_tail_down_deg", "compressed_tip_clearance_mm",
+        "rotation_tip_clearance_mm", "rough_tip_clearance_mm", "hardpoint_z_mm",
+    ))
+    if ground_operations["status"] == "tbd":
+        if any(value is not None for value in ground_values):
+            raise ConfigurationError("tbd ground_operations must use null values")
+        ground_operations_config = GroundOperationsConfig("tbd", *(None for _ in ground_values))
+    else:
+        if any(value is None for value in ground_values):
+            raise ConfigurationError("defined ground_operations needs all reference/check values")
+        (prop_diameter, dynamic_goal, static_axis_height, main_diameter, nose_diameter,
+         main_x, nose_x, main_track, rotation_deg, compressed_tip, rotation_tip, rough_tip, hardpoint_z) = ground_values
+        if min(prop_diameter, dynamic_goal, static_axis_height, main_diameter, nose_diameter, main_track) <= 0:
+            raise ConfigurationError("ground_operations diameters, heights, track, and clearance goal must be positive")
+        if not 0.0 <= rotation_deg <= 25.0 or min(compressed_tip, rotation_tip, rough_tip) < 0:
+            raise ConfigurationError("ground_operations rotation/clearance values are invalid")
+        if not static_axis_height - prop_diameter / 2.0 >= compressed_tip >= rotation_tip >= rough_tip:
+            raise ConfigurationError("ground_operations tip clearances must descend from static to rough case")
+        ground_operations_config = GroundOperationsConfig("initial_design_assumption", *ground_values)
+
+    linkage_reference = _section(document, "linkage_reference", {
+        "status", "servo_x_mm", "carbon_rod_outer_diameter_mm", "carbon_rod_inner_diameter_mm",
+        "elevator_route_length_mm", "rudder_route_length_mm", "maximum_guide_spacing_mm",
+    })
+    if linkage_reference["status"] not in {"tbd", "initial_design_assumption"}:
+        raise ConfigurationError("linkage_reference.status must be 'tbd' or 'initial_design_assumption'")
+    linkage_values = tuple(_nullable_number(linkage_reference[key], f"linkage_reference.{key}") for key in (
+        "servo_x_mm", "carbon_rod_outer_diameter_mm", "carbon_rod_inner_diameter_mm",
+        "elevator_route_length_mm", "rudder_route_length_mm", "maximum_guide_spacing_mm",
+    ))
+    if linkage_reference["status"] == "tbd":
+        if any(value is not None for value in linkage_values):
+            raise ConfigurationError("tbd linkage_reference must use null values")
+        linkage_reference_config = LinkageReferenceConfig("tbd", *(None for _ in linkage_values))
+    else:
+        servo_x, rod_od, rod_id, elevator_length, rudder_length, guide_spacing = linkage_values
+        if min(rod_od, elevator_length, rudder_length, guide_spacing) <= 0 or rod_id <= 0 or rod_id >= rod_od:
+            raise ConfigurationError("linkage_reference dimensions are invalid")
+        linkage_reference_config = LinkageReferenceConfig("initial_design_assumption", *linkage_values)
+
     avionics = _section(document, "avionics", {"status", "components"})
     if avionics["status"] not in {"tbd", "initial_design_assumption"}:
         raise ConfigurationError("avionics.status must be 'tbd' or 'initial_design_assumption'")
@@ -783,5 +883,5 @@ def load_aircraft_config(path: Path = DEFAULT_CONFIG_PATH) -> AircraftConfig:
     return AircraftConfig(
         ProjectConfig(project["name"], project["units"]), wing_config, spar_config,
         materials_config, aircraft_config, layout_config, cg_config, tail_config, booms_config,
-        propulsion_config, electrical_config, battery_config, avionics_config, mass_budget_config,
+        propulsion_config, electrical_config, battery_config, ground_operations_config, linkage_reference_config, avionics_config, mass_budget_config,
     )

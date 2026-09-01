@@ -119,7 +119,7 @@ propulsion:
     z_mm: 0.0
   propeller_plane_x_mm: 430.0
   motor_cg_x_mm: 395.0
-  motor_axis_z_mm: 0.0
+  motor_axis_z_mm: 50.0
 
 # Propulsion and avionics rails are intentionally independent. Values are
 # preliminary electrical requirements, not a selected ESC/BEC or pack curve.
@@ -151,6 +151,38 @@ battery:
   y_mm: 0.0
   z_mm: 0.0
   tray_status: preliminary_design_assumption
+
+# Rough-field tricycle reference and pusher ground-clearance screen.  This is
+# an installation envelope only: it does not select a landing-gear part or
+# define an external fuselage skin/load path.  The 13-in baseline and 65-mm
+# dynamic tip margin come from the mission-rebaseline aero integration study.
+ground_operations:
+  status: initial_design_assumption
+  propeller_diameter_mm: 330.2
+  dynamic_tip_clearance_goal_mm: 60.0
+  static_propeller_axis_height_mm: 308.0
+  main_wheel_diameter_mm: 90.0
+  nose_wheel_diameter_mm: 70.0
+  main_wheel_x_mm: 123.0
+  nose_wheel_x_mm: -230.0
+  main_track_mm: 340.0
+  rotation_tail_down_deg: 8.0
+  compressed_tip_clearance_mm: 128.0
+  rotation_tip_clearance_mm: 85.0
+  rough_tip_clearance_mm: 60.0
+  hardpoint_z_mm: -55.0
+
+# Forward-mounted tail-actuation route study.  The lines in master-layout are
+# only routes between known reference stations; end fittings, guides, control
+# horns, stiffness/backlash and production attachment geometry remain gates.
+linkage_reference:
+  status: initial_design_assumption
+  servo_x_mm: 110.0
+  carbon_rod_outer_diameter_mm: 3.0
+  carbon_rod_inner_diameter_mm: 1.0
+  elevator_route_length_mm: 610.0
+  rudder_route_length_mm: 650.0
+  maximum_guide_spacing_mm: 200.0
 
 # Display/package envelopes only: source-based placement references rather
 # than chosen boards, antennas, cameras or external fuselage geometry.

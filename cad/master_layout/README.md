@@ -10,6 +10,11 @@ The thin rendered wing is not a structural skin model; its `0.25 mm` display
 thickness only makes CadQuery tessellation deterministic.  The model never
 adds a fuselage skin or inferred component volume.
 
+The typed rough-field reference adds only wheel/floor envelopes, main-gear
+hardpoint points, the 13-in propeller-clearance cases and three forward
+tail-linkage route lines.  None is production gear/linkage CAD or a
+structural/load release.
+
 MAC and its leading-edge position are read via the corresponding `WingConfig`
 properties.  The trapezoid matches the existing centred planform.  A CG band
 is drawn only when the typed `cg.initial_envelope.status` is

@@ -95,6 +95,17 @@ as a measured mass marker. The preview workflow creates `master_layout_iso.png`,
 `master_layout_top.png`, and `master_layout_side.png` in `generated/previews/`
 and lists them in its gallery.
 
+The typed `ground_operations` and `linkage_reference` sections additionally
+render a rough-field **reference** floor/wheels, main-hardpoint points and
+forward tail-actuation route lines. They are constrained by the current 13-in,
+`Z=+50 mm` pusher screen and show 142.9/128/85/60-mm
+static/compressed/tail-low/full-rough tip-clearance cases. They are not
+landing-gear, ski, fuselage-skin or pushrod production geometry. The 14-in
+option is not represented as a rough-field baseline because it has only a
+47-mm full-rough clearance in the same structural study. See
+[`cad-rebaseline-v2.md`](cad-rebaseline-v2.md) for assumptions and the
+unresolved integration gate.
+
 Before any fuselage geometry can be created, determine at minimum: real
 component masses; selected battery form factor; ESC envelope; wing-to-fuselage
 and boom structural interfaces; boom geometry/material; empennage planform and

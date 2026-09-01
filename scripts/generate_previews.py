@@ -96,6 +96,7 @@ def _render_master_layout_view(layout: MasterLayout, destination: Path, *, eleva
         (layout.battery_envelope, "#ed553b", "#8b2e20"),
         (layout.motor_envelope, "#8ecae6", "#1d5f73"),
         (layout.esc_envelope, "#83c5be", "#276b68"),
+        (layout.ground_reference, "#dedbd2", "#77736a"),
     )
     faces_by_model = []
     for model, fill, edge in models:
@@ -109,6 +110,12 @@ def _render_master_layout_view(layout: MasterLayout, destination: Path, *, eleva
         disk_faces = _mesh_faces(disk)
         faces_by_model.extend(disk_faces)
         axis.add_collection3d(Poly3DCollection(disk_faces, facecolor="#a7c957", edgecolor="#386641", linewidth=0.25, alpha=.30))
+    for wheel in (*layout.main_wheels, layout.nose_wheel):
+        if wheel is None:
+            continue
+        wheel_faces = _mesh_faces(wheel)
+        faces_by_model.extend(wheel_faces)
+        axis.add_collection3d(Poly3DCollection(wheel_faces, facecolor="#4f5d75", edgecolor="#222c3a", linewidth=.3, alpha=.82))
     for component_id, envelope in layout.avionics_envelopes:
         component_faces = _mesh_faces(envelope)
         faces_by_model.extend(component_faces)
@@ -150,6 +157,10 @@ def _render_master_layout_view(layout: MasterLayout, destination: Path, *, eleva
         axis.scatter([layout.first_flight_cg_x_mm], [0], [12], color="#5b2c83", marker="D", s=32, depthshade=False)
     for start, end in layout.boom_axis_segments:
         axis.plot([start[0], end[0]], [start[1], end[1]], [start[2], end[2]], color="#536878", linestyle="--", linewidth=1.5)
+    for start, end in layout.linkage_route_segments:
+        axis.plot([start[0], end[0]], [start[1], end[1]], [start[2], end[2]], color="#7f5539", linestyle=":", linewidth=1.25)
+    for x_mm, y_mm, z_mm in layout.landing_gear_hardpoints:
+        axis.scatter([x_mm], [y_mm], [z_mm], color="#242423", marker="s", s=22, depthshade=False)
     if layout.high_current_route:
         route_x, route_y, route_z = zip(*layout.high_current_route, strict=True)
         axis.plot(route_x, route_y, route_z, color="#c1121f", linestyle="-.", linewidth=2.0)
@@ -173,7 +184,11 @@ def _render_master_layout_view(layout: MasterLayout, destination: Path, *, eleva
     packaging_note = "Typed packaging envelopes: preliminary design assumptions" if (layout.motor_envelope or layout.esc_envelope or layout.battery_envelope or layout.avionics_envelopes) else "Packaging envelopes: TBD"
     hardware_note = "Commercial hardware: selected preliminary envelopes; bench/installation validation required" if layout.selected_hardware_envelopes else "Commercial hardware envelopes: not loaded"
     battery_note = "Battery removal/hatch clearance: NOT validated (CG/mass-moment closure blocked)"
-    figure.text(0.02, 0.02, f"Datum: root leading edge | +X aft (red), +Y right (green), +Z up (blue)\nMAC: {layout.mac_mm:.3f} mm | {cg_note}\n{tail_note} | {first_flight_note}\n{packaging_note}\n{hardware_note}\n{battery_note}", fontsize=8)
+    ground_note = "Ground operations: TBD"
+    if layout.propeller_tip_clearance_static_mm is not None:
+        ground_note = ("Ground reference only: static/full-rough tip clearance "
+                       f"{layout.propeller_tip_clearance_static_mm:.1f}/{layout.propeller_tip_clearance_dynamic_mm:.1f} mm")
+    figure.text(0.02, 0.02, f"Datum: root leading edge | +X aft (red), +Y right (green), +Z up (blue)\nMAC: {layout.mac_mm:.3f} mm | {cg_note}\n{tail_note} | {first_flight_note}\n{packaging_note}\n{hardware_note}\n{ground_note}\n{battery_note}", fontsize=8)
     figure.tight_layout(pad=0)
     figure.savefig(destination, transparent=False, bbox_inches="tight", pad_inches=0.02)
     plt.close(figure)
