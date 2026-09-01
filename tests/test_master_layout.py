@@ -140,4 +140,9 @@ def test_full_battery_travel_envelope_has_positive_x_clearance_to_typed_avionics
     battery = layout.battery_travel_envelope.val().BoundingBox()
     for component_id, envelope in layout.avionics_envelopes:
         box = envelope.val().BoundingBox()
-        assert battery.xmax < box.xmin, component_id
+        overlaps = (
+            max(battery.xmin, box.xmin) < min(battery.xmax, box.xmax)
+            and max(battery.ymin, box.ymin) < min(battery.ymax, box.ymax)
+            and max(battery.zmin, box.zmin) < min(battery.zmax, box.zmax)
+        )
+        assert not overlaps, component_id
