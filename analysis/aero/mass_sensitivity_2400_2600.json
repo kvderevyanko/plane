@@ -1,0 +1,267 @@
+{
+  "approach_implication": {
+    "conservative_stall_increase_km_h": 1.533353295920115,
+    "result": "No approved approach-speed multiplier exists in the current project. Preserve any future verified Vapp/Vstall policy; all stall-referenced speeds rise by sqrt(2600/2400).",
+    "speed_ratio": 1.0408329997330663
+  },
+  "cases": {
+    "2400g": {
+      "best_wing_ld": {
+        "best_sampled_speed_km_h": 60.0,
+        "best_sampled_wing_ld": 23.53562607114978,
+        "method": "1-km/h sampled finite-wing clean-polar sensitivity; not a flight-speed prescription",
+        "within_99_percent_speed_high_km_h": 64.0,
+        "within_99_percent_speed_low_km_h": 56.0
+      },
+      "conservative_realistic_stall_engineering_sensitivity": 37.55181607875855,
+      "mass_g": 2400.0,
+      "nominal_realistic_stall_engineering_sensitivity": 35.04747091280753,
+      "points": [
+        {
+          "induced_drag_n": 0.6477245932526617,
+          "profile_drag_n": 0.43488614114622515,
+          "required_cl": 0.5533352228571428,
+          "reynolds_mac": 214861.85583136082,
+          "speed_km_h": 50.0,
+          "total_wing_drag_n": 1.0826107343988869,
+          "wing_ld": 21.74000243316283
+        },
+        {
+          "induced_drag_n": 0.4498087453143485,
+          "profile_drag_n": 0.5502054429145609,
+          "required_cl": 0.38426057142857134,
+          "reynolds_mac": 257834.226997633,
+          "speed_km_h": 60.0,
+          "total_wing_drag_n": 1.0000141882289093,
+          "wing_ld": 23.53562607114978
+        },
+        {
+          "induced_drag_n": 0.3304717312513582,
+          "profile_drag_n": 0.7443032723790152,
+          "required_cl": 0.282313889212828,
+          "reynolds_mac": 300806.59816390515,
+          "speed_km_h": 70.0,
+          "total_wing_drag_n": 1.0747750036303734,
+          "wing_ld": 21.898499612012067
+        },
+        {
+          "induced_drag_n": 0.25301741923932103,
+          "profile_drag_n": 1.0259885409354241,
+          "required_cl": 0.2161465714285714,
+          "reynolds_mac": 343778.96933017735,
+          "speed_km_h": 80.0,
+          "total_wing_drag_n": 1.2790059601747452,
+          "wing_ld": 18.401759438857017
+        },
+        {
+          "induced_drag_n": 0.19991499791748824,
+          "profile_drag_n": 1.3338426041262843,
+          "required_cl": 0.17078247619047618,
+          "reynolds_mac": 386751.3404964495,
+          "speed_km_h": 90.0,
+          "total_wing_drag_n": 1.5337576020437724,
+          "wing_ld": 15.34529313408958
+        }
+      ],
+      "strict_clean_stall": {
+        "alpha_deg": 12.0,
+        "area_weighting": "local chord \u00d7 equal dy",
+        "clmax_wing_at_stall": 1.1627356757007572,
+        "curve": [
+          {
+            "alpha_deg": -1.0,
+            "cl": 0.12557381267701984,
+            "profile_cd_area_weighted": 0.01648395567576961
+          },
+          {
+            "alpha_deg": 4.0,
+            "cl": 0.5838826434566406,
+            "profile_cd_area_weighted": 0.012825524650849001
+          },
+          {
+            "alpha_deg": 5.0,
+            "cl": 0.6608440791711232,
+            "profile_cd_area_weighted": 0.0129383103597902
+          },
+          {
+            "alpha_deg": 6.0,
+            "cl": 0.7372995077203275,
+            "profile_cd_area_weighted": 0.013140413575724881
+          },
+          {
+            "alpha_deg": 7.0,
+            "cl": 0.8119803174137981,
+            "profile_cd_area_weighted": 0.013528828234373867
+          },
+          {
+            "alpha_deg": 8.0,
+            "cl": 0.8845548219637906,
+            "profile_cd_area_weighted": 0.014262254755779512
+          },
+          {
+            "alpha_deg": 9.0,
+            "cl": 0.9562265679383208,
+            "profile_cd_area_weighted": 0.015311499704351982
+          },
+          {
+            "alpha_deg": 10.0,
+            "cl": 1.0270107728370883,
+            "profile_cd_area_weighted": 0.01652684381509742
+          },
+          {
+            "alpha_deg": 11.0,
+            "cl": 1.0967581961370387,
+            "profile_cd_area_weighted": 0.017880329645300095
+          },
+          {
+            "alpha_deg": 12.0,
+            "cl": 1.1627356757007572,
+            "profile_cd_area_weighted": 0.019399987803162745
+          }
+        ],
+        "reynolds_root": 164021.66205587971,
+        "reynolds_tip": 131217.32964470377,
+        "speed_km_h": 34.4935546875,
+        "speed_m_s": 9.58154296875,
+        "stations_per_semispan": 40
+      },
+      "wing_loading_g_dm2": 66.66666666666667
+    },
+    "2600g": {
+      "best_wing_ld": {
+        "best_sampled_speed_km_h": 63.0,
+        "best_sampled_wing_ld": 23.80940114852377,
+        "method": "1-km/h sampled finite-wing clean-polar sensitivity; not a flight-speed prescription",
+        "within_99_percent_speed_high_km_h": 67.0,
+        "within_99_percent_speed_low_km_h": 59.0
+      },
+      "conservative_realistic_stall_engineering_sensitivity": 39.085169374678664,
+      "mass_g": 2600.0,
+      "nominal_realistic_stall_engineering_sensitivity": 36.47856428323486,
+      "points": [
+        {
+          "induced_drag_n": 0.760176779581249,
+          "profile_drag_n": 0.4369984409443647,
+          "required_cl": 0.5994464914285713,
+          "reynolds_mac": 214861.85583136082,
+          "speed_km_h": 50.0,
+          "total_wing_drag_n": 1.1971752205256136,
+          "wing_ld": 21.29787650366297
+        },
+        {
+          "induced_drag_n": 0.5279005413758673,
+          "profile_drag_n": 0.5461570986956577,
+          "required_cl": 0.4162822857142856,
+          "reynolds_mac": 257834.226997633,
+          "speed_km_h": 60.0,
+          "total_wing_drag_n": 1.074057640071525,
+          "wing_ld": 23.739219431744885
+        },
+        {
+          "induced_drag_n": 0.387845295704719,
+          "profile_drag_n": 0.7200320628124786,
+          "required_cl": 0.30584004664723036,
+          "reynolds_mac": 300806.59816390515,
+          "speed_km_h": 70.0,
+          "total_wing_drag_n": 1.1078773585171975,
+          "wing_ld": 23.0145420014053
+        },
+        {
+          "induced_drag_n": 0.2969440545239254,
+          "profile_drag_n": 0.9976115750371739,
+          "required_cl": 0.2341587857142857,
+          "reynolds_mac": 343778.96933017735,
+          "speed_km_h": 80.0,
+          "total_wing_drag_n": 1.2945556295610994,
+          "wing_ld": 19.695785501813077
+        },
+        {
+          "induced_drag_n": 0.23462246283371888,
+          "profile_drag_n": 1.3091991206449898,
+          "required_cl": 0.1850143492063492,
+          "reynolds_mac": 386751.3404964495,
+          "speed_km_h": 90.0,
+          "total_wing_drag_n": 1.5438215834787086,
+          "wing_ld": 16.515697327243412
+        }
+      ],
+      "strict_clean_stall": {
+        "alpha_deg": 12.0,
+        "area_weighting": "local chord \u00d7 equal dy",
+        "clmax_wing_at_stall": 1.1624578413056605,
+        "curve": [
+          {
+            "alpha_deg": -1.0,
+            "cl": 0.1304919934227319,
+            "profile_cd_area_weighted": 0.01601284369513228
+          },
+          {
+            "alpha_deg": 5.0,
+            "cl": 0.6616906872292414,
+            "profile_cd_area_weighted": 0.012593205189949363
+          },
+          {
+            "alpha_deg": 6.0,
+            "cl": 0.7377972520559872,
+            "profile_cd_area_weighted": 0.01282184351154477
+          },
+          {
+            "alpha_deg": 7.0,
+            "cl": 0.8122640737103708,
+            "profile_cd_area_weighted": 0.013234136687889787
+          },
+          {
+            "alpha_deg": 8.0,
+            "cl": 0.8845288218262719,
+            "profile_cd_area_weighted": 0.013986128692839234
+          },
+          {
+            "alpha_deg": 9.0,
+            "cl": 0.9559297963474083,
+            "profile_cd_area_weighted": 0.015043055481275505
+          },
+          {
+            "alpha_deg": 10.0,
+            "cl": 1.0267019887037754,
+            "profile_cd_area_weighted": 0.016253198699663827
+          },
+          {
+            "alpha_deg": 11.0,
+            "cl": 1.0964782451684434,
+            "profile_cd_area_weighted": 0.01759875244819249
+          },
+          {
+            "alpha_deg": 12.0,
+            "cl": 1.1624578413056605,
+            "profile_cd_area_weighted": 0.019097056556458027
+          }
+        ],
+        "reynolds_root": 170742.0114567321,
+        "reynolds_tip": 136593.60916538571,
+        "speed_km_h": 35.9068359375,
+        "speed_m_s": 9.97412109375,
+        "stations_per_semispan": 40
+      },
+      "wing_loading_g_dm2": 72.22222222222223
+    }
+  },
+  "mass_ratio_2600_over_2400": 1.0833333333333333,
+  "practical_cruise_implication": "The clean wing-only 99%-of-best-L/D plateau shifts approximately with sqrt(W), from 56\u201364 to 59\u201367 km/h in this model. This is a small shift; it does not establish a new optimum or full-aircraft cruise speed.",
+  "schema": "lr1600-wing-aero-mass-sensitivity-v1",
+  "scope": {
+    "atmosphere": {
+      "model": "ISA sea level",
+      "rho_kg_m3": 1.225
+    },
+    "canonical_config": "config/aircraft.yaml",
+    "canonical_target_mass_g": 2400.0,
+    "geometry": "unchanged; span/chords/airfoil/washout/dihedral and controls are read from canonical YAML",
+    "sensitivity_mass_g": 2600.0
+  },
+  "source_artifacts": {
+    "aero_summary": "analysis/aero/summary.json",
+    "limitations": "Wing-only drag excludes fuselage, tail, pusher/propeller, gaps and full-aircraft CdA. Ncrit=5 direct polar gaps prevent strict realistic-model stall roots; nominal/conservative stalls remain documented engineering sensitivities.",
+    "method": "existing XFOIL direct polar data; existing 40-station finite-wing model and clean-polar wing_drag_n"
+  },
+  "speed_ratio_sqrt_weight": 1.0408329997330663
+}

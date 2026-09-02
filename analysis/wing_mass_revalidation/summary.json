@@ -1,0 +1,367 @@
+{
+  "boom_interface": {
+    "mass_dependent_background": "Wing section shear and bending at y=230 mm are reported from the 4-g elliptic wing-load model and scale 2600/2400.",
+    "not_automatically_scaled": "Published boom/tail aerodynamic, yaw, handling and landing loads retain their existing physical assumptions; they are not multiplied solely by aircraft MTOW.",
+    "status": "No new mass-induced boom limiting case is demonstrated by this sensitivity. The hardpoint remains not release-ready: X coordinate, clamp/fastener geometry, bond area, bearing/net-section proof and representative mounted test are TBD."
+  },
+  "cases": {
+    "2400g_reference": {
+      "boom_station_y230mm_background_wing_load": {
+        "section_bending_moment_nm": 7.123179081650962,
+        "section_shear_n": 30.080575801272808,
+        "y_mm": 230.0
+      },
+      "design_load_factor_g": 4.0,
+      "joiner": {
+        "bending_stress_mpa": 107.03621972940098,
+        "centre_50mm_screening_deflection_mm": 0.08310265506941071,
+        "contact_couple_force_n": 1389.7168955506393,
+        "material_envelopes": [
+          {
+            "bending_sf_compression": 2.8027895674794205,
+            "bending_sf_tension": 3.269921162059324,
+            "centre_50mm_screening_deflection_mm": 0.08310265506941071,
+            "name": "conservative"
+          },
+          {
+            "bending_sf_compression": 4.6713159457990345,
+            "bending_sf_tension": 5.605579134958841,
+            "centre_50mm_screening_deflection_mm": 0.05288350777144318,
+            "name": "nominal"
+          },
+          {
+            "bending_sf_compression": 7.006973918698551,
+            "bending_sf_tension": 8.408368702438262,
+            "centre_50mm_screening_deflection_mm": 0.041551327534705355,
+            "name": "high_quality"
+          }
+        ],
+        "socket_screening": {
+          "birch_plate_bearing_mpa": 6.9485844777531955,
+          "birch_plate_net_tension_mpa_with_30mm_ligament": 11.58097412958866,
+          "bondline_shear_mpa_over_two_50x50mm_plates": 0.2779433791101278,
+          "carbon_contact_bearing_mpa": 2.4168989487837202,
+          "carbon_hoop_splitting_mpa": 15.441298839451546,
+          "minimum_tube_wall_mm": 0.9,
+          "model": "50-mm prepared contact at each moment-couple support; external hoop sleeve and two 2-mm birch plates are mandatory",
+          "provisional_allowables_mpa": {
+            "birch_bearing": 15.0,
+            "birch_net_tension": 20.0,
+            "carbon_hoop_with_external_sleeve": 25.0,
+            "carbon_radial_bearing": 15.0
+          },
+          "screening_sf": {
+            "birch_bearing": 2.158713051273172,
+            "birch_net_tension": 1.7269704410185376,
+            "carbon_hoop_with_external_sleeve": 1.6190347884548788,
+            "carbon_radial_bearing": 6.206300022410369
+          },
+          "status": "Provisional assumed-allowable screen only: no final socket SF until representative tube/liner/birch/bond coupons and proof test pass."
+        }
+      },
+      "main_spar": {
+        "all_material_envelopes": [
+          {
+            "compression_sf": 2.327293712643623,
+            "name": "conservative",
+            "root_bending_stress_mpa": 128.90508764328828,
+            "root_shear_screening_mpa": 2.3051091746014305,
+            "shear_sf": 15.183662615915685,
+            "tension_sf": 2.7151759980842267,
+            "tip_deflection_mm": 38.36278654660364,
+            "youngs_modulus_gpa": 70.0
+          },
+          {
+            "compression_sf": 3.8788228544060384,
+            "name": "nominal",
+            "root_bending_stress_mpa": 128.90508764328828,
+            "root_shear_screening_mpa": 2.3051091746014305,
+            "shear_sf": 26.029135912998317,
+            "tension_sf": 4.654587425287246,
+            "tip_deflection_mm": 24.41268234783869,
+            "youngs_modulus_gpa": 110.0
+          },
+          {
+            "compression_sf": 5.818234281609057,
+            "name": "high_quality",
+            "root_bending_stress_mpa": 128.90508764328828,
+            "root_shear_screening_mpa": 2.3051091746014305,
+            "shear_sf": 39.04370386949747,
+            "tension_sf": 6.981881137930869,
+            "tip_deflection_mm": 19.18139327330182,
+            "youngs_modulus_gpa": 140.0
+          }
+        ],
+        "conservative": {
+          "compression_sf": 2.327293712643623,
+          "shear_sf": 15.183662615915685,
+          "tension_sf": 2.7151759980842267,
+          "tip_deflection_mm": 38.36278654660364
+        },
+        "nominal": {
+          "compression_sf": 3.8788228544060384,
+          "shear_sf": 26.029135912998317,
+          "tension_sf": 4.654587425287246,
+          "tip_deflection_mm": 24.41268234783869
+        },
+        "root_bending_stress_mpa": 128.90508764328828,
+        "root_shear_screening_mpa": 2.3051091746014305
+      },
+      "mass_g": 2400.0,
+      "per_panel_lift_n": 47.07192,
+      "proof_schedule_100_percent": [
+        {
+          "centre_y_mm": 80.0,
+          "hanging_mass_at_100_percent_kg": 1.214111462660803,
+          "load_at_100_percent_n": 11.906366175302562
+        },
+        {
+          "centre_y_mm": 240.0,
+          "hanging_mass_at_100_percent_kg": 1.1636566277849603,
+          "load_at_100_percent_n": 11.41157326886738
+        },
+        {
+          "centre_y_mm": 400.0,
+          "hanging_mass_at_100_percent_kg": 1.055397809369903,
+          "load_at_100_percent_n": 10.34991692725736
+        },
+        {
+          "centre_y_mm": 560.0,
+          "hanging_mass_at_100_percent_kg": 0.8672104535752462,
+          "load_at_100_percent_n": 8.504429394553688
+        },
+        {
+          "centre_y_mm": 720.0,
+          "hanging_mass_at_100_percent_kg": 0.499544242962267,
+          "load_at_100_percent_n": 4.898855550245916
+        }
+      ],
+      "root_bending_moment_nm": 15.981744298832352,
+      "root_shear_n": 47.07114131622687,
+      "sensitivity_cases": {
+        "asymmetric_70_30_total_lift_split": "70/30 of total design lift: loaded/unloaded panel reactions, preserving total lift",
+        "asymmetric_loaded_root_m_nm": 22.37444201836529,
+        "asymmetric_loaded_root_v_n": 65.89959784271761,
+        "asymmetric_unloaded_root_m_nm": 9.58904657929941,
+        "asymmetric_unloaded_root_v_n": 28.24268478973612,
+        "vertical_gust_root_m_nm": 19.97718037354044,
+        "vertical_gust_root_v_n": 58.83892664528359,
+        "vertical_gust_screening": "1.25 x design lift sensitivity only; not a regulatory gust calculation"
+      },
+      "source": "typed config with in-memory target_mass override; YAML unchanged",
+      "total_design_lift_n": 94.14384
+    },
+    "2600g_sensitivity": {
+      "boom_station_y230mm_background_wing_load": {
+        "section_bending_moment_nm": 7.7167773384552065,
+        "section_shear_n": 32.58729045137886,
+        "y_mm": 230.0
+      },
+      "design_load_factor_g": 4.0,
+      "joiner": {
+        "bending_stress_mpa": 115.95590470685111,
+        "centre_50mm_screening_deflection_mm": 0.09002787632519499,
+        "contact_couple_force_n": 1505.5266368465268,
+        "material_envelopes": [
+          {
+            "bending_sf_compression": 2.5871903699810024,
+            "bending_sf_tension": 3.018388764977836,
+            "centre_50mm_screening_deflection_mm": 0.09002787632519499,
+            "name": "conservative"
+          },
+          {
+            "bending_sf_compression": 4.3119839499683374,
+            "bending_sf_tension": 5.174380739962005,
+            "centre_50mm_screening_deflection_mm": 0.05729046675239681,
+            "name": "nominal"
+          },
+          {
+            "bending_sf_compression": 6.467975924952506,
+            "bending_sf_tension": 7.761571109943008,
+            "centre_50mm_screening_deflection_mm": 0.045013938162597494,
+            "name": "high_quality"
+          }
+        ],
+        "socket_screening": {
+          "birch_plate_bearing_mpa": 7.527633184232633,
+          "birch_plate_net_tension_mpa_with_30mm_ligament": 12.54605530705439,
+          "bondline_shear_mpa_over_two_50x50mm_plates": 0.3011053273693053,
+          "carbon_contact_bearing_mpa": 2.6183071945156993,
+          "carbon_hoop_splitting_mpa": 16.728073742739184,
+          "minimum_tube_wall_mm": 0.9,
+          "model": "50-mm prepared contact at each moment-couple support; external hoop sleeve and two 2-mm birch plates are mandatory",
+          "provisional_allowables_mpa": {
+            "birch_bearing": 15.0,
+            "birch_net_tension": 20.0,
+            "carbon_hoop_with_external_sleeve": 25.0,
+            "carbon_radial_bearing": 15.0
+          },
+          "screening_sf": {
+            "birch_bearing": 1.9926582011752343,
+            "birch_net_tension": 1.5941265609401873,
+            "carbon_hoop_with_external_sleeve": 1.4944936508814257,
+            "carbon_radial_bearing": 5.728892328378797
+          },
+          "status": "Provisional assumed-allowable screen only: no final socket SF until representative tube/liner/birch/bond coupons and proof test pass."
+        }
+      },
+      "main_spar": {
+        "all_material_envelopes": [
+          {
+            "compression_sf": 2.148271119363343,
+            "name": "conservative",
+            "root_bending_stress_mpa": 139.64717828022907,
+            "root_shear_screening_mpa": 2.497201605818218,
+            "shear_sf": 14.015688568537547,
+            "tension_sf": 2.5063163059239,
+            "tip_deflection_mm": 41.559685425487324,
+            "youngs_modulus_gpa": 70.0
+          },
+          {
+            "compression_sf": 3.5804518656055713,
+            "name": "nominal",
+            "root_bending_stress_mpa": 139.64717828022907,
+            "root_shear_screening_mpa": 2.497201605818218,
+            "shear_sf": 24.02689468892151,
+            "tension_sf": 4.296542238726686,
+            "tip_deflection_mm": 26.447072543491874,
+            "youngs_modulus_gpa": 110.0
+          },
+          {
+            "compression_sf": 5.370677798408357,
+            "name": "high_quality",
+            "root_bending_stress_mpa": 139.64717828022907,
+            "root_shear_screening_mpa": 2.497201605818218,
+            "shear_sf": 36.04034203338226,
+            "tension_sf": 6.444813358090029,
+            "tip_deflection_mm": 20.779842712743662,
+            "youngs_modulus_gpa": 140.0
+          }
+        ],
+        "conservative": {
+          "compression_sf": 2.148271119363343,
+          "shear_sf": 14.015688568537547,
+          "tension_sf": 2.5063163059239,
+          "tip_deflection_mm": 41.559685425487324
+        },
+        "nominal": {
+          "compression_sf": 3.5804518656055713,
+          "shear_sf": 24.02689468892151,
+          "tension_sf": 4.296542238726686,
+          "tip_deflection_mm": 26.447072543491874
+        },
+        "root_bending_stress_mpa": 139.64717828022907,
+        "root_shear_screening_mpa": 2.497201605818218
+      },
+      "mass_g": 2600.0,
+      "per_panel_lift_n": 50.99458,
+      "proof_schedule_100_percent": [
+        {
+          "centre_y_mm": 80.0,
+          "hanging_mass_at_100_percent_kg": 1.3152874178825367,
+          "load_at_100_percent_n": 12.898563356577776
+        },
+        {
+          "centre_y_mm": 240.0,
+          "hanging_mass_at_100_percent_kg": 1.2606280134337071,
+          "load_at_100_percent_n": 12.362537707939662
+        },
+        {
+          "centre_y_mm": 400.0,
+          "hanging_mass_at_100_percent_kg": 1.143347626817395,
+          "load_at_100_percent_n": 11.212410004528806
+        },
+        {
+          "centre_y_mm": 560.0,
+          "hanging_mass_at_100_percent_kg": 0.9394779913731834,
+          "load_at_100_percent_n": 9.213131844099829
+        },
+        {
+          "centre_y_mm": 720.0,
+          "hanging_mass_at_100_percent_kg": 0.5411729298757894,
+          "load_at_100_percent_n": 5.307093512766409
+        }
+      ],
+      "root_bending_moment_nm": 17.313556323735057,
+      "root_shear_n": 50.99373642591247,
+      "sensitivity_cases": {
+        "asymmetric_70_30_total_lift_split": "70/30 of total design lift: loaded/unloaded panel reactions, preserving total lift",
+        "asymmetric_loaded_root_m_nm": 24.238978853229078,
+        "asymmetric_loaded_root_v_n": 71.39123099627746,
+        "asymmetric_unloaded_root_m_nm": 10.388133794241034,
+        "asymmetric_unloaded_root_v_n": 30.596241855547483,
+        "vertical_gust_root_m_nm": 21.64194540466882,
+        "vertical_gust_root_v_n": 63.74217053239059,
+        "vertical_gust_screening": "1.25 x design lift sensitivity only; not a regulatory gust calculation"
+      },
+      "source": "typed config with in-memory target_mass override; YAML unchanged",
+      "total_design_lift_n": 101.98916
+    }
+  },
+  "dbox": {
+    "2400": {
+      "cm_abs": 0.0839,
+      "effective_G_mpa": 300.0,
+      "model": "existing worst cruise |Cm| plus 1-g elliptic lift offset model; only the 1-g lift term scales with mass",
+      "practical_qualification_gate_gj_nm2": 22.8,
+      "required_root_equivalent_gj_nm2": 22.732703312063446,
+      "root_gj_nm2_at_G300": 22.78805423881252,
+      "twist_deg": {
+        "100": 1.9951421103206959,
+        "120": 2.8139797649352256,
+        "70": 1.0460348288356718,
+        "90": 1.6415531231007843
+      }
+    },
+    "2600": {
+      "cm_abs": 0.0839,
+      "effective_G_mpa": 300.0,
+      "model": "existing worst cruise |Cm| plus 1-g elliptic lift offset model; only the 1-g lift term scales with mass",
+      "practical_qualification_gate_gj_nm2": 22.9,
+      "required_root_equivalent_gj_nm2": 22.860076610214758,
+      "root_gj_nm2_at_G300": 22.78805423881252,
+      "twist_deg": {
+        "100": 2.0063210637158804,
+        "120": 2.82515871833041,
+        "70": 1.057213782230857,
+        "90": 1.6527320764959705
+      }
+    }
+  },
+  "limitations": [
+    "Carbon strength values and socket local allowables remain provisional screening envelopes, not measured allowables.",
+    "D-box GJ must be established by a linear representative article; the aeroelastic calculation is not flutter or coupled aeroelastic substantiation.",
+    "The 2600-g case is preliminary and does not alter config/aircraft.yaml or permit a geometry/construction change."
+  ],
+  "mass_ratio_2600_over_2400": 1.0833333333333333,
+  "qualification_requirements_for_2600g": {
+    "dbox_root_equivalent_GJ_min_nm2": 22.9,
+    "dbox_twist_limits_deg": {
+      "100": 2.0,
+      "120": 3.0
+    },
+    "note_on_EI": "Measured EI qualifies deflection only; it does not replace carbon strength allowables.",
+    "representative_joiner_socket_proof_force_per_existing_250mm_arm_n": 86.56778161867528,
+    "representative_joiner_socket_proof_mass_equivalent_per_arm_kg": 8.827457043809588,
+    "representative_joiner_socket_proof_torque_nm": 21.64194540466882,
+    "socket_acceptance": "Existing acceptance unchanged: no slip, crushing, hoop splitting, delamination or plate crack; residual displacement <=0.10 mm.",
+    "spar_deflection_stop_mm": 40.0,
+    "spar_equivalent_effective_E_min_gpa_for_existing_14x12": 72.72944949460282,
+    "spar_measured_EI_min_nm2": 63.11934154405524
+  },
+  "qualification_status": {
+    "canonical_2400g_gate_is_not_transferable": true,
+    "reason": "A canonical 2400-g material/fixture PASS at E>=70 GPa, socket 19.977 N m, or D-box GJ>=22.8 N m2 does not qualify the 2600-g sensitivity case. The 2600-g requirements in this artifact must be explicitly met and recorded.",
+    "state": "UNQUALIFIED_PENDING_2600G_SPECIFIC_EVIDENCE"
+  },
+  "schema": "lr1600-wing-mass-revalidation-v1",
+  "scope": {
+    "canonical_reference_config": "config/aircraft.yaml",
+    "canonical_target_mass_g": 2400.0,
+    "design_case_interpretation": "current design/limit case only; no ultimate claim and no 125% full-wing proof",
+    "design_load_factor_g": 4.0,
+    "geometry_and_structural_concept": "unchanged; only an in-memory mass override is used",
+    "sensitivity_mass_g": 2600.0
+  },
+  "status": "PRELIMINARY_CONDITIONAL"
+}
