@@ -95,10 +95,11 @@ The layout renders the following confirmed preliminary references:
 
 The P60B battery branch is a 503-g design estimate (129.6-Wh nominal,
 103.7-Wh study usable). The preliminary 155×75×28-mm 2-long × 3-wide pack
-envelope has an indexed rail from `X=-382.5` to `-332.5`, with the first-flight
-25%-MAC study index at `X=-370.0`. The unified estimated ledger gives required
-centres `-381.39/-369.99/-358.58/-335.77 mm` for 24/25/26/28% MAC respectively;
-the rounded rail deliberately covers that set without ballast. This is a
+envelope has an indexed rail from `X=-382.5` to `-332.5`, with a nominal
+reference at `X=-370.0`. The fixed-nose estimated ledger gives required
+centres `-384.78/-373.40/-362.03/-339.27 mm` for 24/25/26/28% MAC respectively.
+It retains ballast-free 25% but exact 24% lies 2.28 mm ahead of the unchanged
+rail. This is a
 ledger-driven preliminary setting, not an achieved CG measurement. The layout
 always reports `battery_removal_validated = false`: a top-removal mock-up must
 prove pack, connector, strap and rail clearance at both stops before this can
@@ -133,12 +134,16 @@ and lists them in its gallery.
 
 The typed `ground_operations` and `linkage_reference` sections additionally
 render a rough-field **reference** floor/wheels, main-hardpoint points and
-forward tail-actuation route lines. The current 13-in baseline uses 100-mm
-mains, a 75-mm nose wheel, 350-mm track and the `Z=+50 mm` pusher screen. Its
-preliminary static/compressed/tail-low/full-rough tip-clearance values are
-154.9/137/93/69 mm. They are not landing-gear, ski, fuselage-skin or pushrod
-production geometry. The 14-in option remains secondary and needs taller gear
-and a separate prop-to-boom proof.
+forward tail-actuation route lines. The current 13-in baseline uses 105-mm
+mains, a 75-mm nose wheel, 350-mm track and the `Z=+50 mm` pusher screen. The
+nose-wheel reference is drawn in the XZ rolling plane with its axle along Y:
+it represents the typed fixed-longitudinal heading and contains no steering
+geometry. Its positive index and sprung strut/fork remain outside this
+envelope-only model. With the current 105-mm mains, preliminary
+static/compressed/tail-low/full-rough tip-clearance values are
+157.4/139.4/96.9/66.9 mm. They are not landing-gear, ski, fuselage-skin or
+pushrod production geometry. The 14-in option remains secondary and needs
+taller gear and a separate prop-to-boom proof.
 
 Before production fuselage geometry can be created, proof the battery removal
 path, actual pack dimensions/mass, complete gear bay, boom/motor joints,

@@ -355,6 +355,17 @@ class BatteryConfig:
 
 
 @dataclass(frozen=True)
+class NoseGearArchitectureConfig:
+    """Typed yaw/compliance contract for the rough-field nose interface."""
+
+    heading: Literal["fixed_longitudinal"]
+    anti_rotation: Literal["positive_mechanical_index"]
+    compliance: Literal["replaceable_sprung_strut_fork"]
+    seasonal_axle_interface: Literal["wheel_or_pitch_pivot_ski"]
+    yaw_freedom: Literal["locked"]
+
+
+@dataclass(frozen=True)
 class GroundOperationsConfig:
     """Reference-only tricycle-gear inputs and propeller clearance screen.
 
@@ -377,6 +388,7 @@ class GroundOperationsConfig:
     rotation_tip_clearance_mm: float | None
     rough_tip_clearance_mm: float | None
     hardpoint_z_mm: float | None
+    nose_architecture: NoseGearArchitectureConfig | None
 
     @property
     def is_defined(self) -> bool:
@@ -799,6 +811,7 @@ def load_aircraft_config(path: Path = DEFAULT_CONFIG_PATH) -> AircraftConfig:
         "nose_wheel_diameter_mm", "main_wheel_x_mm", "nose_wheel_x_mm",
         "main_track_mm", "rotation_tail_down_deg", "compressed_tip_clearance_mm",
         "rotation_tip_clearance_mm", "rough_tip_clearance_mm", "hardpoint_z_mm",
+        "nose_architecture",
     })
     if ground_operations["status"] not in {"tbd", "initial_design_assumption"}:
         raise ConfigurationError("ground_operations.status must be 'tbd' or 'initial_design_assumption'")
@@ -809,9 +822,9 @@ def load_aircraft_config(path: Path = DEFAULT_CONFIG_PATH) -> AircraftConfig:
         "rotation_tip_clearance_mm", "rough_tip_clearance_mm", "hardpoint_z_mm",
     ))
     if ground_operations["status"] == "tbd":
-        if any(value is not None for value in ground_values):
+        if any(value is not None for value in ground_values) or ground_operations["nose_architecture"] is not None:
             raise ConfigurationError("tbd ground_operations must use null values")
-        ground_operations_config = GroundOperationsConfig("tbd", *(None for _ in ground_values))
+        ground_operations_config = GroundOperationsConfig("tbd", *(None for _ in ground_values), None)
     else:
         if any(value is None for value in ground_values):
             raise ConfigurationError("defined ground_operations needs all reference/check values")
@@ -823,7 +836,22 @@ def load_aircraft_config(path: Path = DEFAULT_CONFIG_PATH) -> AircraftConfig:
             raise ConfigurationError("ground_operations rotation/clearance values are invalid")
         if not static_axis_height - prop_diameter / 2.0 >= compressed_tip >= rotation_tip >= rough_tip:
             raise ConfigurationError("ground_operations tip clearances must descend from static to rough case")
-        ground_operations_config = GroundOperationsConfig("initial_design_assumption", *ground_values)
+        nose_architecture = _mapping(ground_operations["nose_architecture"], "ground_operations.nose_architecture")
+        expected_nose_keys = {"heading", "anti_rotation", "compliance", "seasonal_axle_interface", "yaw_freedom"}
+        if set(nose_architecture) != expected_nose_keys:
+            raise ConfigurationError("ground_operations.nose_architecture has missing or unknown keys")
+        expected_nose_values = {
+            "heading": "fixed_longitudinal",
+            "anti_rotation": "positive_mechanical_index",
+            "compliance": "replaceable_sprung_strut_fork",
+            "seasonal_axle_interface": "wheel_or_pitch_pivot_ski",
+            "yaw_freedom": "locked",
+        }
+        if nose_architecture != expected_nose_values:
+            raise ConfigurationError("ground_operations.nose_architecture must define the accepted fixed-heading interface")
+        ground_operations_config = GroundOperationsConfig(
+            "initial_design_assumption", *ground_values, NoseGearArchitectureConfig(**nose_architecture)
+        )
 
     fuselage = _section(document, "fuselage_integration", {
         "status", "outer_x_min_mm", "outer_x_max_mm", "maximum_width_mm", "maximum_height_mm", "center_z_mm",

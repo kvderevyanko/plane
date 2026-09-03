@@ -63,11 +63,31 @@ def test_unified_ledger_closes_baseline_without_ballast_and_reports_payload_limi
     summary = make_cg_summary()
     assert summary["conclusions"]["wheels_25_percent_without_ballast"]
     assert summary["mass_budget"]["wheels"]["central_g"] < summary["design_mass_case_g"]
-    wheels = summary["cg_cases"]["wheels"]["battery_positions"]
-    assert wheels[1]["cg_percent_mac"] == pytest.approx(25.0, abs=.1)
+    wheel_case = summary["cg_cases"]["wheels"]
+    wheels = wheel_case["battery_positions"]
+    assert wheels[1]["cg_percent_mac"] == pytest.approx(25.2992, abs=1e-4)
+    assert summary["mass_budget"]["wheels"]["central_g"] == pytest.approx(2533.53)
+    assert summary["mass_budget"]["skis_central_g"] == pytest.approx(2569.53)
+    assert summary["battery"]["rail_mm"]["forward"] > wheel_case["battery_x_for_targets_mm"]["24_percent_mac"]
+    assert summary["battery"]["rail_mm"]["forward"] <= wheel_case["battery_x_for_targets_mm"]["25_percent_mac"]
     hd = summary["cg_cases"]["wheels_with_hd"]["battery_x_for_targets_mm"]
     assert hd["25_percent_mac"] > summary["battery"]["rail_mm"]["nominal"]
     assert hd["28_percent_mac"] > summary["battery"]["rail_mm"]["aft"]
+
+
+def test_nose_gear_ledger_removes_steering_hardware_and_preserves_ski_moment():
+    _, hardware = baseline()
+    nose = hardware.component("nose_landing_gear")
+    ski = hardware.component("winter_ski_module")
+    assert nose.mass_g == pytest.approx(52.0)
+    assert nose.limits["wheel_diameter_mm"] == 75
+    assert nose.limits["heading"] == "fixed aircraft +X"
+    assert nose.limits["yaw_freedom"] == "locked by positive mechanical indexing"
+    assert nose.limits["seasonal_axle_interface"] == "wheel or freely pitch-pivoting nose ski"
+    assert ski.mass_g == pytest.approx(232.0)
+    assert ski.x_mm == pytest.approx((238.0 * 10.0 - 6.0 * -218.0) / 232.0, abs=.01)
+    assert ski.limits["nose_ski_freedom"] == "free pitch pivot, yaw locked"
+    assert "steerable" not in nose.model.lower()
 
 
 def test_manifest_rejects_missing_selected_evidence(tmp_path: Path):

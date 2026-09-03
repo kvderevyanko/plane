@@ -231,7 +231,7 @@
       },
       {
         "id": "nose_landing_gear",
-        "mass_g": 58.0,
+        "mass_g": 52.0,
         "x_mm": -218.0,
         "y_mm": 0.0,
         "z_mm": -125.0
@@ -245,12 +245,12 @@
       }
     ],
     "wheels": {
-      "low_g": 2266.62,
-      "central_g": 2539.5299999999997,
-      "high_g": 2852.44
+      "low_g": 2260.62,
+      "central_g": 2533.5299999999997,
+      "high_g": 2846.44
     },
-    "skis_central_g": 2575.5299999999997,
-    "wheels_with_hd_central_g": 2584.5299999999997,
+    "skis_central_g": 2569.5299999999997,
+    "wheels_with_hd_central_g": 2578.5299999999997,
     "hd_payload_study_range_g": [
       25.0,
       60.0
@@ -259,112 +259,112 @@
   "cg_cases": {
     "wheels": {
       "battery_x_for_targets_mm": {
-        "24_percent_mac": -381.39355652750163,
-        "25_percent_mac": -369.9870820410868,
-        "26_percent_mac": -358.580607554672,
-        "28_percent_mac": -335.7676585818422
+        "24_percent_mac": -384.7843230395405,
+        "25_percent_mac": -373.40479796774906,
+        "26_percent_mac": -362.02527289595764,
+        "28_percent_mac": -339.26622275237463
       },
       "battery_positions": [
         {
           "position": "forward_limit",
           "battery_x_mm": -382.5,
-          "mass_g": 2539.5299999999997,
-          "x_cg_mm": 66.04010805148985,
-          "y_cg_mm": 1.0715368591826049,
-          "z_cg_mm": -5.970396096915572,
-          "cg_percent_mac": 23.90299864574141
+          "mass_g": 2533.5299999999997,
+          "x_cg_mm": 66.71278240241877,
+          "y_cg_mm": 1.0740745126365192,
+          "z_cg_mm": -5.688505760736996,
+          "cg_percent_mac": 24.200739751890275
         },
         {
           "position": "nominal",
           "battery_x_mm": -370.0,
-          "mass_g": 2539.5299999999997,
-          "x_cg_mm": 68.51595988234045,
-          "y_cg_mm": 1.0715368591826049,
-          "z_cg_mm": -5.970396096915572,
-          "cg_percent_mac": 24.998867488904793
+          "mass_g": 2533.5299999999997,
+          "x_cg_mm": 69.19449763768341,
+          "y_cg_mm": 1.0740745126365192,
+          "z_cg_mm": -5.688505760736996,
+          "cg_percent_mac": 25.299203872417248
         },
         {
           "position": "aft_limit",
           "battery_x_mm": -332.5,
-          "mass_g": 2539.5299999999997,
-          "x_cg_mm": 75.94351537489221,
-          "y_cg_mm": 1.0715368591826049,
-          "z_cg_mm": -5.970396096915572,
-          "cg_percent_mac": 28.286474018394912
+          "mass_g": 2533.5299999999997,
+          "x_cg_mm": 76.6396433434773,
+          "y_cg_mm": 1.0740745126365192,
+          "z_cg_mm": -5.688505760736996,
+          "cg_percent_mac": 28.59459623399815
         }
       ]
     },
     "skis": {
       "battery_x_for_targets_mm": {
-        "24_percent_mac": -373.7169495029821,
-        "25_percent_mac": -362.14877852882705,
-        "26_percent_mac": -350.580607554672,
-        "28_percent_mac": -327.4442656063618
+        "24_percent_mac": -377.1093064722773,
+        "25_percent_mac": -365.5680849127457,
+        "26_percent_mac": -354.026863353214,
+        "28_percent_mac": -330.9444202341505
       },
       "battery_positions": [
         {
           "position": "forward_limit",
           "battery_x_mm": -382.5,
-          "mass_g": 2575.5299999999997,
-          "x_cg_mm": 64.5439329380749,
-          "y_cg_mm": 1.0565592324686572,
-          "z_cg_mm": -9.195000640644839,
-          "cg_percent_mac": 23.240757202098727
+          "mass_g": 2569.5299999999997,
+          "x_cg_mm": 65.20400057598083,
+          "y_cg_mm": 1.0590263589061037,
+          "z_cg_mm": -8.854537600261528,
+          "cg_percent_mac": 23.532918287729217
         },
         {
           "position": "nominal",
           "battery_x_mm": -370.0,
-          "mass_g": 2575.5299999999997,
-          "x_cg_mm": 66.98517804102458,
-          "y_cg_mm": 1.0565592324686572,
-          "z_cg_mm": -9.195000640644839,
-          "cg_percent_mac": 24.32130831324039
+          "mass_g": 2569.5299999999997,
+          "x_cg_mm": 67.6509461263344,
+          "y_cg_mm": 1.0590263589061037,
+          "z_cg_mm": -8.854537600261528,
+          "cg_percent_mac": 24.615992547721785
         },
         {
           "position": "aft_limit",
           "battery_x_mm": -332.5,
-          "mass_g": 2575.5299999999997,
-          "x_cg_mm": 74.30891334987363,
-          "y_cg_mm": 1.0565592324686572,
-          "z_cg_mm": -9.195000640644839,
-          "cg_percent_mac": 27.56296164666538
+          "mass_g": 2569.5299999999997,
+          "x_cg_mm": 74.9917827773951,
+          "y_cg_mm": 1.0590263589061037,
+          "z_cg_mm": -8.854537600261528,
+          "cg_percent_mac": 27.86521532769947
         }
       ]
     },
     "wheels_with_hd": {
       "battery_x_for_targets_mm": {
-        "24_percent_mac": -359.80972617627566,
-        "25_percent_mac": -348.2011310801856,
-        "26_percent_mac": -336.59253598409543,
-        "28_percent_mac": -313.37534579191515
+        "24_percent_mac": -363.2004926883145,
+        "25_percent_mac": -351.6188470068478,
+        "26_percent_mac": -340.03720132538103,
+        "28_percent_mac": -316.87390996244744
       },
       "battery_positions": [
         {
           "position": "forward_limit",
           "battery_x_mm": -382.5,
-          "mass_g": 2584.5299999999997,
-          "x_cg_mm": 61.84328895389105,
-          "y_cg_mm": 1.0528800207387805,
-          "z_cg_mm": -5.727153486320531,
-          "cg_percent_mac": 22.045390192705874
+          "mass_g": 2578.5299999999997,
+          "x_cg_mm": 62.49445831539677,
+          "y_cg_mm": 1.0553299748306209,
+          "z_cg_mm": -5.449616642040232,
+          "cg_percent_mac": 22.333612696978896
         },
         {
           "position": "nominal",
           "battery_x_mm": -370.0,
-          "mass_g": 2584.5299999999997,
-          "x_cg_mm": 64.27603301180487,
-          "y_cg_mm": 1.0528800207387805,
-          "z_cg_mm": -5.727153486320531,
-          "cg_percent_mac": 23.122178546208712
+          "mass_g": 2578.5299999999997,
+          "x_cg_mm": 64.93286314295355,
+          "y_cg_mm": 1.0553299748306209,
+          "z_cg_mm": -5.449616642040232,
+          "cg_percent_mac": 23.412906637045015
         },
         {
           "position": "aft_limit",
           "battery_x_mm": -332.5,
-          "mass_g": 2584.5299999999997,
-          "x_cg_mm": 71.57426518554632,
-          "y_cg_mm": 1.0528800207387805,
-          "z_cg_mm": -5.727153486320531,
-          "cg_percent_mac": 26.352543606717227
+          "mass_g": 2578.5299999999997,
+          "x_cg_mm": 72.24807762562392,
+          "y_cg_mm": 1.0553299748306209,
+          "z_cg_mm": -5.449616642040232,
+          "cg_percent_mac": 26.650788457243372
         }
       ]
     }
@@ -372,7 +372,7 @@
   "conclusions": {
     "wheels_25_percent_without_ballast": true,
     "working_2600g_coherent": true,
-    "margin_to_2600g_central_wheels": 60.470000000000255,
+    "margin_to_2600g_central_wheels": 66.47000000000025,
     "qualification_gates": [
       "weigh every assembly and obtain its actual moment",
       "prove pack retention and top-hatch removal with a physical dummy",

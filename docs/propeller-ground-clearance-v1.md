@@ -97,9 +97,10 @@ The wheelbase is 375 mm.  At preliminary 25%-MAC CG X=68.52 mm, mains are
 56.48 mm aft of CG and the level-ground static nose reaction is about 15.1% of
 weight (`(125 - 68.52) / 375`).  Over the 24--28% MAC design CG range it is
 13.3--15.7%.  This supports a positive nose-wheel load without placing the
-mains unnecessarily far aft.  Rotation authority, braking nose-over, steering
-loads and the actual stance angle remain TBD because CG height, wheel/tyre
-properties, strut kinematics, braking and runway friction are not typed.
+mains unnecessarily far aft. Rotation authority, braking nose-over,
+fixed-nose anti-rotation loads and the actual stance angle remain TBD because
+CG height, wheel/tyre properties, strut kinematics, braking and runway
+friction are not typed.
 
 No numerical wheel/fuselage drag increment is justified yet: tyre widths,
 wheel geometry, leg/axle frontal areas, fairing form and the external fuselage

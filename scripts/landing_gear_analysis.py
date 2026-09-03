@@ -32,6 +32,8 @@ def make_summary(config: AircraftConfig) -> dict[str, Any]:
                 ground.main_wheel_x_mm, ground.rotation_tail_down_deg)
     if any(value is None for value in required):
         raise ValueError("ground_operations has incomplete clearance inputs")
+    if ground.nose_architecture is None:
+        raise ValueError("ground_operations needs a nose architecture")
 
     weight_n = config.aircraft.target_mass_kg * config.aircraft.gravity_m_s2
     static_tip = ground.static_propeller_axis_height_mm - ground.propeller_diameter_mm / 2.0
@@ -45,7 +47,7 @@ def make_summary(config: AircraftConfig) -> dict[str, Any]:
     full_rough = one_main - RUT_OR_STONE_MM - WEAR_BUILD_MM
 
     return {
-        "schema": "lr1600-landing-gear-calculation-v1",
+        "schema": "lr1600-landing-gear-calculation-v2",
         "status": "preliminary_bounded_screen_not_certification",
         "mass_case_g": config.aircraft.target_mass_g,
         "weight_n": weight_n,
@@ -57,6 +59,13 @@ def make_summary(config: AircraftConfig) -> dict[str, Any]:
             "taxi_2_5g_one_main_proof": weight_n * 2.5 * PROOF_FACTOR,
             "nose_3g_40pct_operational": weight_n * 3.0 * .40,
             "nose_3g_40pct_proof": weight_n * 3.0 * .40 * PROOF_FACTOR,
+        },
+        "nose_architecture": {
+            "heading": ground.nose_architecture.heading,
+            "anti_rotation": ground.nose_architecture.anti_rotation,
+            "compliance": ground.nose_architecture.compliance,
+            "seasonal_axle_interface": ground.nose_architecture.seasonal_axle_interface,
+            "yaw_freedom": ground.nose_architecture.yaw_freedom,
         },
         "clearance_mm": {
             "static": static_tip,

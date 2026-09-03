@@ -12,23 +12,24 @@ concept and the root-wing-LE datum are unchanged.
 ## Inputs and closure
 
 The current unified central ledger uses a 503-g complete-pack estimate, a
-398-g fuselage estimate with its revised centroid near X=-1.6 mm, and 202 g of
-wheel gear.  Solving the longitudinal first moment for the configured MAC
+398-g fuselage estimate with its revised centroid near X=-1.6 mm, and 196 g of
+fixed-nose wheel gear. Solving the longitudinal first moment for the configured MAC
 targets gives:
 
 | Target | CG X, mm | Required battery CG X, mm | Rail-end margin, mm |
 |---:|---:|---:|---:|
-| 24% MAC | 66.26 | -381.39 | 1.11 from forward limit |
-| 25% MAC | 68.52 | -369.99 | 12.51 / 37.51 |
-| 26% MAC | 70.78 | -358.58 | 23.92 / 26.08 |
-| 28% MAC | 75.30 | -335.77 | 3.27 from aft limit |
+| 24% MAC | 66.26 | -384.78 | 2.28 beyond forward limit |
+| 25% MAC | 68.52 | -373.40 | 9.10 / 40.90 |
+| 26% MAC | 70.78 | -362.03 | 20.47 / 29.53 |
+| 28% MAC | 75.30 | -339.27 | 6.77 from aft limit |
 
-Thus 25% MAC is mathematically reachable without ballast, and the required
-24--28% span is 45.6 mm inside the 50-mm rail. The 1.1/3.3-mm end margins are
-not robust to as-built mass/moment error. They approve only the current
-central-ledger packaging baseline.  Before cutting a production tray, repeat
-the solver with weighed components and retain space in the skeleton for rail
-or stop revision; do not trade primary structure for extra travel.
+Thus 25% MAC remains mathematically reachable without ballast, but exact 24%
+is now 2.28 mm beyond the unchanged forward rail limit after removing the 6-g
+steering-only allowance at X=-218 mm. The 25--28% range remains inside the
+rail. This is a derived limitation, not authorization to change the validated
+rail or nose packaging. Before cutting a production tray, repeat the solver
+with weighed components and retain space in the skeleton for a deliberate
+rail/stop decision; do not trade primary structure for extra travel.
 
 The union of pack positions is X=-460...-255 mm.  At the forward setting,
 the X=-500 outer limit leaves 40 mm ahead of the estimated pack envelope for
@@ -62,9 +63,9 @@ and a representative assembled-box proof are required before manufacture.
 
 ## Handling and service trade
 
-At the 25%-MAC target, the pack centre is about 446 mm ahead of CG.  A point
-mass screen gives approximately **0.100 kg m2** battery pitch inertia about CG
-(about 0.101 kg m2 including the pack's own 155-mm longitudinal extent).  The
+At the 25%-MAC target, the pack centre is about 442 mm ahead of CG. A point
+mass screen gives approximately **0.098 kg m2** battery pitch inertia about CG
+(about 0.099 kg m2 including the pack's own 155-mm longitudinal extent). The
 same pack at X=-330 would contribute about 0.080 kg m2, so the accepted CG
 solution adds roughly **0.020 kg m2** from the battery alone.  This is a real
 pitch-response and rough-landing penalty, but preferable to ballast or moving

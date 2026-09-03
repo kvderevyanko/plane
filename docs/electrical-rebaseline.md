@@ -223,7 +223,7 @@ Preliminary placements, subject to master-layout packaging:
   exits, independent PWM outputs and no shared mechanical synchroniser;
 - GNSS/compass: upper forward mast/upper shell, initially `X=-90 mm`, and at
   least the vendor 100-mm power separation.  It must also be surveyed with
-  motor, ESC, VTX and steering/gear hardware energised; magnetic landing-gear
+  motor, ESC and VTX energised with the fixed landing gear installed; magnetic landing-gear
   hardware may require a non-compass GNSS variant;
 - receiver: central forward side bay, diversity antennas orthogonal and clear
   of high-current conductors and VTX antenna; telemetry antenna has its own

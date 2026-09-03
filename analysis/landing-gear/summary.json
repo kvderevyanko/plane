@@ -1,5 +1,5 @@
 {
-  "schema": "lr1600-landing-gear-v2",
+  "schema": "lr1600-landing-gear-v3",
   "status": "preliminary_design_estimate_not_certification",
   "input": {
     "mtow_g": 2600.0,
@@ -29,9 +29,24 @@
     "nose_proof": 60.0,
     "side_longitudinal_proof": 35.0
   },
+  "nose_architecture": {
+    "heading": "fixed_longitudinal",
+    "anti_rotation": "positive_mechanical_index",
+    "compliance": "replaceable_sprung_strut_fork",
+    "seasonal_axle_interface": "wheel_or_pitch_pivot_ski",
+    "yaw_freedom": "locked",
+    "excluded_items": [
+      "steering_linkage",
+      "steering_servo_connection",
+      "servo_saver",
+      "steering_arm",
+      "steering_cable",
+      "yaw_stops"
+    ]
+  },
   "masses_g": {
-    "wheel_gear": 202.0,
-    "ski_module_replacing_wheels": 238.0
+    "wheel_gear": 196.0,
+    "ski_module_replacing_wheels": 232.0
   },
   "passes_goal": true
 }

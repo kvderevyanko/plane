@@ -77,6 +77,13 @@ def test_repository_aircraft_yaml_loads_and_has_expected_planform():
     assert config.battery.mass_max_g == pytest.approx(520.0)
     assert (config.battery.package_length_mm, config.battery.package_width_mm, config.battery.package_height_mm) == pytest.approx((155.0, 75.0, 28.0))
     assert config.battery.nominal_x_mm == pytest.approx(-370.0)
+    assert config.ground_operations.nose_wheel_diameter_mm == pytest.approx(75.0)
+    assert config.ground_operations.nose_architecture is not None
+    assert config.ground_operations.nose_architecture.heading == "fixed_longitudinal"
+    assert config.ground_operations.nose_architecture.anti_rotation == "positive_mechanical_index"
+    assert config.ground_operations.nose_architecture.compliance == "replaceable_sprung_strut_fork"
+    assert config.ground_operations.nose_architecture.seasonal_axle_interface == "wheel_or_pitch_pivot_ski"
+    assert config.ground_operations.nose_architecture.yaw_freedom == "locked"
     assert config.fuselage_integration.is_defined
     assert (config.fuselage_integration.outer_x_min_mm, config.fuselage_integration.outer_x_max_mm) == pytest.approx((-500.0, 410.0))
     assert tuple(servo.id for servo in config.fuselage_integration.forward_servos) == (
@@ -164,6 +171,16 @@ def test_config_rejects_missing_required_generator_parameter(tmp_path: Path):
         encoding="utf-8",
     )
     with pytest.raises(ConfigurationError, match="rib_pitch_mm"):
+        load_aircraft_config(invalid_config)
+
+
+def test_config_rejects_yaw_free_nose_gear(tmp_path: Path):
+    invalid_config = tmp_path / "aircraft.yaml"
+    invalid_config.write_text(
+        CONFIG_PATH.read_text(encoding="utf-8").replace("    yaw_freedom: locked\n", "    yaw_freedom: free\n"),
+        encoding="utf-8",
+    )
+    with pytest.raises(ConfigurationError, match="accepted fixed-heading interface"):
         load_aircraft_config(invalid_config)
 
 

@@ -178,6 +178,12 @@ ground_operations:
   rotation_tip_clearance_mm: 96.9
   rough_tip_clearance_mm: 66.9
   hardpoint_z_mm: -60.0
+  nose_architecture:
+    heading: fixed_longitudinal
+    anti_rotation: positive_mechanical_index
+    compliance: replaceable_sprung_strut_fork
+    seasonal_axle_interface: wheel_or_pitch_pivot_ski
+    yaw_freedom: locked
 
 # Preliminary real fuselage/package architecture. This is the source for the
 # reference master-layout only; it is not production skin or laser geometry.

@@ -373,15 +373,15 @@ components:
     category: airframe_estimate
     status: design_estimate
     manufacturer: null
-    model: Removable steerable nose strut and 75mm wheel
+    model: Removable fixed-heading sprung nose strut/fork and 75mm wheel
     source_url: docs/landing-gear.md
     source_retrieved_date: '2026-09-03'
-    mass_g: 58.0
+    mass_g: 52.0
     mass_status: design_estimate
     dimensions_mm: {length: 190.0, width: 75.0, height: 190.0}
     position_mm: {x: -218.0, y: 0.0, z: -125.0}
-    limits: {wheel_diameter_mm: 75, mass_range_g: [53.0, 66.0], attachment: 'shared replaceable 3mm birch hardpoints'}
-    notes: 'Includes nose wheel and strut; final steering arm/servo geometry needs proof.'
+    limits: {wheel_diameter_mm: 75, mass_range_g: [47.0, 60.0], heading: 'fixed aircraft +X', yaw_freedom: 'locked by positive mechanical indexing', compliance: 'replaceable sprung strut/fork', attachment: 'shared replaceable 3mm birch hardpoints', seasonal_axle_interface: 'wheel or freely pitch-pivoting nose ski'}
+    notes: 'Includes the 21-g nose wheel/axle allowance and 31-g fixed sprung strut/fork/index allowance. The former 6-g steering-only allowance (arm/linkage/saver/stops) is deleted; no steering servo is installed.'
   - id: landing_gear_fasteners
     category: airframe_estimate
     status: design_estimate
@@ -402,12 +402,12 @@ components:
     model: Three-ski seasonal module on shared gear hardpoints
     source_url: docs/ground-operations-architecture.md
     source_retrieved_date: '2026-09-03'
-    mass_g: 238.0
+    mass_g: 232.0
     mass_status: design_estimate
     dimensions_mm: {length: 360.0, width: 80.0, height: 45.0}
-    position_mm: {x: 10.0, y: 0.0, z: -155.0}
-    limits: {replaces: 'main_landing_gear + nose_landing_gear + landing_gear_fasteners', mass_range_g: [220.0, 265.0], attachment: 'shared hardpoints'}
-    notes: 'Seasonal configuration only; it is never summed with wheel gear.'
+    position_mm: {x: 15.9, y: 0.0, z: -155.0}
+    limits: {replaces: 'main_landing_gear + nose_landing_gear + landing_gear_fasteners', mass_range_g: [214.0, 259.0], attachment: 'shared hardpoints and axles', nose_ski_freedom: 'free pitch pivot, yaw locked'}
+    notes: 'Seasonal configuration only; it is never summed with wheel gear. The 15.9-mm X estimate preserves the prior module moment after deleting the 6-g steering-only allowance at X=-218 mm.'
   - id: hd_recording_payload
     category: payload
     status: fallback

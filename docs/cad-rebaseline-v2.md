@@ -10,7 +10,9 @@ The preferred pusher integration is a 13×10 pusher, with propeller/motor axis
 at `Z=+50 mm`, propeller plane `X=430 mm`, static ground plane `Z=-270 mm`,
 and the two main wheel contact stations at `X=125 mm`, `Y=±175 mm`. Main wheels
 are Ø100 mm and the nose wheel is Ø75 mm. These are preliminary packaging
-points, not a selected wheel, leg or steering mechanism.
+points, not a selected wheel, leg, sprung nose fork or positive anti-rotation
+index. The nose-wheel reference is fixed on aircraft +X; no yaw-steering
+geometry is present.
 
 The supplied structural screen records 13-in tip clearance as 154.9 mm static,
 137 mm with 18-mm compression, 93 mm at 8-degree tail-low stance, and 69 mm
@@ -35,8 +37,9 @@ other when changing gear geometry.
 
 The master layout marks, but does not draw, two main hardpoint points at
 `X=125, Y=±175, Z=-60 mm`. The intended load path is 3-mm birch double-shear
-faces with a 2-mm web and continuous carbon longerons.  Seasonal skis pivot
-on the retained wheel axles and require +20/-5-degree pitch freedom; ski
+faces with a 2-mm web and continuous carbon longerons. Seasonal skis pivot
+on the retained wheel axles and require +20/-5-degree pitch freedom; the nose
+ski remains yaw-locked by the same positive strut-root index. Ski
 dimensions and retainers remain TBD, so no invented ski solid is rendered.
 
 Elevator and both independent rudder servos relocate to `X=110 mm`.  Layout

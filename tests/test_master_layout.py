@@ -197,6 +197,15 @@ def test_ground_operations_reference_tracks_typed_rough_field_screen():
 
     assert len(layout.main_wheels) == 2
     assert layout.nose_wheel is not None
+    assert ground.nose_architecture is not None
+    assert ground.nose_architecture.heading == "fixed_longitudinal"
+    assert ground.nose_architecture.yaw_freedom == "locked"
+    nose_bounds = layout.nose_wheel.val().BoundingBox()
+    # The display wheel lies in XZ with its axle along Y: it is fixed on the
+    # aircraft longitudinal heading and contains no yaw-steering geometry.
+    assert (nose_bounds.xlen, nose_bounds.ylen, nose_bounds.zlen) == pytest.approx((
+        ground.nose_wheel_diameter_mm, 12.0, ground.nose_wheel_diameter_mm,
+    ))
     assert layout.ground_reference is not None
     assert tuple(name for name, _ in layout.propeller_tip_clearance_cases_mm) == (
         "static", "compressed", "tail_low", "full_rough",

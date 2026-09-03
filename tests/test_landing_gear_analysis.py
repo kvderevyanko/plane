@@ -24,3 +24,15 @@ def test_2600g_one_main_proof_is_the_governing_vertical_screen():
     assert summary["mass_case_g"] == 2600
     assert loads["one_main_3_5g_proof"] == pytest.approx(120.48, rel=3e-3)
     assert loads["one_main_3_5g_proof"] > loads["taxi_2_5g_one_main_proof"]
+
+
+def test_calculation_carries_fixed_nose_architecture_contract():
+    summary = make_summary(load_aircraft_config(ROOT / "config" / "aircraft.yaml"))
+    architecture = summary["nose_architecture"]
+    assert architecture == {
+        "heading": "fixed_longitudinal",
+        "anti_rotation": "positive_mechanical_index",
+        "compliance": "replaceable_sprung_strut_fork",
+        "seasonal_axle_interface": "wheel_or_pitch_pivot_ski",
+        "yaw_freedom": "locked",
+    }
