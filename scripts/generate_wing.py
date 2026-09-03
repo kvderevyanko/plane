@@ -182,6 +182,129 @@ def offset_inward(points: list[Point], distance: float) -> list[Point]:
     return result
 
 
+def cross(a: Point, b: Point) -> float:
+    """Return the scalar 2-D cross product."""
+    return a[0] * b[1] - a[1] * b[0]
+
+
+def segment_intersection(a: Point, b: Point, c: Point, d: Point) -> tuple[float, float, Point] | None:
+    """Return parameters and point for an inclusive intersection of two segments."""
+    r = (b[0] - a[0], b[1] - a[1])
+    s = (d[0] - c[0], d[1] - c[1])
+    denominator = cross(r, s)
+    if abs(denominator) < 1e-12:
+        return None
+    q_minus_p = (c[0] - a[0], c[1] - a[1])
+    t = cross(q_minus_p, s) / denominator
+    u = cross(q_minus_p, r) / denominator
+    tolerance = 1e-9
+    if not -tolerance <= t <= 1.0 + tolerance or not -tolerance <= u <= 1.0 + tolerance:
+        return None
+    return t, u, (a[0] + t * r[0], a[1] + t * r[1])
+
+
+def offset_open_path(points: list[Point], distance: float, orientation: float) -> list[Point]:
+    """Offset an open portion of a profile, translating its end points normally."""
+    if len(points) < 2:
+        raise ValueError("An offset path needs at least two points")
+    result: list[Point] = []
+    for index, current in enumerate(points):
+        if index == 0:
+            direction = unit((points[1][0] - current[0], points[1][1] - current[1]))
+            normal = (-direction[1] * orientation, direction[0] * orientation)
+            result.append((current[0] + distance * normal[0], current[1] + distance * normal[1]))
+            continue
+        if index == len(points) - 1:
+            direction = unit((current[0] - points[index - 1][0], current[1] - points[index - 1][1]))
+            normal = (-direction[1] * orientation, direction[0] * orientation)
+            result.append((current[0] + distance * normal[0], current[1] + distance * normal[1]))
+            continue
+        previous = points[index - 1]
+        following = points[index + 1]
+        prev_dir = unit((current[0] - previous[0], current[1] - previous[1]))
+        next_dir = unit((following[0] - current[0], following[1] - current[1]))
+        n_prev = (-prev_dir[1] * orientation, prev_dir[0] * orientation)
+        n_next = (-next_dir[1] * orientation, next_dir[0] * orientation)
+        miter = unit((n_prev[0] + n_next[0], n_prev[1] + n_next[1]))
+        denominator = max(0.1, abs(miter[0] * n_next[0] + miter[1] * n_next[1]))
+        result.append((current[0] + miter[0] * distance / denominator,
+                       current[1] + miter[1] * distance / denominator))
+    return result
+
+
+def trim_offset_self_intersections(points: list[Point]) -> list[Point]:
+    """Remove local loops from a polyline offset of a tightly curved profile.
+
+    The sampled Clark Y leading edge also has segments shorter than the 3-mm
+    offset.  Their straight-line miters can cross even though the original
+    profile is simple.  Replacing each crossed run with its actual segment
+    intersection keeps the inner offset boundary and prevents emitting a
+    laser-cut self-intersection.
+    """
+    result = points[:]
+    while True:
+        count = len(result)
+        crossing: tuple[int, int, Point] | None = None
+        for first in range(count):
+            for second in range(first + 2, count):
+                if first == 0 and second == count - 1:
+                    continue
+                hit = segment_intersection(
+                    result[first], result[(first + 1) % count],
+                    result[second], result[(second + 1) % count],
+                )
+                if hit is None:
+                    continue
+                t, u, point = hit
+                # Adjacent endpoints are intentionally shared; only a proper
+                # crossing represents a removable offset loop.
+                if 1e-9 < t < 1.0 - 1e-9 and 1e-9 < u < 1.0 - 1e-9:
+                    crossing = first, second, point
+                    break
+            if crossing is not None:
+                break
+        if crossing is None:
+            return result
+        first, second, point = crossing
+        result = [*result[:first + 1], point, *result[second + 1:]]
+
+
+def offset_inward_with_te_closure(points: list[Point], distance: float) -> list[Point]:
+    """Inset a sharp-TE profile, truncating it where the two inset skins meet.
+
+    A 3-mm skin cannot fit into Clark Y's sub-millimetre trailing-edge gap.
+    Rather than inventing a trailing-edge thickness, offset each surface and
+    use their aft-most intersection as the single manufacturing TE point.
+    This is the exact intersection implied by the requested offset distance.
+    """
+    lead_index = min(range(len(points)), key=lambda index: points[index][0])
+    if lead_index in (0, len(points) - 1):
+        raise ValueError("Expected ordered upper and lower surfaces around a leading edge")
+    orientation = 1.0 if signed_area(points) > 0 else -1.0
+    upper = offset_open_path(points[:lead_index + 1], distance, orientation)
+    lower = offset_open_path(points[lead_index:], distance, orientation)
+    # Preserve the normal closed-profile miter at LE; only TE needs a special
+    # closure because its original gap is smaller than the skin offset.
+    leading_edge = offset_inward(points, distance)[lead_index]
+    upper[-1] = leading_edge
+    lower[0] = leading_edge
+
+    intersections: list[tuple[float, int, int, Point]] = []
+    for upper_index, (a, b) in enumerate(zip(upper, upper[1:])):
+        for lower_index, (c, d) in enumerate(zip(lower, lower[1:])):
+            hit = segment_intersection(a, b, c, d)
+            if hit is not None:
+                _, _, point = hit
+                intersections.append((point[0], upper_index, lower_index, point))
+    if not intersections:
+        raise ValueError("Inward-offset upper and lower surfaces do not meet at trailing edge")
+    # Any shared LE endpoint is also an intersection.  The manufacturing TE is
+    # the aft-most remaining intersection, which is unique for these profiles.
+    _, upper_index, lower_index, trailing_edge = max(intersections, key=lambda item: item[0])
+    contour = [trailing_edge, *upper[upper_index + 1:], *lower[1:lower_index + 1]]
+    return trim_offset_self_intersections(contour)
+
+
 def chord_at(span_station_mm: float, p: WingParameters) -> float:
     return p.root_chord_mm + (p.tip_chord_mm - p.root_chord_mm) * span_station_mm / p.panel_span_mm
 
@@ -209,7 +332,7 @@ def rib_contour(station_mm: float, p: WingParameters) -> list[Point]:
     """Return the rib outside contour, i.e. the inside face of the 3 mm skins."""
     chord = chord_at(station_mm, p)
     theoretical = airfoil_at_chord(chord, washout_at(station_mm, p), p)
-    return offset_inward(theoretical, p.skin_thickness_mm)
+    return offset_inward_with_te_closure(theoretical, p.skin_thickness_mm)
 
 
 def camber_z_at(x: float, chord_mm: float, twist_deg: float, p: WingParameters) -> float:
