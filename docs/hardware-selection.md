@@ -1,5 +1,11 @@
 # LR1600 hardware baseline v1
 
+> Superseded for active fuselage/gear integration by
+> [`config/hardware.yaml`](../config/hardware.yaml) and
+> [`cg-integration-v2.md`](cg-integration-v2.md). This retained document is
+> historical evidence for the rejected 14-in/KDE/P30B branch, not a current
+> component selection or mass source.
+
 Status: selected preliminary hardware, **not** a procurement release. Aircraft
 requirements remain in `config/aircraft.yaml`; exact commercial facts, masses
 and installation envelopes have one versioned source: `config/hardware.yaml`.

@@ -1,5 +1,9 @@
 # LR1600 preliminary CG closure v1
 
+> Superseded for the active airframe by
+> [`cg-integration-v2.md`](cg-integration-v2.md). This preserves the rejected
+> P30B/X=0 study only; it is not a current layout or mass source.
+
 Result: **blocked before fuselage CAD**. The concrete 6S2P battery makes the
 previous X=0 with ±30-mm tray demonstrably unsuitable; no ballast is introduced.
 

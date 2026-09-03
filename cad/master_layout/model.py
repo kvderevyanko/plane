@@ -36,6 +36,16 @@ class MasterLayout:
     esc_envelope: cq.Workplane | None
     battery_envelope: cq.Workplane | None
     battery_travel_envelope: cq.Workplane | None
+    # Fuselage solids are intentionally station/envelope representations. They
+    # make the preliminary structural packaging reviewable without claiming a
+    # final aerodynamic profile or laser-cut production parts.
+    fuselage_envelope: cq.Workplane | None
+    fuselage_bulkheads: tuple[tuple[float, cq.Workplane], ...]
+    fuselage_hardpoint_bulkheads: tuple[tuple[float, cq.Workplane], ...]
+    battery_hatch_envelope: cq.Workplane | None
+    forward_servo_envelopes: tuple[tuple[str, cq.Workplane], ...]
+    boom_interface_envelopes: tuple[cq.Workplane, ...]
+    motor_mount_envelope: cq.Workplane | None
     avionics_envelopes: tuple[tuple[str, cq.Workplane], ...]
     # Selected commercial hardware is optional because aircraft geometry must
     # remain renderable without an implementation manifest.  The flight
@@ -275,6 +285,59 @@ def _battery_envelopes(config: AircraftConfig) -> tuple[cq.Workplane | None, cq.
     return pack, travel
 
 
+def _fuselage_integration_references(config: AircraftConfig) -> tuple[
+        cq.Workplane | None, tuple[tuple[float, cq.Workplane], ...],
+        tuple[tuple[float, cq.Workplane], ...], cq.Workplane | None,
+        tuple[tuple[str, cq.Workplane], ...], tuple[cq.Workplane, ...], cq.Workplane | None,
+    ]:
+    """Return explicitly typed preliminary fuselage layout references.
+
+    The outer box is an installation envelope, deliberately not an external
+    fuselage loft. Bulkheads are station planes sized to that envelope; their
+    display thickness has no material meaning. Hardpoint stations are separate
+    because their 3-mm birch/primary-load treatment is documented elsewhere.
+    """
+    fuselage = config.fuselage_integration
+    if not fuselage.is_defined:
+        return None, (), (), None, (), (), None
+    assert fuselage.outer_x_min_mm is not None and fuselage.outer_x_max_mm is not None
+    assert fuselage.maximum_width_mm is not None and fuselage.maximum_height_mm is not None
+    assert fuselage.center_z_mm is not None and fuselage.battery_hatch_x_mm is not None
+    assert fuselage.battery_hatch_length_mm is not None and fuselage.battery_hatch_width_mm is not None
+    assert fuselage.battery_hatch_z_mm is not None and fuselage.boom_interface_x_mm is not None
+    assert fuselage.boom_clamp_rear_x_mm is not None
+    assert fuselage.motor_mount_x_mm is not None and config.booms.lateral_offset_mm is not None
+    outer = _centered_box(
+        length_mm=fuselage.outer_x_max_mm - fuselage.outer_x_min_mm,
+        width_mm=fuselage.maximum_width_mm, height_mm=fuselage.maximum_height_mm,
+        x_mm=(fuselage.outer_x_max_mm + fuselage.outer_x_min_mm) / 2.0,
+        y_mm=0.0, z_mm=fuselage.center_z_mm,
+    )
+    def bulkhead_at(x_mm: float) -> cq.Workplane:
+        return _centered_box(length_mm=REFERENCE_THICKNESS_MM, width_mm=fuselage.maximum_width_mm,
+                             height_mm=fuselage.maximum_height_mm, x_mm=x_mm, y_mm=0.0, z_mm=fuselage.center_z_mm)
+    bulkheads = tuple((x_mm, bulkhead_at(x_mm)) for x_mm in fuselage.bulkhead_x_mm)
+    hardpoints = tuple((x_mm, bulkhead_at(x_mm)) for x_mm in fuselage.hardpoint_bulkhead_x_mm)
+    hatch = _centered_box(length_mm=fuselage.battery_hatch_length_mm, width_mm=fuselage.battery_hatch_width_mm,
+                          height_mm=REFERENCE_THICKNESS_MM, x_mm=fuselage.battery_hatch_x_mm, y_mm=0.0,
+                          z_mm=fuselage.battery_hatch_z_mm)
+    servos = tuple(
+        (servo.id, _centered_box(length_mm=25.0, width_mm=13.0, height_mm=25.0,
+                                 x_mm=servo.x_mm, y_mm=servo.y_mm, z_mm=servo.z_mm))
+        for servo in fuselage.forward_servos
+    )
+    boom_interfaces = tuple(
+        _centered_box(length_mm=24.0, width_mm=36.0, height_mm=36.0,
+                      x_mm=x_mm, y_mm=y_mm, z_mm=config.booms.axis_z_mm or 0.0)
+        for x_mm in (fuselage.boom_interface_x_mm, fuselage.boom_clamp_rear_x_mm)
+        for y_mm in (-config.booms.lateral_offset_mm, config.booms.lateral_offset_mm)
+    )
+    motor_mount = _centered_box(length_mm=3.0, width_mm=fuselage.maximum_width_mm,
+                                height_mm=fuselage.maximum_height_mm * .55,
+                                x_mm=fuselage.motor_mount_x_mm, y_mm=0.0, z_mm=config.propulsion.motor_axis_z_mm or fuselage.center_z_mm)
+    return outer, bulkheads, hardpoints, hatch, servos, boom_interfaces, motor_mount
+
+
 def _ground_operations_reference(config: AircraftConfig) -> tuple[
         tuple[cq.Workplane, ...], cq.Workplane | None, cq.Workplane | None,
         float | None, float | None, tuple[tuple[str, float], ...],
@@ -329,11 +392,17 @@ def _linkage_route_segments(config: AircraftConfig) -> tuple[tuple[tuple[float, 
     assert linkage.servo_x_mm is not None and tail.aerodynamic_center_x_mm is not None
     # End stations are the typed tail AC/boom axes. Actual horn positions and
     # guide locations remain a structural/linkage validation gate.
-    return (
-        ((linkage.servo_x_mm, 0.0, 0.0), (tail.aerodynamic_center_x_mm, 0.0, 0.0)),
-        ((linkage.servo_x_mm, -12.0, 0.0), (tail.aerodynamic_center_x_mm, -booms.lateral_offset_mm, 0.0)),
-        ((linkage.servo_x_mm, 12.0, 0.0), (tail.aerodynamic_center_x_mm, booms.lateral_offset_mm, 0.0)),
-    )
+    servos = {servo.id: servo for servo in config.fuselage_integration.forward_servos}
+    elevator = servos.get("elevator_servo")
+    left = servos.get("rudder_servo_left")
+    right = servos.get("rudder_servo_right")
+    if elevator is not None and left is not None and right is not None:
+        return (
+            ((elevator.x_mm, elevator.y_mm, elevator.z_mm), (tail.aerodynamic_center_x_mm, 0.0, 0.0)),
+            ((left.x_mm, left.y_mm, left.z_mm), (tail.aerodynamic_center_x_mm, -booms.lateral_offset_mm, 0.0)),
+            ((right.x_mm, right.y_mm, right.z_mm), (tail.aerodynamic_center_x_mm, booms.lateral_offset_mm, 0.0)),
+        )
+    return ()
 
 
 def _avionics_envelopes(config: AircraftConfig) -> tuple[tuple[str, cq.Workplane], ...]:
@@ -405,6 +474,8 @@ def master_layout_from_config(config: AircraftConfig, hardware: HardwareConfig |
     horizontal_tail, elevator = _horizontal_tail_reference(config)
     vertical_fins, rudders = _vertical_tail_reference(config)
     battery_envelope, battery_travel_envelope = _battery_envelopes(config)
+    (fuselage_envelope, fuselage_bulkheads, fuselage_hardpoint_bulkheads, battery_hatch_envelope,
+     forward_servo_envelopes, boom_interface_envelopes, motor_mount_envelope) = _fuselage_integration_references(config)
     (main_wheels, nose_wheel, ground_reference, static_tip_clearance, dynamic_tip_clearance,
      tip_clearance_cases, landing_gear_hardpoints) = _ground_operations_reference(config)
     selected_hardware_envelopes, selected_propeller_disk, high_current_route, antenna_keepout_envelopes = _selected_hardware_layout(hardware)
@@ -419,6 +490,13 @@ def master_layout_from_config(config: AircraftConfig, hardware: HardwareConfig |
         esc_envelope=_esc_envelope(config),
         battery_envelope=battery_envelope,
         battery_travel_envelope=battery_travel_envelope,
+        fuselage_envelope=fuselage_envelope,
+        fuselage_bulkheads=fuselage_bulkheads,
+        fuselage_hardpoint_bulkheads=fuselage_hardpoint_bulkheads,
+        battery_hatch_envelope=battery_hatch_envelope,
+        forward_servo_envelopes=forward_servo_envelopes,
+        boom_interface_envelopes=boom_interface_envelopes,
+        motor_mount_envelope=motor_mount_envelope,
         avionics_envelopes=_avionics_envelopes(config),
         selected_hardware_envelopes=selected_hardware_envelopes,
         selected_propeller_disk=selected_propeller_disk,

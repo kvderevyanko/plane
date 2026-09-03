@@ -1,5 +1,10 @@
 # LR1600 Powertrain Architecture, Battery & Avionics Packaging v1
 
+> Historical 2,400-g energy screen. The active configuration is the P60B
+> 6S1P / 13x10 preliminary integration branch in
+> [`config/hardware.yaml`](../config/hardware.yaml); this document is not its
+> mass or placement source.
+
 `scripts/powertrain_architecture.py` is a reproducible architecture and
 energy-screening model.  It writes `analysis/powertrain/summary.json` and
 three inspection plots.  It does not select a motor, ESC, propeller, battery,

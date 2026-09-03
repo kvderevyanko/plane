@@ -121,8 +121,8 @@ def _dbox(config: Any, mass_g: float, aero_polar: Path) -> dict[str, Any]:
 
 def build_summary(config_path: Path = DEFAULT_CONFIG_PATH, aero_polar: Path = ROOT / "analysis" / "aero" / "parsed" / "clarky_re300000_realistic_model_combined.csv") -> dict[str, Any]:
     config = load_aircraft_config(config_path)
-    if config.aircraft.target_mass_g != REFERENCE_MASS_G:
-        raise ValueError("This sensitivity is anchored to the canonical 2400-g YAML reference case")
+    # Keep the legacy 2400-to-2600 qualification comparison reproducible even
+    # though the aircraft-level integration design case is now 2600 g.
     reference = _case(config, REFERENCE_MASS_G, aero_polar)
     sensitivity = _case(config, SENSITIVITY_MASS_G, aero_polar)
     dbox = {str(int(mass)): _dbox(config, mass, aero_polar) for mass in (REFERENCE_MASS_G, SENSITIVITY_MASS_G)}

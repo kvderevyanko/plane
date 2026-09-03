@@ -64,7 +64,7 @@ def test_analysis_reads_typed_yaml_not_generated_snapshot(tmp_path: Path):
     source = (ROOT / "scripts/analyze_wing_structure.py").read_text(encoding="utf-8")
     assert "generated/parameters.json" not in source
     changed = tmp_path / "aircraft.yaml"
-    changed.write_text((ROOT / "config/aircraft.yaml").read_text(encoding="utf-8").replace("target_mass_g: 2400", "target_mass_g: 2500"), encoding="utf-8")
+    changed.write_text((ROOT / "config/aircraft.yaml").read_text(encoding="utf-8").replace("target_mass_g: 2600", "target_mass_g: 2500"), encoding="utf-8")
     result, _ = analyze(load_aircraft_config(changed))
     assert result["load_case"]["design_total_lift_n"] == pytest.approx(2.5 * 9.80665 * 4)
     assert result["main_spar"]["root_bending_moment_nm"] > 16

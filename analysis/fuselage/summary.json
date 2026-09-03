@@ -1,0 +1,34 @@
+{
+  "schema": "lr1600-fuselage-architecture-v1",
+  "status": "preliminary_design_estimate_not_release_to_manufacture",
+  "datum": "wing_root_leading_edge",
+  "units": {"length": "mm", "mass": "g", "force": "N"},
+  "integration_mass_case_g": 2600,
+  "selected_architecture": "laser-cut birch internal skeleton with two lower carbon longerons continuous to X=-475, upper carbon longerons aft of X=-170, primary birch side rails around the forward hatch, local 3-mm birch hardpoint boxes and secondary foam/light-composite outer shell",
+  "external_envelope_mm": {"x_min": -500, "x_max": 410, "length": 910, "maximum_width": 180, "maximum_height": 190, "motor_plate_x_max": 430},
+  "classification": {"primary": ["2-mm frames/shear webs", "3-mm hardpoint boxes", "carbon longerons", "prepared bonds and through-bolted interfaces"], "secondary": ["battery/equipment trays where not on retention path", "hatches", "printed bezels/guides", "fairings"], "skin_only": ["foam/light-composite outer shell", "replaceable skid"]},
+  "battery": {
+    "status": "preliminary_6s1p_p60b_pack_envelope_not_vendor_drawing",
+    "pack_envelope_mm": {"x_length": 155, "y_width": 75, "z_height": 28, "cell_arrangement": "two-long by three-wide 21700 study"},
+    "mass_g": 503,
+    "rail_x_mm": {"forward": -382.5, "nominal_first_flight": -370.0, "aft": -332.5, "travel": 50},
+    "target_solution_x_mm": {"24_percent_mac": -381.39, "25_percent_mac": -369.99, "26_percent_mac": -358.58, "28_percent_mac": -335.77},
+    "moving_extent_x_mm": {"forward": -460, "aft": -255},
+    "hatch_clear_opening_mm": {"x_length": 230, "y_width": 110, "x_min": -472.5, "x_max": -242.5},
+    "removal": "upward after guarded disconnect; mock-up and six-direction inert-dummy proof required",
+    "retention": {"operational_6g_n": 29.6, "proof_factor": 1.5, "proof_n_each_principal_direction": 44.4, "nominal_cg_ledger_moment_g_mm": -186110.0, "path_rule": "each complete stop or strap path is proofed for the full load; no failed-path load-sharing credit"}
+  },
+  "hardpoint_stations_x_mm": {"nose_keel": [-285, -170, -55], "main_gear": [65, 130, 200], "boom_motor": [285, 365], "wing_shear": [-55, 65]},
+  "boom_interface": {"axes_y_mm": [-230, 230], "clamp_station_separation_min_mm": 80, "axis_tolerance_mm": 0.5, "differential_tail_incidence_limit_deg": 0.25, "status": "provisional alignment/motor bridge only; no primary boom bending-load credit until coupled wing/boom interface CAD and proof"},
+  "fuselage_mass": {
+    "status": "design_estimate",
+    "central_g": 398,
+    "range_g": [365, 440],
+    "ledger_centroid_x_mm": -1.6,
+    "breakdown_g": {"2mm_frame_keel_shear_webs": 70, "carbon_longerons_wraps": 34, "3mm_hardpoints": 70, "shell_extended_nose": 62, "battery_tray_hatch_retention": 55, "motor_plate_crossmember": 25, "equipment_camera_trays": 18, "skid_bumper": 14, "adhesive_inserts_fasteners_chafe": 50},
+    "centroid_note": "Single point reconciled to hardware ledger; its moment is -636.8 g mm. The separate 50-g removable motor plate/adapter/prop-retention item is not included."
+  },
+  "motor_mount_proof_screen": {"axial_thrust_n": 15.1, "torsion_nm": 1.26, "inertia_bending_nm": 0.64, "basis": "1.5x 10.1-N/0.84-Nm provisional propulsion screen and 4g on 180g at 90mm; replace with selected-motor bench loads"},
+  "primary_failure_modes": ["plywood bearing or splitting", "bond peel at inadequately prepared laser-cut face", "carbon crushing at boom clamp", "gear-leg root delamination", "motor-plate bolt bearing"],
+  "release_gates": ["bearing/net-section/clamp/bond coupons", "complete wing-boom-gear bay proof", "battery dummy proof in six directions", "dummy prop clearance proof", "weighed mass and measured CG"]
+}

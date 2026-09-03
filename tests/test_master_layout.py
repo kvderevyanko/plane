@@ -129,12 +129,12 @@ def test_master_layout_packaging_envelopes_track_only_typed_configuration():
 
 def test_master_layout_avionics_position_changes_only_with_typed_source(tmp_path: Path):
     changed = tmp_path / "aircraft.yaml"
-    changed.write_text(CONFIG.read_text(encoding="utf-8").replace("      x_mm: 170.0", "      x_mm: 175.0", 1), encoding="utf-8")
+    changed.write_text(CONFIG.read_text(encoding="utf-8").replace("      x_mm: 125.0", "      x_mm: 130.0", 1), encoding="utf-8")
 
     layout = master_layout_from_config(load_aircraft_config(changed))
     flight_controller = dict(layout.avionics_envelopes)["flight_controller"].val().BoundingBox()
 
-    assert (flight_controller.xmin + flight_controller.xmax) / 2.0 == pytest.approx(175.0)
+    assert (flight_controller.xmin + flight_controller.xmax) / 2.0 == pytest.approx(130.0)
 
 
 def test_full_battery_travel_envelope_has_positive_x_clearance_to_typed_avionics():
@@ -171,10 +171,9 @@ def test_selected_nonbattery_hardware_layout_comes_only_from_manifest():
             component.x_mm, component.y_mm, component.z_mm,
         ))
 
-    prop = hardware.component("propulsion_propeller")
-    prop_box = layout.selected_propeller_disk.val().BoundingBox()
-    assert (prop_box.ylen, prop_box.zlen) == pytest.approx((prop.length_mm, prop.height_mm))
-    assert (prop_box.xmin + prop_box.xmax) / 2 == pytest.approx(prop.x_mm)
+    # The 13x10 is a design-estimate envelope, deliberately not a selected SKU.
+    # Its typed aircraft-level propeller disk remains rendered separately.
+    assert layout.selected_propeller_disk is None
     assert layout.high_current_route == hardware.high_current_route
     assert tuple(item_id for item_id, _ in layout.antenna_keepout_envelopes) == tuple(item.id for item in hardware.antenna_keepouts)
 
@@ -227,3 +226,28 @@ def test_forward_tail_linkage_routes_follow_typed_reference_stations():
     assert [end[1] for _, end in layout.linkage_route_segments] == pytest.approx([
         0.0, -config.booms.lateral_offset_mm, config.booms.lateral_offset_mm,
     ])
+
+
+def test_master_layout_exposes_typed_fuselage_envelope_stations_and_forward_servos():
+    config = load_aircraft_config(CONFIG)
+    layout = master_layout_from_config(config)
+    fuselage = config.fuselage_integration
+
+    outer = layout.fuselage_envelope.val().BoundingBox()
+    assert (outer.xmin, outer.xmax, outer.ylen, outer.zlen) == pytest.approx((
+        fuselage.outer_x_min_mm, fuselage.outer_x_max_mm,
+        fuselage.maximum_width_mm, fuselage.maximum_height_mm,
+    ))
+    assert tuple(x_mm for x_mm, _ in layout.fuselage_bulkheads) == fuselage.bulkhead_x_mm
+    assert tuple(x_mm for x_mm, _ in layout.fuselage_hardpoint_bulkheads) == fuselage.hardpoint_bulkhead_x_mm
+    hatch = layout.battery_hatch_envelope.val().BoundingBox()
+    assert ((hatch.xmin + hatch.xmax) / 2.0, hatch.xlen, hatch.ylen) == pytest.approx((
+        fuselage.battery_hatch_x_mm, fuselage.battery_hatch_length_mm, fuselage.battery_hatch_width_mm,
+    ))
+    servo_envelopes = dict(layout.forward_servo_envelopes)
+    for servo in fuselage.forward_servos:
+        box = servo_envelopes[servo.id].val().BoundingBox()
+        assert ((box.xmin + box.xmax) / 2.0, (box.ymin + box.ymax) / 2.0, (box.zmin + box.zmax) / 2.0) == pytest.approx((
+            servo.x_mm, servo.y_mm, servo.z_mm,
+        ))
+    assert layout.battery_removal_validated is False

@@ -1,5 +1,9 @@
 # LR1600 electrical, battery and servo rebaseline v2
 
+> Historical comparison only. The active preliminary packaging branch is P60B
+> 6S1P as defined in [`config/hardware.yaml`](../config/hardware.yaml); do not
+> reuse the P30B mass or X-position in current CG work.
+
 Status: preliminary engineering decision for the mission rebaseline; it is not
 a procurement or flight release.  Coordinates use the root-wing-LE datum and
 `+X` aft.  This document does not alter wing geometry or prescribe an FC
@@ -250,4 +254,3 @@ failsafe actions in a dedicated record.  No pinout is inferred here.
 5. Establish loaded-voltage/Wh warnings from measured pack data; validate the
    exact ArduPilot recovery behavior on the bench before configuration change
    or maiden.
-

@@ -1,49 +1,49 @@
 # Commercial implementation manifest.  Aircraft geometry and requirements stay
 # in aircraft.yaml; values here are preliminary hardware evidence, not a
 # procurement release.  All dimensions/positions use the root-wing-LE datum.
-schema: lr1600-hardware-baseline-v1
-status: selected_preliminary_hardware_with_required_bench_and_installation_validation
+schema: lr1600-hardware-baseline-v2
+status: preliminary_integration_hardware_with_required_bench_and_installation_validation
 
 components:
   - id: propulsion_motor
     category: propulsion
-    status: selected_preliminary
-    manufacturer: KDE Direct
-    model: KDE4215XF-465
-    source_url: https://www.kdedirect.com/products/kde4215xf-465
-    source_retrieved_date: '2026-09-01'
-    mass_g: 195.0
-    mass_status: datasheet
-    dimensions_mm: {length: 36.0, width: 48.2, height: 48.2}
-    position_mm: {x: 395.0, y: 0.0, z: 0.0}
-    limits: {kv_rpm_per_v: 465.0, series_cells: '4-6 LiHV', continuous_current_a_180_s_with_cooling: 62.0, continuous_power_w_180_s_with_cooling: 1375.0, shaft_diameter_mm: 4.0, mount_pattern_mm: '25/32'}
-    notes: 'Candidate pending 6S APC14x10E pusher bench map. 62A/1375W is a 180s, >=5mph-cooling rating, not proof of LR1600 continuous installed operation; 195g bare mass is outside original 120-180g envelope.'
+    status: design_estimate
+    manufacturer: null
+    model: 6S pusher motor class, MN4014-400 or equivalent; SKU TBD
+    source_url: null
+    source_retrieved_date: null
+    mass_g: 145.0
+    mass_status: design_estimate
+    dimensions_mm: {length: 70.0, width: 50.0, height: 50.0}
+    position_mm: {x: 395.0, y: 0.0, z: 50.0}
+    limits: {kv_rpm_per_v: 400.0, series_cells: '6S', continuous_current_a_180_s_with_cooling: 45.0, continuous_power_w_180_s_with_cooling: 700.0, shaft_diameter_mm: 4.0, mount_pattern_mm: 'TBD; adapter plate envelope', mass_range_g: [120.0, 180.0]}
+    notes: 'Dimensional/mass class only, not a procurement lock. Bench-map the selected motor with the selected 13x10 pusher, including cooling, current, thrust, vibration and adapter retention.'
   - id: propulsion_propeller
     category: propulsion
-    status: selected_preliminary
-    manufacturer: APC
-    model: LP14010E / 14x10E Thin Electric
-    source_url: https://www.apcprop.com/product/14x10e/
-    source_retrieved_date: '2026-09-01'
-    mass_g: 34.02
-    mass_status: datasheet
-    dimensions_mm: {length: 355.6, width: 11.18, height: 355.6}
-    position_mm: {x: 430.0, y: 0.0, z: 0.0}
-    limits: {diameter_in: 14.0, pitch_in: 10.0, blades: 2, hub_diameter_mm: 20.32, shaft_pilot_mm: 6.35, safe_rpm: tbd_verify_current_apc_limit_before_use}
-    notes: 'True pusher installation: APC lettering faces aircraft front; use a positively retained/nutted adapter. UIUC wind-tunnel data support forward-flight screening.'
+    status: design_estimate
+    manufacturer: null
+    model: 13x10 electric pusher; SKU TBD
+    source_url: null
+    source_retrieved_date: null
+    mass_g: 28.0
+    mass_status: design_estimate
+    dimensions_mm: {length: 330.2, width: 12.0, height: 330.2}
+    position_mm: {x: 430.0, y: 0.0, z: 50.0}
+    limits: {diameter_in: 13.0, pitch_in: 10.0, blades: 2, hub_diameter_mm: tbd, shaft_pilot_mm: tbd, safe_rpm: tbd_verify_selected_propeller_limit, mass_range_g: [24.0, 32.0]}
+    notes: 'Preferred baseline. Install as a true pusher with positive adapter/nut retention; selected propeller RPM limit and installed operating point remain unvalidated.'
   - id: propulsion_propeller_fallback
     category: propulsion
     status: fallback
     manufacturer: APC
-    model: APC13010E / 13x10E
-    source_url: https://www.horizonhobby.com/product/electric-propeller-13-x-10e/APC13010E.html
+    model: 14x10 electric pusher secondary integration case
+    source_url: null
     source_retrieved_date: '2026-09-01'
     mass_g: null
     mass_status: tbd
     dimensions_mm: {length: null, width: null, height: null}
     position_mm: {x: null, y: null, z: null}
-    limits: {diameter_in: 13.0, pitch_in: 10.0, blades: 2, use_limit: 'fallback only; UIUC screen is less convincing at 90 km/h'}
-    notes: 'Not included in mass or layout baseline.'
+    limits: {diameter_in: 14.0, pitch_in: 10.0, blades: 2, use_limit: 'secondary integration case only'}
+    notes: 'Not included in mass or rough-field clearance baseline.'
   - id: propulsion_esc
     category: propulsion
     status: selected_preliminary
@@ -54,87 +54,87 @@ components:
     mass_g: 68.0
     mass_status: datasheet
     dimensions_mm: {length: 73.0, width: 30.0, height: 12.0}
-    position_mm: {x: 320.0, y: 0.0, z: 0.0}
+    position_mm: {x: 285.0, y: 42.0, z: 5.0}
     limits: {series_cells: '3-6S LiPo', continuous_current_a: 60.0, burst_current_a: 80.0, integrated_bec: '5V 7A; intentionally unused', telemetry: tbd}
     notes: 'Installed cooling and current margin require pusher bench validation; no telemetry claim is made.'
   - id: flight_battery
     category: energy_storage
     status: selected_preliminary
     manufacturer: Molicel / integration build
-    model: INR-18650-P30B 6S2P preliminary pack
-    source_url: https://www.molicel.com/wp-content/uploads/Product-Data-Sheet-of-INR-18650-P30B-80111-1.pdf
-    source_retrieved_date: '2026-09-01'
-    mass_g: 624.0
+    model: INR-21700-P60B 6S1P preliminary complete pack
+    source_url: https://www.molicel.com/inr-21700-p60b/
+    source_retrieved_date: '2026-09-03'
+    mass_g: 503.0
     mass_status: design_estimate
-    dimensions_mm: {length: 215.0, width: 84.0, height: 30.0}
-    position_mm: {x: 0.0, y: 0.0, z: 0.0}
-    limits: {topology: 6S2P, cells: 12, nominal_voltage_v: 21.6, nominal_energy_wh_typical: 129.6, usable_energy_wh_at_80_percent: 103.68, cell_continuous_current_a: 30.0, cell_dcir_mohm_at_50_percent_soc: 17.0, pack_current_a_broad_screen: 32.62, per_cell_a_broad_screen: 16.31}
-    notes: '564 g maximum cell-only mass plus 60 g design allowance for busbars, insulation, balance lead and connector. Current X=0 +/-30mm location fails CG closure and is retained only as the existing unresolved tray study; low-SOC, ageing and temperature need bench test.'
+    dimensions_mm: {length: 155.0, width: 75.0, height: 28.0}
+    position_mm: {x: -370.0, y: 0.0, z: 0.0}
+    limits: {topology: 6S1P, cells: 6, nominal_voltage_v: 21.6, nominal_energy_wh_typical: 129.6, usable_energy_wh_at_80_percent: 103.7, cell_continuous_current_a: tbd, pack_current_a_broad_screen: tbd, mass_range_g: [490.0, 520.0]}
+    notes: '503-g complete-pack integration estimate. X=-370.0 mm is the preliminary no-ballast 25%-MAC rail index from the unified design ledger; the 155x75x28 envelope is a packaging estimate, not a vendor drawing. Pack dimensions/mass, cold/sag behaviour, retention and hatch removal remain validation gates.'
   - id: aileron_servo_left
     category: servo
-    status: selected_preliminary
-    manufacturer: Hitec
-    model: D85MG / 36085S
-    source_url: https://hitecrcd.com/d85mg-micro-32-bit-metal-gear-servo/
-    source_retrieved_date: '2026-09-01'
-    mass_g: 21.9
-    mass_status: datasheet
-    dimensions_mm: {length: 29.0, width: 13.0, height: 30.0}
+    status: design_estimate
+    manufacturer: KST
+    model: lightweight metal-gear micro-servo class; final SKU TBD
+    source_url: null
+    source_retrieved_date: null
+    mass_g: 8.0
+    mass_status: design_estimate
+    dimensions_mm: {length: 24.0, width: 12.0, height: 24.0}
     position_mm: {x: 135.0, y: -450.0, z: 0.0}
-    limits: {rail_v: '4.8-6.0', torque_kgf_cm_at_6v: 4.3, speed_s_per_60deg_at_6v: 0.13, stall_current_a_at_6v: 2.15}
-    notes: 'Hinge-moment/load-path validation remains required.'
+    limits: {rail_v: '6.0', torque_kgf_cm_at_6v: tbd, speed_s_per_60deg_at_6v: tbd, stall_current_a_at_6v: tbd}
+    notes: 'Quality micro-servo class only; close selected SKU and aileron hinge-moment/current validation before procurement.'
   - id: aileron_servo_right
     category: servo
-    status: selected_preliminary
-    manufacturer: Hitec
-    model: D85MG / 36085S
-    source_url: https://hitecrcd.com/d85mg-micro-32-bit-metal-gear-servo/
-    source_retrieved_date: '2026-09-01'
-    mass_g: 21.9
-    mass_status: datasheet
-    dimensions_mm: {length: 29.0, width: 13.0, height: 30.0}
+    status: design_estimate
+    manufacturer: KST
+    model: lightweight metal-gear micro-servo class; final SKU TBD
+    source_url: null
+    source_retrieved_date: null
+    mass_g: 8.0
+    mass_status: design_estimate
+    dimensions_mm: {length: 24.0, width: 12.0, height: 24.0}
     position_mm: {x: 135.0, y: 450.0, z: 0.0}
-    limits: {rail_v: '4.8-6.0', torque_kgf_cm_at_6v: 4.3, speed_s_per_60deg_at_6v: 0.13, stall_current_a_at_6v: 2.15}
-    notes: 'Hinge-moment/load-path validation remains required.'
+    limits: {rail_v: '6.0', torque_kgf_cm_at_6v: tbd, speed_s_per_60deg_at_6v: tbd, stall_current_a_at_6v: tbd}
+    notes: 'Quality micro-servo class only; close selected SKU and aileron hinge-moment/current validation before procurement.'
   - id: rudder_servo_left
     category: servo
-    status: selected_preliminary
-    manufacturer: Hitec
-    model: D85MG / 36085S
-    source_url: https://hitecrcd.com/d85mg-micro-32-bit-metal-gear-servo/
-    source_retrieved_date: '2026-09-01'
-    mass_g: 21.9
-    mass_status: datasheet
-    dimensions_mm: {length: 29.0, width: 13.0, height: 30.0}
-    position_mm: {x: 718.5, y: -230.0, z: 0.0}
-    limits: {rail_v: '4.8-6.0', torque_kgf_cm_at_6v: 4.3, stall_current_a_at_6v: 2.15}
-    notes: 'Baseline assumes two rudders; final rudder/linkage arrangement remains TBD.'
+    status: design_estimate
+    manufacturer: KST
+    model: lightweight metal-gear micro-servo class; final SKU TBD
+    source_url: null
+    source_retrieved_date: null
+    mass_g: 9.6
+    mass_status: design_estimate
+    dimensions_mm: {length: 24.0, width: 12.0, height: 24.0}
+    position_mm: {x: 110.0, y: -32.0, z: -15.0}
+    limits: {rail_v: '6.0', torque_kgf_cm_at_6v: tbd, stall_current_a_at_6v: tbd}
+    notes: 'One of two independent rudder servos, installed in forward fuselage; selected SKU and linkage proof remain TBD.'
   - id: rudder_servo_right
     category: servo
-    status: selected_preliminary
-    manufacturer: Hitec
-    model: D85MG / 36085S
-    source_url: https://hitecrcd.com/d85mg-micro-32-bit-metal-gear-servo/
-    source_retrieved_date: '2026-09-01'
-    mass_g: 21.9
-    mass_status: datasheet
-    dimensions_mm: {length: 29.0, width: 13.0, height: 30.0}
-    position_mm: {x: 718.5, y: 230.0, z: 0.0}
-    limits: {rail_v: '4.8-6.0', torque_kgf_cm_at_6v: 4.3, stall_current_a_at_6v: 2.15}
-    notes: 'Baseline assumes two rudders; final rudder/linkage arrangement remains TBD.'
+    status: design_estimate
+    manufacturer: KST
+    model: lightweight metal-gear micro-servo class; final SKU TBD
+    source_url: null
+    source_retrieved_date: null
+    mass_g: 9.6
+    mass_status: design_estimate
+    dimensions_mm: {length: 24.0, width: 12.0, height: 24.0}
+    position_mm: {x: 110.0, y: 32.0, z: -15.0}
+    limits: {rail_v: '6.0', torque_kgf_cm_at_6v: tbd, stall_current_a_at_6v: tbd}
+    notes: 'One of two independent rudder servos, installed in forward fuselage; selected SKU and linkage proof remain TBD.'
   - id: elevator_servo
     category: servo
-    status: selected_preliminary
-    manufacturer: Hitec
-    model: HS-7245MH / 37245S
-    source_url: https://hitecrcd.com/hs-7245mh-high-voltage-high-torque-metal-gear-coreless-mini-servo/
-    source_retrieved_date: '2026-09-01'
-    mass_g: 34.0
-    mass_status: datasheet
-    dimensions_mm: {length: 32.4, width: 16.8, height: 32.8}
-    position_mm: {x: 718.5, y: 0.0, z: 0.0}
-    limits: {rail_v: '6.0-7.4', torque_kgf_cm_at_6v: 5.2, speed_s_per_60deg_at_6v: 0.13, stall_current_a_at_6v: 1.6}
-    notes: 'Conditional on final elevator hinge-moment and load-path check.'
+    status: design_estimate
+    manufacturer: KST
+    model: lightweight metal-gear micro-servo class; final SKU TBD
+    source_url: null
+    source_retrieved_date: null
+    mass_g: 8.0
+    mass_status: design_estimate
+    dimensions_mm: {length: 24.0, width: 12.0, height: 24.0}
+    position_mm: {x: 110.0, y: 0.0, z: -15.0}
+    limits: {rail_v: '6.0', torque_kgf_cm_at_6v: tbd, speed_s_per_60deg_at_6v: tbd, stall_current_a_at_6v: tbd}
+    notes: 'Forward-fuselage elevator servo; selected SKU and elevator hinge-moment/linkage proof remain TBD.'
   - id: flight_controller
     category: avionics
     status: selected_preliminary
@@ -145,7 +145,7 @@ components:
     mass_g: 30.0
     mass_status: datasheet
     dimensions_mm: {length: 54.0, width: 36.0, height: 13.0}
-    position_mm: {x: 120.0, y: 0.0, z: 0.0}
+    position_mm: {x: 125.0, y: 0.0, z: 15.0}
     limits: {input_v: '9-36', pwm_outputs: 13, firmware: ArduPilot_supported_family, onboard_becs: intentionally_unused}
     notes: 'Vibration-isolated near CG. Exact board revision and manufacturer-approved external clean-5V connection must be verified before wiring/procurement.'
   - id: gnss_compass
@@ -158,7 +158,7 @@ components:
     mass_g: 9.0
     mass_status: datasheet
     dimensions_mm: {length: 23.0, width: 23.0, height: 10.0}
-    position_mm: {x: -90.0, y: 0.0, z: 65.0}
+    position_mm: {x: -105.0, y: 0.0, z: 95.0}
     limits: {input_v: '4-9', current_a: 0.013, compass: QMC5883L, manufacturer_min_power_separation_mm: 100.0}
     notes: 'Fallback M10-L4-3100 if installed compass survey fails.'
   - id: rc_receiver
@@ -171,7 +171,7 @@ components:
     mass_g: 4.6
     mass_status: datasheet
     dimensions_mm: {length: 22.0, width: 13.0, height: 4.0}
-    position_mm: {x: 80.0, y: 45.0, z: 0.0}
+    position_mm: {x: 95.0, y: 48.0, z: 20.0}
     limits: {rail_v: 5.0, interface: CRSF_UART, band: '2.404-2.479 GHz', telemetry_mw: 100}
     notes: 'Two 65 mm antennas must be orthogonal and separated from VTX/high-current route.'
   - id: telemetry_radio
@@ -184,7 +184,7 @@ components:
     mass_g: 23.5
     mass_status: datasheet
     dimensions_mm: {length: 53.0, width: 28.0, height: 10.7}
-    position_mm: {x: 165.0, y: -45.0, z: 0.0}
+    position_mm: {x: 165.0, y: -48.0, z: 20.0}
     limits: {rail_v: 5.0, current_a_tx: 0.1, current_a_rx: 0.025, band: '433_or_915_region_specific'}
     notes: 'Final band must meet local regulation and coexistence test.'
   - id: airspeed_sensor
@@ -197,7 +197,7 @@ components:
     mass_g: 4.0
     mass_status: datasheet
     dimensions_mm: {length: 22.0, width: 22.0, height: 12.5}
-    position_mm: {x: 155.0, y: 0.0, z: 0.0}
+    position_mm: {x: 150.0, y: 0.0, z: 15.0}
     limits: {rail_v: '4-6', current_a: 0.06, interface: I2C, speed_range_km_h: 250}
     notes: 'Manufacturer compatibility page plus distributor dimension cross-check; procurement lock awaits primary manual capture.'
   - id: fpv_camera
@@ -210,7 +210,7 @@ components:
     mass_g: 5.0
     mass_status: datasheet
     dimensions_mm: {length: 22.0, width: 14.0, height: 14.0}
-    position_mm: {x: -160.0, y: 0.0, z: 0.0}
+    position_mm: {x: -215.0, y: 0.0, z: 5.0}
     limits: {input_v: '5-36', current_a_at_5v: 0.19}
     notes: 'Nose-only equipment envelope; no fuselage skin implied.'
   - id: vtx
@@ -223,7 +223,7 @@ components:
     mass_g: 8.7
     mass_status: datasheet
     dimensions_mm: {length: 37.0, width: 25.0, height: 6.0}
-    position_mm: {x: 230.0, y: -45.0, z: 0.0}
+    position_mm: {x: 250.0, y: -48.0, z: 20.0}
     limits: {input_v: '6-36', rf_power: '25mW-1W', required_screening_mode: '400mW'}
     notes: 'Direct 6S input; local RF legality, antenna placement and installed cooling remain required.'
   - id: servo_regulator
@@ -276,7 +276,7 @@ components:
     mass_status: design_estimate
     dimensions_mm: {length: null, width: null, height: null}
     position_mm: {x: 105.0, y: 0.0, z: 0.0}
-    limits: {range_g: '464.1-718.4', method: 'full wing assembly less placeholder servos and servo mounts/wiring; joiner retained'}
+    limits: {range_g: '464.1-718.4', mass_range_g: [464.1, 718.4], method: 'full wing assembly less placeholder servos and servo mounts/wiring; joiner retained'}
     notes: 'Centroid is an explicit preliminary analytical estimate; measured wing assembly moment is still required.'
   - id: tail_boom_pair
     category: airframe_estimate
@@ -289,7 +289,7 @@ components:
     mass_status: design_estimate
     dimensions_mm: {length: null, width: null, height: null}
     position_mm: {x: 393.52, y: 0.0, z: 0.0}
-    limits: {range_g: '112.52-128.04', condition: 'requires measured EI >=125 Nm2 and GJ >=105 Nm2'}
+    limits: {range_g: '112.52-128.04', mass_range_g: [112.52, 128.04], condition: 'requires measured EI >=125 Nm2 and GJ >=105 Nm2'}
     notes: 'Not selected tube hardware; pair mass is a conditional structural estimate.'
   - id: empennage_structure
     category: airframe_estimate
@@ -302,7 +302,7 @@ components:
     mass_status: design_estimate
     dimensions_mm: {length: null, width: null, height: null}
     position_mm: {x: 718.52, y: 0.0, z: 0.0}
-    limits: {sensitivity_g: '80-150'}
+    limits: {sensitivity_g: '80-150', mass_range_g: [80.0, 150.0]}
     notes: 'New conservative design estimate; the 150 g value in boom loading was not treated as a measured tail mass.'
   - id: linkages_and_wing_servo_installation
     category: airframe_estimate
@@ -311,12 +311,12 @@ components:
     model: Servo mounts, horns, pushrods and wiring installation
     source_url: analysis/structures/summary.json
     source_retrieved_date: '2026-09-01'
-    mass_g: 45.0
+    mass_g: 40.0
     mass_status: design_estimate
     dimensions_mm: {length: null, width: null, height: null}
-    position_mm: {x: 450.0, y: 0.0, z: 0.0}
-    limits: {basis: 'wing estimate placeholder mounts/wiring 18-38g plus tail linkage allowance'}
-    notes: 'Do not add the former placeholder servos; exact installation masses remain TBD.'
+    position_mm: {x: 330.6, y: 0.0, z: 0.0}
+    limits: {basis: '12g wing-local aileron links, 12g elevator 3x1mm CFRP rod, 16g independent rudder pull-pull'}
+    notes: 'All mechanical linkages only; five servos are separate ledger components. Control leads remain in wiring/connectors/fasteners.'
   - id: propulsion_mount_and_adapter
     category: airframe_estimate
     status: design_estimate
@@ -324,12 +324,12 @@ components:
     model: Motor mount, adapter and positive prop retention
     source_url: docs/booms.md
     source_retrieved_date: '2026-09-01'
-    mass_g: 40.0
+    mass_g: 50.0
     mass_status: design_estimate
     dimensions_mm: {length: 60.0, width: 65.0, height: 65.0}
-    position_mm: {x: 405.0, y: 0.0, z: 0.0}
+    position_mm: {x: 405.0, y: 0.0, z: 50.0}
     limits: {status: 'requires selected prop static thrust/torque proof'}
-    notes: 'No production motor mount is released.'
+    notes: 'Replaceable motor plate plus adapter/retention allowance; no production mount is released.'
   - id: wiring_connectors_and_fasteners
     category: airframe_estimate
     status: design_estimate
@@ -337,32 +337,110 @@ components:
     model: Harness, connectors and non-fuselage fasteners
     source_url: docs/powertrain-architecture.md
     source_retrieved_date: '2026-09-01'
-    mass_g: 85.0
+    mass_g: 95.0
     mass_status: design_estimate
     dimensions_mm: {length: null, width: null, height: null}
     position_mm: {x: 180.0, y: 0.0, z: 0.0}
-    limits: {propulsion_lead_copper_mm2: 2.5}
-    notes: 'Actual wire lengths/connector choices remain TBD.'
+    limits: {propulsion_lead_copper_mm2: 4.0, propulsion_lead_one_way_mm: 674, esc_input_capacitor: '680-1000uF low-ESR, voltage-qualified; final value per ESC/manual and bench transient test', mass_range_g: [85.0, 112.0]}
+    notes: 'Includes the longer 4.0-mm2 paired battery-to-ESC lead and local ESC input capacitance allowance. Actual wire lengths, connector choices, voltage drop, temperature and ESC input ripple remain validation items.'
+  - id: fuselage_structural_group
+    category: airframe_estimate
+    status: design_estimate
+    manufacturer: null
+    model: Preliminary robust plywood/carbon semi-monocoque fuselage group
+    source_url: docs/fuselage-architecture.md
+    source_retrieved_date: '2026-09-03'
+    mass_g: 398.0
+    mass_status: design_estimate
+    dimensions_mm: {length: 910.0, width: 180.0, height: 190.0}
+    position_mm: {x: -1.6, y: 0.0, z: 0.0}
+    limits: {range_g: '365-440', mass_range_g: [365.0, 440.0], includes: 'skeleton, skin, tray/hatch, hardpoints, motor mount base, skid, adhesives and fasteners; excludes removable gear'}
+    notes: 'Single source ledger group; its internal mass breakdown is derived in docs/fuselage-architecture.md. Not measured and not production-CAD release.'
+  - id: main_landing_gear
+    category: airframe_estimate
+    status: design_estimate
+    manufacturer: null
+    model: Removable GFRP spring main legs, 105mm wheels and axles
+    source_url: docs/landing-gear.md
+    source_retrieved_date: '2026-09-03'
+    mass_g: 132.0
+    mass_status: design_estimate
+    dimensions_mm: {length: 200.0, width: 350.0, height: 220.0}
+    position_mm: {x: 125.0, y: 0.0, z: -160.0}
+    limits: {wheel_diameter_mm: 105, track_mm: 350, mass_range_g: [121.0, 149.0], attachment: 'shared replaceable 3mm birch hardpoints'}
+    notes: 'Includes two wheels/axles plus both main legs/brackets; no fuselage hardpoint mass is duplicated here.'
+  - id: nose_landing_gear
+    category: airframe_estimate
+    status: design_estimate
+    manufacturer: null
+    model: Removable steerable nose strut and 75mm wheel
+    source_url: docs/landing-gear.md
+    source_retrieved_date: '2026-09-03'
+    mass_g: 58.0
+    mass_status: design_estimate
+    dimensions_mm: {length: 190.0, width: 75.0, height: 190.0}
+    position_mm: {x: -218.0, y: 0.0, z: -125.0}
+    limits: {wheel_diameter_mm: 75, mass_range_g: [53.0, 66.0], attachment: 'shared replaceable 3mm birch hardpoints'}
+    notes: 'Includes nose wheel and strut; final steering arm/servo geometry needs proof.'
+  - id: landing_gear_fasteners
+    category: airframe_estimate
+    status: design_estimate
+    manufacturer: null
+    model: Gear pins, retainers and fasteners
+    source_url: docs/landing-gear.md
+    source_retrieved_date: '2026-09-03'
+    mass_g: 12.0
+    mass_status: design_estimate
+    dimensions_mm: {length: null, width: null, height: null}
+    position_mm: {x: 0.0, y: 0.0, z: 0.0}
+    limits: {attachment: 'shared wheel and ski interfaces', mass_range_g: [10.0, 15.0]}
+    notes: 'Gear-only service hardware; fuselage structural fasteners are in fuselage_structural_group.'
+  - id: winter_ski_module
+    category: airframe_estimate
+    status: fallback
+    manufacturer: null
+    model: Three-ski seasonal module on shared gear hardpoints
+    source_url: docs/ground-operations-architecture.md
+    source_retrieved_date: '2026-09-03'
+    mass_g: 238.0
+    mass_status: design_estimate
+    dimensions_mm: {length: 360.0, width: 80.0, height: 45.0}
+    position_mm: {x: 10.0, y: 0.0, z: -155.0}
+    limits: {replaces: 'main_landing_gear + nose_landing_gear + landing_gear_fasteners', mass_range_g: [220.0, 265.0], attachment: 'shared hardpoints'}
+    notes: 'Seasonal configuration only; it is never summed with wheel gear.'
+  - id: hd_recording_payload
+    category: payload
+    status: fallback
+    manufacturer: null
+    model: Full-HD camera and protected cassette/mount; candidate TBD
+    source_url: null
+    source_retrieved_date: null
+    mass_g: 45.0
+    mass_status: design_estimate
+    dimensions_mm: {length: 65.0, width: 35.0, height: 30.0}
+    position_mm: {x: -175.0, y: 0.0, z: 8.0}
+    limits: {study_mass_range_g: [25.0, 60.0], installation: 'removable nose cassette'}
+    notes: 'Optional recording payload; not included in baseline flight mass.'
 
 battery_installation:
-  topology: 6S2P P30B; 3-by-4 cell physical block with protective allowance
+  topology: 6S1P P60B; 2-long by 3-wide physical block with protective allowance
   nominal_energy_wh_typical: 129.6
   usable_energy_wh_study: 103.68
   usable_fraction: 0.80
-  x_nominal_mm: 0.0
-  x_min_mm: -30.0
-  x_max_mm: 30.0
+  x_nominal_mm: -370.0
+  x_min_mm: -382.5
+  x_max_mm: -332.5
   removal_axis: +z
-  hatch_opening_mm: {length: 235.0, width: 104.0, height: 45.0}
-  clearance_mm: 10.0
+  hatch_opening_mm: {length: 230.0, width: 110.0, height: 45.0}
+  clearance_mm: 12.0
 
 # Battery positive -> fused/disconnect/current sensor -> ESC.  The drawn route
 # is an installation reference, not a wire-length measurement or fuselage CAD.
 high_current_route_mm:
-  - [0.0, 0.0, 0.0]
-  - [0.0, 0.0, -10.0]
-  - [220.0, 0.0, -10.0]
-  - [320.0, 0.0, 0.0]
+  - [-370.0, 0.0, 0.0]
+  - [-300.0, 45.0, -25.0]
+  - [170.0, 45.0, -25.0]
+  - [285.0, 42.0, 5.0]
 
 antenna_keepouts:
   - id: gnss_compass_keepout

@@ -31,7 +31,8 @@ materials:
     - 3.0
 
 aircraft:
-  target_mass_g: 2400
+  # Preliminary integration/design mass case; not a flight-release MTOW.
+  target_mass_g: 2600
   design_load_factor_g: 4.0
   gravity_m_s2: 9.80665
 
@@ -111,12 +112,13 @@ propulsion:
     envelope_length_mm: 70.0
     envelope_diameter_mm: 50.0
   esc:
-    length_mm: 55.0
-    width_mm: 35.0
-    height_mm: 18.0
-    x_mm: 320.0
-    y_mm: 0.0
-    z_mm: 0.0
+    # Mirror of the current preliminary hardware manifest installation box.
+    length_mm: 73.0
+    width_mm: 30.0
+    height_mm: 12.0
+    x_mm: 285.0
+    y_mm: 42.0
+    z_mm: 5.0
   propeller_plane_x_mm: 430.0
   motor_cg_x_mm: 395.0
   motor_axis_z_mm: 50.0
@@ -138,16 +140,21 @@ electrical:
 battery:
   status: initial_design_assumption
   chemistry_direction: li_ion_preliminary
-  usable_energy_preferred_min_wh: 100.0
-  usable_energy_preferred_max_wh: 150.0
-  mass_min_g: 520.0
-  mass_max_g: 940.0
-  package_length_mm: 190.0
-  package_width_mm: 65.0
-  package_height_mm: 45.0
-  nominal_x_mm: 0.0  # provisional rail centre; CG closure remains required
-  x_adjustment_min_mm: -30.0
-  x_adjustment_max_mm: 30.0
+  # P60B 6S1P preliminary branch: 129.6 Wh nominal, 103.7 Wh study usable,
+  # 503 g complete-pack estimate. The physical pack/tray remains a design
+  # estimate until the actual build is weighed and its removal route is proven.
+  usable_energy_preferred_min_wh: 103.7
+  usable_energy_preferred_max_wh: 103.7
+  mass_min_g: 490.0
+  mass_max_g: 520.0
+  package_length_mm: 155.0
+  package_width_mm: 75.0
+  package_height_mm: 28.0
+  # Preliminary ledger solution, not an installation clearance pass: a long
+  # forward bay is deliberately retained to close the 24--28% MAC study.
+  nominal_x_mm: -370.0
+  x_adjustment_min_mm: -382.5
+  x_adjustment_max_mm: -332.5
   y_mm: 0.0
   z_mm: 0.0
   tray_status: preliminary_design_assumption
@@ -159,18 +166,52 @@ battery:
 ground_operations:
   status: initial_design_assumption
   propeller_diameter_mm: 330.2
-  dynamic_tip_clearance_goal_mm: 60.0
-  static_propeller_axis_height_mm: 308.0
-  main_wheel_diameter_mm: 90.0
-  nose_wheel_diameter_mm: 70.0
-  main_wheel_x_mm: 123.0
-  nose_wheel_x_mm: -230.0
-  main_track_mm: 340.0
+  dynamic_tip_clearance_goal_mm: 65.0
+  static_propeller_axis_height_mm: 322.5
+  main_wheel_diameter_mm: 105.0
+  nose_wheel_diameter_mm: 75.0
+  main_wheel_x_mm: 125.0
+  nose_wheel_x_mm: -250.0
+  main_track_mm: 350.0
   rotation_tail_down_deg: 8.0
-  compressed_tip_clearance_mm: 128.0
-  rotation_tip_clearance_mm: 85.0
-  rough_tip_clearance_mm: 60.0
-  hardpoint_z_mm: -55.0
+  compressed_tip_clearance_mm: 139.4
+  rotation_tip_clearance_mm: 96.9
+  rough_tip_clearance_mm: 66.9
+  hardpoint_z_mm: -60.0
+
+# Preliminary real fuselage/package architecture. This is the source for the
+# reference master-layout only; it is not production skin or laser geometry.
+fuselage_integration:
+  status: initial_design_assumption
+  outer_x_min_mm: -500.0
+  outer_x_max_mm: 410.0
+  maximum_width_mm: 180.0
+  maximum_height_mm: 190.0
+  center_z_mm: 0.0
+  # The forward bay is intentionally open between its hatch perimeter rings:
+  # do not add a full-width former there in production CAD.
+  bulkhead_x_mm: [-485.0, -235.0, -55.0, 65.0, 130.0, 200.0, 285.0, 365.0]
+  hardpoint_bulkhead_x_mm: [-55.0, 65.0, 130.0, 200.0, 285.0, 365.0]
+  battery_hatch_x_mm: -357.5
+  battery_hatch_length_mm: 230.0
+  battery_hatch_width_mm: 110.0
+  battery_hatch_z_mm: 95.0
+  boom_interface_x_mm: 285.0
+  boom_clamp_rear_x_mm: 365.0
+  motor_mount_x_mm: 410.0
+  forward_servos:
+    - id: elevator_servo
+      x_mm: 110.0
+      y_mm: 0.0
+      z_mm: -15.0
+    - id: rudder_servo_left
+      x_mm: 110.0
+      y_mm: -32.0
+      z_mm: -15.0
+    - id: rudder_servo_right
+      x_mm: 110.0
+      y_mm: 32.0
+      z_mm: -15.0
 
 # Forward-mounted tail-actuation route study.  The lines in master-layout are
 # only routes between known reference stations; end fittings, guides, control
@@ -181,75 +222,82 @@ linkage_reference:
   carbon_rod_outer_diameter_mm: 3.0
   carbon_rod_inner_diameter_mm: 1.0
   elevator_route_length_mm: 610.0
-  rudder_route_length_mm: 650.0
-  maximum_guide_spacing_mm: 200.0
+  rudder_route_length_mm: 720.0
+  maximum_guide_spacing_mm: 150.0
 
-# Display/package envelopes only: source-based placement references rather
-# than chosen boards, antennas, cameras or external fuselage geometry.
+# Display/package envelopes mirror the current preliminary hardware manifest
+# where identifiers match. They remain installation volumes, not CAD solids.
 avionics:
   status: initial_design_assumption
   components:
     - id: flight_controller
-      length_mm: 55.0
-      width_mm: 55.0
-      height_mm: 20.0
-      x_mm: 170.0
+      length_mm: 54.0
+      width_mm: 36.0
+      height_mm: 13.0
+      x_mm: 125.0
       y_mm: 0.0
-      z_mm: 0.0
+      z_mm: 15.0
     - id: gnss_compass
-      length_mm: 65.0
-      width_mm: 65.0
-      height_mm: 20.0
-      x_mm: -80.0
+      length_mm: 23.0
+      width_mm: 23.0
+      height_mm: 10.0
+      x_mm: -105.0
       y_mm: 0.0
-      z_mm: 55.0
+      z_mm: 95.0
     - id: rc_receiver
-      length_mm: 50.0
-      width_mm: 30.0
-      height_mm: 15.0
-      x_mm: 170.0
-      y_mm: 45.0
-      z_mm: 0.0
-    - id: telemetry
-      length_mm: 45.0
-      width_mm: 30.0
-      height_mm: 15.0
-      x_mm: 170.0
-      y_mm: -45.0
-      z_mm: 0.0
+      length_mm: 22.0
+      width_mm: 13.0
+      height_mm: 4.0
+      x_mm: 95.0
+      y_mm: 48.0
+      z_mm: 20.0
+    - id: telemetry_radio
+      length_mm: 53.0
+      width_mm: 28.0
+      height_mm: 10.7
+      x_mm: 165.0
+      y_mm: -48.0
+      z_mm: 20.0
     - id: airspeed_sensor
-      length_mm: 40.0
-      width_mm: 30.0
-      height_mm: 15.0
-      x_mm: 220.0
+      length_mm: 22.0
+      width_mm: 22.0
+      height_mm: 12.5
+      x_mm: 150.0
       y_mm: 0.0
-      z_mm: 0.0
+      z_mm: 15.0
     - id: fpv_camera
-      length_mm: 30.0
-      width_mm: 30.0
-      height_mm: 30.0
-      x_mm: -145.0
+      length_mm: 22.0
+      width_mm: 14.0
+      height_mm: 14.0
+      x_mm: -215.0
       y_mm: 0.0
-      z_mm: 0.0
+      z_mm: 5.0
     - id: vtx
-      length_mm: 45.0
-      width_mm: 30.0
-      height_mm: 15.0
-      x_mm: 260.0
-      y_mm: -45.0
+      length_mm: 37.0
+      width_mm: 25.0
+      height_mm: 6.0
+      x_mm: 250.0
+      y_mm: -48.0
+      z_mm: 20.0
+    - id: servo_regulator
+      length_mm: 43.2
+      width_mm: 31.8
+      height_mm: 11.0
+      x_mm: 210.0
+      y_mm: 35.0
       z_mm: 0.0
-    - id: bec_dc_dc
-      length_mm: 50.0
-      width_mm: 30.0
-      height_mm: 20.0
-      x_mm: 260.0
-      y_mm: 45.0
+    - id: logic_regulator
+      length_mm: 40.6
+      width_mm: 20.3
+      height_mm: 7.6
+      x_mm: 185.0
+      y_mm: 35.0
       z_mm: 0.0
     - id: current_voltage_sensor
-      length_mm: 45.0
-      width_mm: 25.0
-      height_mm: 15.0
-      x_mm: 270.0
+      length_mm: 55.0
+      width_mm: 30.0
+      height_mm: 18.0
+      x_mm: 220.0
       y_mm: 0.0
       z_mm: 0.0
 

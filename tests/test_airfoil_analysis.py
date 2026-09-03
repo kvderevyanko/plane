@@ -20,13 +20,13 @@ def test_clark_y_coordinates_are_normalized_and_immutable_source_file():
 def test_reynolds_required_cl_and_stall_speed_have_si_dimensions():
     config = load_aircraft_config(ROOT / "config/aircraft.yaml")
     assert reynolds_number(50 / 3.6, config.wing.mean_aerodynamic_chord_mm / 1000) == pytest.approx(214862, rel=3e-4)
-    assert required_cl(config.aircraft.target_mass_kg, 70 / 3.6, config.wing.area_m2, config.aircraft.gravity_m_s2) == pytest.approx(.2824, rel=2e-3)
-    assert stall_speed_m_s(config.aircraft.target_mass_kg, config.wing.area_m2, 1.0, config.aircraft.gravity_m_s2) * 3.6 == pytest.approx(37.20, rel=2e-3)
+    assert required_cl(config.aircraft.target_mass_kg, 70 / 3.6, config.wing.area_m2, config.aircraft.gravity_m_s2) == pytest.approx(.30584, rel=2e-3)
+    assert stall_speed_m_s(config.aircraft.target_mass_kg, config.wing.area_m2, 1.0, config.aircraft.gravity_m_s2) * 3.6 == pytest.approx(38.72, rel=2e-3)
 
 
 def test_analysis_uses_typed_yaml_config_not_generated_snapshot(tmp_path: Path):
     config_path = tmp_path / "aircraft.yaml"
-    config_path.write_text((ROOT / "config/aircraft.yaml").read_text(encoding="utf-8").replace("target_mass_g: 2400", "target_mass_g: 2500"), encoding="utf-8")
+    config_path.write_text((ROOT / "config/aircraft.yaml").read_text(encoding="utf-8").replace("target_mass_g: 2600", "target_mass_g: 2500"), encoding="utf-8")
     config = load_aircraft_config(config_path)
     assert config.aircraft.target_mass_kg == 2.5
     assert config.wing.area_m2 == pytest.approx(.36)

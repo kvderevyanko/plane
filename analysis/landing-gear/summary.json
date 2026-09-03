@@ -1,0 +1,37 @@
+{
+  "schema": "lr1600-landing-gear-v2",
+  "status": "preliminary_design_estimate_not_certification",
+  "input": {
+    "mtow_g": 2600.0,
+    "main_wheel_diameter_mm": 105.0,
+    "nose_wheel_diameter_mm": 75.0,
+    "goal_mm": 65.0
+  },
+  "prop_clearance_mm": {
+    "static": 157.4,
+    "compressed": 139.4,
+    "tail_low": 96.95220420718005,
+    "one_main": 91.95220420718005,
+    "full_rough": 66.95220420718005,
+    "deductions": {
+      "compression": 18.0,
+      "tail_low_attitude": 42.44779579281996,
+      "one_main": 5.0,
+      "rut": 20.0,
+      "wear_build": 5.0
+    }
+  },
+  "loads_n": {
+    "normal_main": 30.979207350000003,
+    "rough_main": 51.20174548125001,
+    "one_main_governing": 120.47469525000001,
+    "taxi_main": 86.05335375,
+    "nose_proof": 60.0,
+    "side_longitudinal_proof": 35.0
+  },
+  "masses_g": {
+    "wheel_gear": 202.0,
+    "ski_module_replacing_wheels": 238.0
+  },
+  "passes_goal": true
+}

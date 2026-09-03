@@ -1,6 +1,10 @@
 # LR1600 — предварительная прочностная интеграция twin-boom
 
 **Статус: preliminary design / design estimate, не release-to-manufacture.**
+> **Historical wing-root reference screen:** its 2,400-g context and
+> fixed-free wing-hardpoint boundary predate fuselage integration. It must not
+> be used to approve the new fuselage bridge/clamp path; that transfer remains
+> a separate validation gate and the wing interface is unchanged.
 Расчёт [scripts/boom_sizing.py](../scripts/boom_sizing.py) читает единственный source of truth — [`config/aircraft.yaml`](../config/aircraft.yaml) через typed loader. [analysis/booms/summary.json](../analysis/booms/summary.json) и график являются downstream-анализом. Они не дают права выбирать покупную трубу, выпускать DXF крепления или записывать массу как `known`.
 
 ## Выбранная интеграционная геометрия

@@ -135,7 +135,7 @@ def test_socket_requires_125_percent_proof_and_explicit_failure_observations():
     data["socket_tests"] = [{"id": "SOCKET-01", "moment_steps_nm": [5, 10, 15.982], "residual_displacement_mm": 0, "slip": False, "crush": False, "hoop_split": False, "delamination": False, "plate_crack": False}]
     result = analyze_measurements(data)
     assert not result["socket"][0]["pass"]
-    data["socket_tests"][0]["moment_steps_nm"].append(20.0)
+    data["socket_tests"][0]["moment_steps_nm"].append(22.0)
     assert analyze_measurements(data)["socket"][0]["pass"]
     data["socket_tests"][0]["slip"] = True
     failed = analyze_measurements(data)["socket"][0]

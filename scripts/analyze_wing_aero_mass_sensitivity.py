@@ -147,8 +147,9 @@ def _best_ld_range(config: Any, clean_cases: list[dict[str, Any]], mass_g: float
 @lru_cache(maxsize=None)
 def build_summary(config_path: Path = DEFAULT_CONFIG_PATH, aero_root: Path = DEFAULT_AERO_ROOT) -> dict[str, Any]:
     config = load_aircraft_config(config_path)
-    if config.aircraft.target_mass_g != REFERENCE_MASS_G:
-        raise ValueError("sensitivity must retain the canonical 2400-g YAML reference")
+    # This historical 2400/2600 comparison intentionally remains available
+    # after the aircraft-level integration case moved to 2600 g.  It does not
+    # alter the wing geometry or structural concept.
     cases = load_polar_cases(aero_root)
     clean_cases = load_clean_cases(aero_root)
     strict_stall = _strict_stall_cases(config, cases)

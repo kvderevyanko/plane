@@ -384,6 +384,46 @@ class GroundOperationsConfig:
 
 
 @dataclass(frozen=True)
+class ForwardServoStationConfig:
+    """One forward tail-actuation servo centre in the aircraft datum."""
+
+    id: Literal["elevator_servo", "rudder_servo_left", "rudder_servo_right"]
+    x_mm: float
+    y_mm: float
+    z_mm: float
+
+
+@dataclass(frozen=True)
+class FuselageIntegrationConfig:
+    """Preliminary envelope/station contract for the master layout.
+
+    It deliberately contains no profile, laser part outline, joint, or kerf
+    compensation. Those belong to the later production-CAD source model.
+    """
+
+    status: Literal["tbd", "initial_design_assumption"]
+    outer_x_min_mm: float | None
+    outer_x_max_mm: float | None
+    maximum_width_mm: float | None
+    maximum_height_mm: float | None
+    center_z_mm: float | None
+    bulkhead_x_mm: tuple[float, ...]
+    hardpoint_bulkhead_x_mm: tuple[float, ...]
+    battery_hatch_x_mm: float | None
+    battery_hatch_length_mm: float | None
+    battery_hatch_width_mm: float | None
+    battery_hatch_z_mm: float | None
+    boom_interface_x_mm: float | None
+    boom_clamp_rear_x_mm: float | None
+    motor_mount_x_mm: float | None
+    forward_servos: tuple[ForwardServoStationConfig, ...]
+
+    @property
+    def is_defined(self) -> bool:
+        return self.status == "initial_design_assumption"
+
+
+@dataclass(frozen=True)
 class LinkageReferenceConfig:
     """Forward-servo route assumptions; not control-system release geometry."""
 
@@ -464,6 +504,7 @@ class AircraftConfig:
     electrical: ElectricalConfig
     battery: BatteryConfig
     ground_operations: GroundOperationsConfig
+    fuselage_integration: FuselageIntegrationConfig
     linkage_reference: LinkageReferenceConfig
     avionics: AvionicsConfig
     mass_budget: MassBudgetConfig
@@ -478,7 +519,7 @@ def load_aircraft_config(path: Path = DEFAULT_CONFIG_PATH) -> AircraftConfig:
     except yaml.YAMLError as error:
         raise ConfigurationError(f"Invalid YAML in {path}: {error}") from error
 
-    top_level = {"project", "wing", "spar", "materials", "aircraft", "layout", "cg", "tail", "booms", "propulsion", "electrical", "battery", "ground_operations", "linkage_reference", "avionics", "mass_budget"}
+    top_level = {"project", "wing", "spar", "materials", "aircraft", "layout", "cg", "tail", "booms", "propulsion", "electrical", "battery", "ground_operations", "fuselage_integration", "linkage_reference", "avionics", "mass_budget"}
     missing, unknown = top_level - set(document), set(document) - top_level
     if missing:
         raise ConfigurationError(f"Configuration is missing required sections: {sorted(missing)}")
@@ -784,6 +825,80 @@ def load_aircraft_config(path: Path = DEFAULT_CONFIG_PATH) -> AircraftConfig:
             raise ConfigurationError("ground_operations tip clearances must descend from static to rough case")
         ground_operations_config = GroundOperationsConfig("initial_design_assumption", *ground_values)
 
+    fuselage = _section(document, "fuselage_integration", {
+        "status", "outer_x_min_mm", "outer_x_max_mm", "maximum_width_mm", "maximum_height_mm", "center_z_mm",
+        "bulkhead_x_mm", "hardpoint_bulkhead_x_mm", "battery_hatch_x_mm", "battery_hatch_length_mm",
+        "battery_hatch_width_mm", "battery_hatch_z_mm", "boom_interface_x_mm", "boom_clamp_rear_x_mm", "motor_mount_x_mm", "forward_servos",
+    })
+    if fuselage["status"] not in {"tbd", "initial_design_assumption"}:
+        raise ConfigurationError("fuselage_integration.status must be 'tbd' or 'initial_design_assumption'")
+    scalar_keys = (
+        "outer_x_min_mm", "outer_x_max_mm", "maximum_width_mm", "maximum_height_mm", "center_z_mm",
+        "battery_hatch_x_mm", "battery_hatch_length_mm", "battery_hatch_width_mm", "battery_hatch_z_mm",
+        "boom_interface_x_mm", "boom_clamp_rear_x_mm", "motor_mount_x_mm",
+    )
+    fuselage_scalars = tuple(_nullable_number(fuselage[key], f"fuselage_integration.{key}") for key in scalar_keys)
+    bulkheads_raw, hardpoints_raw, servos_raw = (
+        fuselage["bulkhead_x_mm"], fuselage["hardpoint_bulkhead_x_mm"], fuselage["forward_servos"],
+    )
+    if fuselage["status"] == "tbd":
+        if any(value is not None for value in fuselage_scalars) or any(value is not None for value in (bulkheads_raw, hardpoints_raw, servos_raw)):
+            raise ConfigurationError("tbd fuselage_integration must use null geometry")
+        fuselage_config = FuselageIntegrationConfig(
+            status="tbd", outer_x_min_mm=None, outer_x_max_mm=None, maximum_width_mm=None,
+            maximum_height_mm=None, center_z_mm=None, bulkhead_x_mm=(), hardpoint_bulkhead_x_mm=(),
+            battery_hatch_x_mm=None, battery_hatch_length_mm=None, battery_hatch_width_mm=None,
+            battery_hatch_z_mm=None, boom_interface_x_mm=None, boom_clamp_rear_x_mm=None,
+            motor_mount_x_mm=None, forward_servos=(),
+        )
+    else:
+        if any(value is None for value in fuselage_scalars):
+            raise ConfigurationError("defined fuselage_integration needs all envelope/hatch/interface values")
+        (outer_min, outer_max, width, height, _center_z, _hatch_x, hatch_length, hatch_width, _hatch_z,
+         boom_x, boom_rear_x, motor_x) = fuselage_scalars
+        if outer_min >= outer_max or min(width, height, hatch_length, hatch_width) <= 0:
+            raise ConfigurationError("fuselage_integration envelope/hatch dimensions are invalid")
+        if not outer_min <= boom_x < boom_rear_x <= outer_max or not outer_min <= motor_x <= outer_max:
+            raise ConfigurationError("fuselage_integration boom/motor interface must lie inside its X envelope")
+        if not isinstance(bulkheads_raw, list) or not bulkheads_raw:
+            raise ConfigurationError("fuselage_integration.bulkhead_x_mm must be a non-empty list")
+        bulkheads = tuple(_number(value, "fuselage_integration.bulkhead_x_mm item") for value in bulkheads_raw)
+        if tuple(sorted(bulkheads)) != bulkheads or len(set(bulkheads)) != len(bulkheads) or not all(outer_min < value < outer_max for value in bulkheads):
+            raise ConfigurationError("fuselage_integration bulkheads must be unique, sorted, and inside the envelope")
+        if not isinstance(hardpoints_raw, list) or not hardpoints_raw:
+            raise ConfigurationError("fuselage_integration.hardpoint_bulkhead_x_mm must be a non-empty list")
+        hardpoints = tuple(_number(value, "fuselage_integration.hardpoint_bulkhead_x_mm item") for value in hardpoints_raw)
+        if len(set(hardpoints)) != len(hardpoints) or not set(hardpoints).issubset(bulkheads):
+            raise ConfigurationError("fuselage_integration hardpoint bulkheads must be unique declared bulkheads")
+        if not isinstance(servos_raw, list) or len(servos_raw) != 3:
+            raise ConfigurationError("fuselage_integration.forward_servos must contain the three tail servos")
+        servo_keys = {"id", "x_mm", "y_mm", "z_mm"}
+        servos: list[ForwardServoStationConfig] = []
+        servo_ids: set[str] = set()
+        for index, raw in enumerate(servos_raw):
+            item = _mapping(raw, f"fuselage_integration.forward_servos[{index}]")
+            if set(item) != servo_keys:
+                raise ConfigurationError("fuselage_integration forward servo has missing or unknown keys")
+            servo_id = item["id"]
+            if servo_id not in {"elevator_servo", "rudder_servo_left", "rudder_servo_right"} or servo_id in servo_ids:
+                raise ConfigurationError("fuselage_integration forward servos need unique elevator/rudder-left/rudder-right ids")
+            servo_ids.add(servo_id)
+            coordinates = tuple(_number(item[key], f"fuselage_integration.forward_servos[{index}].{key}") for key in ("x_mm", "y_mm", "z_mm"))
+            if not outer_min <= coordinates[0] <= outer_max or abs(coordinates[1]) > width / 2.0 or abs(coordinates[2] - _center_z) > height / 2.0:
+                raise ConfigurationError("fuselage_integration forward servo lies outside envelope")
+            servos.append(ForwardServoStationConfig(servo_id, *coordinates))
+        if servo_ids != {"elevator_servo", "rudder_servo_left", "rudder_servo_right"}:
+            raise ConfigurationError("fuselage_integration needs elevator and both independent rudder servos")
+        fuselage_config = FuselageIntegrationConfig(
+            status="initial_design_assumption", outer_x_min_mm=outer_min, outer_x_max_mm=outer_max,
+            maximum_width_mm=width, maximum_height_mm=height, center_z_mm=_center_z,
+            bulkhead_x_mm=bulkheads, hardpoint_bulkhead_x_mm=hardpoints,
+            battery_hatch_x_mm=_hatch_x, battery_hatch_length_mm=hatch_length,
+            battery_hatch_width_mm=hatch_width, battery_hatch_z_mm=_hatch_z,
+            boom_interface_x_mm=boom_x, boom_clamp_rear_x_mm=boom_rear_x,
+            motor_mount_x_mm=motor_x, forward_servos=tuple(servos),
+        )
+
     linkage_reference = _section(document, "linkage_reference", {
         "status", "servo_x_mm", "carbon_rod_outer_diameter_mm", "carbon_rod_inner_diameter_mm",
         "elevator_route_length_mm", "rudder_route_length_mm", "maximum_guide_spacing_mm",
@@ -802,6 +917,8 @@ def load_aircraft_config(path: Path = DEFAULT_CONFIG_PATH) -> AircraftConfig:
         servo_x, rod_od, rod_id, elevator_length, rudder_length, guide_spacing = linkage_values
         if min(rod_od, elevator_length, rudder_length, guide_spacing) <= 0 or rod_id <= 0 or rod_id >= rod_od:
             raise ConfigurationError("linkage_reference dimensions are invalid")
+        if fuselage_config.is_defined and any(servo.x_mm != servo_x for servo in fuselage_config.forward_servos):
+            raise ConfigurationError("linkage_reference.servo_x_mm must match every typed forward servo station")
         linkage_reference_config = LinkageReferenceConfig("initial_design_assumption", *linkage_values)
 
     avionics = _section(document, "avionics", {"status", "components"})
@@ -883,5 +1000,5 @@ def load_aircraft_config(path: Path = DEFAULT_CONFIG_PATH) -> AircraftConfig:
     return AircraftConfig(
         ProjectConfig(project["name"], project["units"]), wing_config, spar_config,
         materials_config, aircraft_config, layout_config, cg_config, tail_config, booms_config,
-        propulsion_config, electrical_config, battery_config, ground_operations_config, linkage_reference_config, avionics_config, mass_budget_config,
+        propulsion_config, electrical_config, battery_config, ground_operations_config, fuselage_config, linkage_reference_config, avionics_config, mass_budget_config,
     )

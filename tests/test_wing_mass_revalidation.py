@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def test_2600g_mass_sensitivity_preserves_reference_yaml_and_scales_loads():
     config = load_aircraft_config(ROOT / "config/aircraft.yaml")
-    assert config.aircraft.target_mass_g == 2400
+    assert config.aircraft.target_mass_g == 2600
     summary = build_summary()
     reference = summary["cases"]["2400g_reference"]
     sensitivity = summary["cases"]["2600g_sensitivity"]
@@ -42,6 +42,6 @@ def test_outputs_are_internal_consistent(tmp_path: Path):
     write_outputs(summary, tmp_path)
     saved = json.loads((tmp_path / "summary.json").read_text(encoding="utf-8"))
     lines = (tmp_path / "comparison.csv").read_text(encoding="utf-8").splitlines()
-    assert saved["scope"]["canonical_target_mass_g"] == 2400
+    assert saved["scope"]["canonical_target_mass_g"] == 2600
     assert len(lines) == 3
     assert "spar_tip_deflection_E70_mm" in lines[0]

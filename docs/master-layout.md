@@ -70,6 +70,42 @@ measured-aircraft CG. If even one entry is `tbd`, neither estimate nor subtotal
 may be labelled final. The repository ledger currently contains deliberate TBD
 placeholders, so it produces no numerical aircraft CG.
 
+## Fuselage/package integration v1
+
+`fuselage_integration` is a typed preliminary **envelope and station**
+contract used only by `cad/master_layout/model.py`; it is not a second source
+of wing geometry and not production DXF.  The configured body reservation is
+`X=-500…+410`, maximum external width 180 and height 190.  This unusually long
+forward envelope is intentional: the revised complete-ledger CG study places
+the 6S1P battery substantially ahead of the wing datum.  Its pitch-inertia and
+rough-landing nose-protection penalty remains a design trade to be checked in
+the next CAD/proof step, not something to hide by shortening the nose.
+
+The layout renders the following confirmed preliminary references:
+
+| Reference | Typed value / treatment |
+| --- | --- |
+| Outer body | rectangular installation envelope only; no implied final aerodynamic profile |
+| Stations | `X=-285, -170, -55, +65, +130, +200, +285, +365`; 2-mm birch formers/webs except the listed hardpoint stations |
+| Hardpoint stations | `X=-55, +65, +130, +200, +285, +365`; 3-mm birch local doublers/gear, boom, or motor load paths |
+| Battery hatch reservation | 230 × 110 mm at `X=-357.5`, top plane `Z=+95`; this is a clearance reservation, **not a passed removal path** |
+| Forward tail servos | elevator `(110, 0, -15)`, left rudder `(110, -32, -15)`, right rudder `(110, +32, -15)`; their shown 25×13×25-mm boxes are installation envelopes, not an SKU declaration |
+| Boom interfaces | display blocks at `X=+285` and `+365`, `Y=±230`, are provisional alignment/motor-bridge references only; physical tube/joint and primary bending transfer stay TBD |
+| Motor plate | replaceable display plate at `X=+410`, centered on the typed `Z=+50` motor axis |
+
+The P60B battery branch is a 503-g design estimate (129.6-Wh nominal,
+103.7-Wh study usable). The preliminary 155×75×28-mm 2-long × 3-wide pack
+envelope has an indexed rail from `X=-382.5` to `-332.5`, with the first-flight
+25%-MAC study index at `X=-370.0`. The unified estimated ledger gives required
+centres `-381.39/-369.99/-358.58/-335.77 mm` for 24/25/26/28% MAC respectively;
+the rounded rail deliberately covers that set without ballast. This is a
+ledger-driven preliminary setting, not an achieved CG measurement. The layout
+always reports `battery_removal_validated = false`: a top-removal mock-up must
+prove pack, connector, strap and rail clearance at both stops before this can
+become production geometry. In particular, do not insert a full-width former
+inside the declared hatch opening; its perimeter ring/side rails are not drawn
+by the reference model.
+
 ## Current master-layout output
 
 `cad/master_layout/model.py` builds a CadQuery reference model containing the
@@ -97,18 +133,15 @@ and lists them in its gallery.
 
 The typed `ground_operations` and `linkage_reference` sections additionally
 render a rough-field **reference** floor/wheels, main-hardpoint points and
-forward tail-actuation route lines. They are constrained by the current 13-in,
-`Z=+50 mm` pusher screen and show 142.9/128/85/60-mm
-static/compressed/tail-low/full-rough tip-clearance cases. They are not
-landing-gear, ski, fuselage-skin or pushrod production geometry. The 14-in
-option is not represented as a rough-field baseline because it has only a
-47-mm full-rough clearance in the same structural study. See
-[`cad-rebaseline-v2.md`](cad-rebaseline-v2.md) for assumptions and the
-unresolved integration gate.
+forward tail-actuation route lines. The current 13-in baseline uses 100-mm
+mains, a 75-mm nose wheel, 350-mm track and the `Z=+50 mm` pusher screen. Its
+preliminary static/compressed/tail-low/full-rough tip-clearance values are
+154.9/137/93/69 mm. They are not landing-gear, ski, fuselage-skin or pushrod
+production geometry. The 14-in option remains secondary and needs taller gear
+and a separate prop-to-boom proof.
 
-Before any fuselage geometry can be created, determine at minimum: real
-component masses; selected battery form factor; ESC envelope; wing-to-fuselage
-and boom structural interfaces; boom geometry/material; empennage planform and
-control authority; and avionics/antenna/GNSS/EMI installation constraints.
-Those data must be entered as sourced configuration values rather than guessed
-CAD dimensions.
+Before production fuselage geometry can be created, proof the battery removal
+path, actual pack dimensions/mass, complete gear bay, boom/motor joints,
+control-route free play and installed cooling/EMI arrangement. Those results
+must replace design estimates in the typed configuration; no kerf compensation
+belongs in the future source CAD.

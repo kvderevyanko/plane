@@ -1,7 +1,14 @@
 # LR1600 Powertrain Structural Interfaces v1
 
 **Status: preliminary design screen; not hardware selection, production CAD or
-release-to-manufacture.**  The reproducible calculation is
+release-to-manufacture.**
+
+> **Historical 2,400-g reference screen:** current fuselage integration uses a
+> 2,600-g design case and its P60B/13x10/motor envelope. Do not reuse this
+> document's numerical mount loads as the active mount release; the active
+> bounded loads are in `fuselage-architecture.md`.
+
+The reproducible calculation is
 [`scripts/powertrain_structure.py`](../scripts/powertrain_structure.py), which
 writes [`analysis/powertrain/structure_summary.json`](../analysis/powertrain/structure_summary.json).
 It turns existing propulsion and packaging study cases into load-interface and

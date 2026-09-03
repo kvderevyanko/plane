@@ -87,6 +87,7 @@ def _render_master_layout_view(layout: MasterLayout, destination: Path, *, eleva
     figure = plt.figure(figsize=(9, 5.5), dpi=150)
     axis = figure.add_subplot(111, projection="3d")
     models = (
+        (layout.fuselage_envelope, "#d7e3d4", "#4f6f52"),
         (layout.wing, "#b9d8ee", "#1e4d70"),
         (layout.horizontal_tail, "#e5c07b", "#7b5e00"),
         (layout.elevator, "#e07a16", "#8b3b00"),
@@ -94,7 +95,9 @@ def _render_master_layout_view(layout: MasterLayout, destination: Path, *, eleva
         (layout.rudders, "#e07a16", "#8b3b00"),
         (layout.battery_travel_envelope, "#f6d55c", "#8f6d00"),
         (layout.battery_envelope, "#ed553b", "#8b2e20"),
+        (layout.battery_hatch_envelope, "#f4a261", "#9b4d00"),
         (layout.motor_envelope, "#8ecae6", "#1d5f73"),
+        (layout.motor_mount_envelope, "#6c757d", "#343a40"),
         (layout.esc_envelope, "#83c5be", "#276b68"),
         (layout.ground_reference, "#dedbd2", "#77736a"),
     )
@@ -110,6 +113,24 @@ def _render_master_layout_view(layout: MasterLayout, destination: Path, *, eleva
         disk_faces = _mesh_faces(disk)
         faces_by_model.extend(disk_faces)
         axis.add_collection3d(Poly3DCollection(disk_faces, facecolor="#a7c957", edgecolor="#386641", linewidth=0.25, alpha=.30))
+    for _, bulkhead in layout.fuselage_bulkheads:
+        bulkhead_faces = _mesh_faces(bulkhead)
+        faces_by_model.extend(bulkhead_faces)
+        axis.add_collection3d(Poly3DCollection(bulkhead_faces, facecolor="#90a955", edgecolor="#4f6f52", linewidth=.15, alpha=.15))
+    for _, bulkhead in layout.fuselage_hardpoint_bulkheads:
+        bulkhead_faces = _mesh_faces(bulkhead)
+        faces_by_model.extend(bulkhead_faces)
+        axis.add_collection3d(Poly3DCollection(bulkhead_faces, facecolor="#bc6c25", edgecolor="#6f4518", linewidth=.25, alpha=.35))
+    for interface in layout.boom_interface_envelopes:
+        interface_faces = _mesh_faces(interface)
+        faces_by_model.extend(interface_faces)
+        axis.add_collection3d(Poly3DCollection(interface_faces, facecolor="#606c38", edgecolor="#283618", linewidth=.3, alpha=.75))
+    for servo_id, envelope in layout.forward_servo_envelopes:
+        servo_faces = _mesh_faces(envelope)
+        faces_by_model.extend(servo_faces)
+        axis.add_collection3d(Poly3DCollection(servo_faces, facecolor="#dda15e", edgecolor="#7f4f24", linewidth=.3, alpha=.85))
+        box = envelope.val().BoundingBox()
+        axis.text((box.xmin + box.xmax) / 2.0, (box.ymin + box.ymax) / 2.0, box.zmax + 5.0, servo_id, color="#5c3510", fontsize=6)
     for wheel in (*layout.main_wheels, layout.nose_wheel):
         if wheel is None:
             continue
@@ -183,12 +204,13 @@ def _render_master_layout_view(layout: MasterLayout, destination: Path, *, eleva
     first_flight_note = "First-flight marker: preliminary only" if layout.first_flight_cg_x_mm is not None else "First-flight marker: TBD"
     packaging_note = "Typed packaging envelopes: preliminary design assumptions" if (layout.motor_envelope or layout.esc_envelope or layout.battery_envelope or layout.avionics_envelopes) else "Packaging envelopes: TBD"
     hardware_note = "Commercial hardware: selected preliminary envelopes; bench/installation validation required" if layout.selected_hardware_envelopes else "Commercial hardware envelopes: not loaded"
-    battery_note = "Battery removal/hatch clearance: NOT validated (CG/mass-moment closure blocked)"
+    battery_note = "Battery removal/hatch clearance: NOT validated (CG/mass-moment and mock-up gate)"
     ground_note = "Ground operations: TBD"
     if layout.propeller_tip_clearance_static_mm is not None:
         ground_note = ("Ground reference only: static/full-rough tip clearance "
                        f"{layout.propeller_tip_clearance_static_mm:.1f}/{layout.propeller_tip_clearance_dynamic_mm:.1f} mm")
-    figure.text(0.02, 0.02, f"Datum: root leading edge | +X aft (red), +Y right (green), +Z up (blue)\nMAC: {layout.mac_mm:.3f} mm | {cg_note}\n{tail_note} | {first_flight_note}\n{packaging_note}\n{hardware_note}\n{ground_note}\n{battery_note}", fontsize=8)
+    fuselage_note = "Fuselage: preliminary station/envelope only" if layout.fuselage_envelope is not None else "Fuselage: TBD"
+    figure.text(0.02, 0.02, f"Datum: root leading edge | +X aft (red), +Y right (green), +Z up (blue)\nMAC: {layout.mac_mm:.3f} mm | {cg_note}\n{tail_note} | {first_flight_note}\n{fuselage_note}; {packaging_note}\n{hardware_note}\n{ground_note}\n{battery_note}", fontsize=8)
     figure.tight_layout(pad=0)
     figure.savefig(destination, transparent=False, bbox_inches="tight", pad_inches=0.02)
     plt.close(figure)

@@ -69,12 +69,19 @@ def test_repository_aircraft_yaml_loads_and_has_expected_planform():
     assert config.propulsion.nominal_series_count == 6
     assert config.propulsion.propeller.diameter_min_mm == pytest.approx(330.2)
     assert config.propulsion.propeller.diameter_max_mm == pytest.approx(355.6)
-    assert config.propulsion.esc.x_mm == pytest.approx(320.0)
+    assert config.propulsion.esc.x_mm == pytest.approx(285.0)
     assert config.electrical.hotel_load_nominal_w == pytest.approx(16.0)
     assert config.battery.chemistry_direction == "li_ion_preliminary"
-    assert config.battery.mass_min_g == pytest.approx(520.0)
-    assert config.battery.mass_max_g == pytest.approx(940.0)
-    assert (config.battery.package_length_mm, config.battery.package_width_mm, config.battery.package_height_mm) == pytest.approx((190.0, 65.0, 45.0))
+    assert config.aircraft.target_mass_g == pytest.approx(2600.0)
+    assert config.battery.mass_min_g == pytest.approx(490.0)
+    assert config.battery.mass_max_g == pytest.approx(520.0)
+    assert (config.battery.package_length_mm, config.battery.package_width_mm, config.battery.package_height_mm) == pytest.approx((155.0, 75.0, 28.0))
+    assert config.battery.nominal_x_mm == pytest.approx(-370.0)
+    assert config.fuselage_integration.is_defined
+    assert (config.fuselage_integration.outer_x_min_mm, config.fuselage_integration.outer_x_max_mm) == pytest.approx((-500.0, 410.0))
+    assert tuple(servo.id for servo in config.fuselage_integration.forward_servos) == (
+        "elevator_servo", "rudder_servo_left", "rudder_servo_right",
+    )
     assert {component.id for component in config.avionics.components} >= {"flight_controller", "gnss_compass", "vtx"}
     assert config.wing.mean_aerodynamic_chord_leading_edge_x_mm == pytest.approx(12.037037)
     assert {component.id for component in config.mass_budget.components} >= {"wing_assembly", "tail_boom_left", "tail_boom_right"}

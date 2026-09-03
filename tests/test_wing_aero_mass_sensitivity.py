@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def test_2600g_aero_sensitivity_keeps_canonical_mass_and_scales_required_cl():
     config = load_aircraft_config(ROOT / "config/aircraft.yaml")
-    assert config.aircraft.target_mass_g == 2400
+    assert config.aircraft.target_mass_g == 2600
     summary = build_summary()
     reference = summary["cases"]["2400g"]
     sensitivity = summary["cases"]["2600g"]
@@ -40,6 +40,6 @@ def test_aero_mass_sensitivity_outputs_are_consistent(tmp_path: Path):
     write_outputs(summary, output)
     saved = json.loads(output.read_text(encoding="utf-8"))
     lines = output.with_suffix(".csv").read_text(encoding="utf-8").splitlines()
-    assert saved["scope"]["canonical_target_mass_g"] == 2400
+    assert saved["scope"]["canonical_target_mass_g"] == 2600
     assert len(lines) == 11
     assert "total_wing_drag_n" in lines[0]
