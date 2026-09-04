@@ -16,7 +16,7 @@
   "aileron_span_mm": 500.0,
   "aileron_chord_mm": 48.0,
   "aileron_inboard_offset_mm": 150.0,
-  "aircraft_mass_kg": 2.4,
+  "aircraft_mass_kg": 2.6,
   "design_load_factor_g": 4.0,
   "gravity_m_s2": 9.80665
 }

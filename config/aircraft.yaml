@@ -153,7 +153,7 @@ battery:
   # Preliminary ledger solution, not an installation clearance pass: a long
   # forward bay is deliberately retained to close the 24--28% MAC study.
   nominal_x_mm: -370.0
-  x_adjustment_min_mm: -382.5
+  x_adjustment_min_mm: -387.5
   x_adjustment_max_mm: -332.5
   y_mm: 0.0
   z_mm: 0.0
@@ -200,7 +200,7 @@ fuselage_integration:
   hardpoint_bulkhead_x_mm: [-55.0, 65.0, 130.0, 200.0, 285.0, 365.0]
   battery_hatch_x_mm: -357.5
   battery_hatch_length_mm: 230.0
-  battery_hatch_width_mm: 110.0
+  battery_hatch_width_mm: 125.0
   battery_hatch_z_mm: 95.0
   boom_interface_x_mm: 285.0
   boom_clamp_rear_x_mm: 365.0
@@ -218,6 +218,31 @@ fuselage_integration:
       x_mm: 110.0
       y_mm: 32.0
       z_mm: -15.0
+
+# Nominal prototype-v1 primary skeleton.  CAD derives all individual laser
+# outlines from this contract; measured plywood thickness and laser kerf remain
+# downstream process settings.  It does not alter wing/tail/boom aerodynamics.
+fuselage_prototype:
+  status: prototype_v1
+  stations_x_mm: [-285.0, -170.0, -55.0, 65.0, 130.0, 200.0, 285.0, 365.0]
+  inner_width_mm: 140.0
+  lower_keel_z_mm: -70.0
+  upper_longeron_z_mm: 62.0
+  longeron_width_mm: 5.0
+  longeron_height_mm: 3.0
+  # Usable pack-centre range.  -387.5 extends the former rail forward by
+  # 5 mm and clears the preliminary 24% MAC requirement.
+  battery_rail_x_min_mm: -387.5
+  battery_rail_x_max_mm: -332.5
+  battery_rail_y_mm: 0.0
+  battery_rail_spacing_mm: 90.0
+  main_gear_box_x_min_mm: 65.0
+  main_gear_box_x_max_mm: 200.0
+  boom_clamp_spacing_mm: 80.0
+  boom_saddle_diameter_mm: 20.0
+  motor_plate_width_mm: 110.0
+  motor_plate_height_mm: 90.0
+  nose_index_key_width_mm: 12.0
 
 # Forward-mounted tail-actuation route study.  The lines in master-layout are
 # only routes between known reference stations; end fittings, guides, control

@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from cad.common.calibration_coupon import HEIGHT_MM, WIDTH_MM, generate
+from cad.fuselage.generate import generate as generate_fuselage
 from scripts.config import load_aircraft_config
 from scripts.generate_test_coupons import generate as generate_test_coupons
 from scripts.generate_previews import generate_previews
@@ -60,6 +61,7 @@ def main() -> None:
     config = load_aircraft_config(ROOT / "config" / "aircraft.yaml")
     mass_properties = calculate_mass_properties(config.mass_budget.components)
     paths = generate(ROOT / "build")
+    fuselage_paths = generate_fuselage(ROOT)
     # Keep inspection drawings in sync with YAML before making their disposable
     # preview copies.  Neither output feeds a CAD generator.
     generate_wing(ROOT / "config" / "aircraft.yaml", ROOT / "generated")
@@ -82,6 +84,8 @@ def main() -> None:
         )
     for kind, path in paths.items():
         print(f"  {kind}: {path.relative_to(ROOT)} ({path.stat().st_size} bytes)")
+    for kind, path in fuselage_paths.items():
+        print(f"  fuselage {kind}: {path.relative_to(ROOT)} ({path.stat().st_size} bytes)")
     print(f"  previews: {previews['index'].relative_to(ROOT)}")
 
 

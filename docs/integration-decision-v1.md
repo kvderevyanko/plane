@@ -4,7 +4,7 @@
 preliminary, reversible packaging baseline for the 2,600-g integration case,
 subject to the structural and validation conditions below.  Use an external
 nose limit of **X=-500 mm**, a 155 x 75 x 28-mm P60B study envelope, indexed
-battery-CG travel **X=-382.5...-332.5 mm**, and nominal index **X=-370.0 mm**.
+battery-CG travel **X=-387.5...-332.5 mm**, and nominal index **X=-370.0 mm**.
 This is sufficient to proceed to a packaging/skeleton CAD study; it is not a
 production-CAD freeze or flight release.  Wing geometry, wing structural
 concept and the root-wing-LE datum are unchanged.
@@ -18,24 +18,22 @@ targets gives:
 
 | Target | CG X, mm | Required battery CG X, mm | Rail-end margin, mm |
 |---:|---:|---:|---:|
-| 24% MAC | 66.26 | -384.78 | 2.28 beyond forward limit |
-| 25% MAC | 68.52 | -373.40 | 9.10 / 40.90 |
-| 26% MAC | 70.78 | -362.03 | 20.47 / 29.53 |
+| 24% MAC | 66.26 | -384.78 | 2.72 from forward limit |
+| 25% MAC | 68.52 | -373.40 | 14.10 / 40.90 |
+| 26% MAC | 70.78 | -362.03 | 25.47 / 29.53 |
 | 28% MAC | 75.30 | -339.27 | 6.77 from aft limit |
 
-Thus 25% MAC remains mathematically reachable without ballast, but exact 24%
-is now 2.28 mm beyond the unchanged forward rail limit after removing the 6-g
-steering-only allowance at X=-218 mm. The 25--28% range remains inside the
-rail. This is a derived limitation, not authorization to change the validated
-rail or nose packaging. Before cutting a production tray, repeat the solver
-with weighed components and retain space in the skeleton for a deliberate
-rail/stop decision; do not trade primary structure for extra travel.
+The prototype's deliberate 5-mm forward rail extension makes exact 24% and
+25% MAC mathematically reachable without ballast; the wheels 24--28% range is
+inside the rail. Before any production tray, repeat the solver with weighed
+components and retain space in the skeleton for a deliberate rail/stop
+decision; do not trade primary structure for extra travel.
 
-The union of pack positions is X=-460...-255 mm.  At the forward setting,
-the X=-500 outer limit leaves 40 mm ahead of the estimated pack envelope for
+The union of pack positions is X=-465...-255 mm. At the forward setting,
+the X=-500 outer limit leaves 35 mm ahead of the estimated pack envelope for
 a 3-mm tied stop, insulation and a sacrificial bumper/crush space.  This is a
 preliminary packaging allowance, not an impact-qualified battery enclosure.
-The 230 x 110-mm clear top opening is adequate as a geometric reservation at
+The 230 x 125-mm clear top opening is adequate as a geometric reservation at
 both stops: move the pack to a chosen index, isolate and disconnect it, then
 lift vertically. The aft pack end is X=-255 at the aft stop, leaving about
 13 mm to the X=-242.5 hatch edge. Mock up the actual pack, connector bend
@@ -95,7 +93,7 @@ the wing or opening the central gear box.
   the intended sacrificial nose deformation space before production fuselage
   CAD.
 
-Within these boundaries, the X=-500 / X=-382.5...-332.5 architecture is a
+Within these boundaries, the X=-500 / X=-387.5...-332.5 architecture is a
 technically coherent preliminary solution to no-ballast 25%-MAC closure.  It
 does not justify changing the wing, weakening fuselage hardpoints, or calling
 2,600 g a final released flight mass.

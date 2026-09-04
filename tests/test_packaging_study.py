@@ -27,7 +27,7 @@ def test_invalid_battery_mass_is_rejected(call):
 def test_packaging_study_keeps_actual_battery_window_tbd_without_mass_ledger_closure():
     summary = make_summary(load_aircraft_config())
     assert summary["status"].startswith("study_cases_only")
-    assert summary["internal_payload_envelope_mm"]["battery_adjustment_travel_mm"] == 50.0
+    assert summary["internal_payload_envelope_mm"]["battery_adjustment_travel_mm"] == 55.0
     assert any("non-battery resolved mass" in item for item in summary["tbd"])
 
 

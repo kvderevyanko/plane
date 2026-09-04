@@ -88,18 +88,17 @@ The layout renders the following confirmed preliminary references:
 | Outer body | rectangular installation envelope only; no implied final aerodynamic profile |
 | Stations | `X=-285, -170, -55, +65, +130, +200, +285, +365`; 2-mm birch formers/webs except the listed hardpoint stations |
 | Hardpoint stations | `X=-55, +65, +130, +200, +285, +365`; 3-mm birch local doublers/gear, boom, or motor load paths |
-| Battery hatch reservation | 230 × 110 mm at `X=-357.5`, top plane `Z=+95`; this is a clearance reservation, **not a passed removal path** |
+| Battery hatch reservation | 230 × 125 mm at `X=-357.5`, top plane `Z=+95`; its CAD sweep is a geometric check, **not a passed physical removal path** |
 | Forward tail servos | elevator `(110, 0, -15)`, left rudder `(110, -32, -15)`, right rudder `(110, +32, -15)`; their shown 25×13×25-mm boxes are installation envelopes, not an SKU declaration |
 | Boom interfaces | display blocks at `X=+285` and `+365`, `Y=±230`, are provisional alignment/motor-bridge references only; physical tube/joint and primary bending transfer stay TBD |
 | Motor plate | replaceable display plate at `X=+410`, centered on the typed `Z=+50` motor axis |
 
 The P60B battery branch is a 503-g design estimate (129.6-Wh nominal,
 103.7-Wh study usable). The preliminary 155×75×28-mm 2-long × 3-wide pack
-envelope has an indexed rail from `X=-382.5` to `-332.5`, with a nominal
+envelope has a 55-mm useful rail from `X=-387.5` to `-332.5`, with a nominal
 reference at `X=-370.0`. The fixed-nose estimated ledger gives required
 centres `-384.78/-373.40/-362.03/-339.27 mm` for 24/25/26/28% MAC respectively.
-It retains ballast-free 25% but exact 24% lies 2.28 mm ahead of the unchanged
-rail. This is a
+It retains ballast-free 24% and 25% for the wheels ledger. This is a
 ledger-driven preliminary setting, not an achieved CG measurement. The layout
 always reports `battery_removal_validated = false`: a top-removal mock-up must
 prove pack, connector, strap and rail clearance at both stops before this can

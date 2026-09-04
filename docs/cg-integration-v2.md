@@ -11,25 +11,22 @@ document is a second source.
 ## P60B placement and baseline closure
 
 The P60B branch is a 503-g complete 6S1P **packaging estimate** with a
-155 x 75 x 28-mm envelope.  The pack has a 50-mm indexed rail:
+155 x 75 x 28-mm envelope.  The prototype pack rail has 55-mm useful travel:
 
 | Setting | Battery centre X | Baseline wheels CG X | CG % MAC |
 |---|---:|---:|---:|
-| Forward | -382.5 | 66.71 | 24.20% |
+| Forward | -387.5 | 65.72 | 23.76% |
 | Nominal rail reference | -370.0 | 69.19 | 25.30% |
 | Aft | -332.5 | 76.64 | 28.59% |
 
 The exact central-ledger pack centres required are -384.78, -373.40,
 -362.03 and -339.27 mm for 24, 25, 26 and 28% MAC respectively. Therefore
-25% is reachable without ballast by moving 3.40 mm forward of the nominal
-rail reference. The exact 24% point is 2.28 mm ahead of the retained forward
-rail limit and is no longer claimed reachable by this design estimate. This
-is a reported consequence of removing 6 g at the forward nose-gear station;
-the validated rail geometry was not changed. The physical pack needs X=-460 at the
-forward index; the X=-500 nose and top hatch are deliberate consequences of
-that calculation, not an arbitrary long nose.  A real pack/dummy must prove
+24% and 25% are reachable without ballast: their centres lie 2.72 mm and
+14.10 mm aft of the new forward rail limit. The physical pack needs X=-465 at
+the forward index; the X=-500 nose and top hatch are deliberate consequences
+of that calculation, not an arbitrary long nose. A real pack/dummy must prove
 the removal path, cable bend radius, index stops and 44.4-N retention proof
-before production CAD.
+before production release.
 
 ## Unified central mass result
 
@@ -55,17 +52,17 @@ the ski module.  The optional camera is likewise excluded from baseline.
 
 | Configuration | Mass at nominal rail | 25% target battery X | Result at current nominal / forward / aft rail |
 |---|---:|---:|---|
-| Wheels, FPV | 2533.5 g | -373.40 | 25.30 / 24.20 / 28.59% MAC |
-| Skis, FPV | 2569.5 g | -365.57 | 24.62 / 23.53 / 27.87% MAC |
-| Wheels, FPV + 45-g HD central payload | 2578.5 g | -351.62 | 23.41 / 22.33 / 26.65% MAC |
+| Wheels, FPV | 2533.5 g | -373.40 | 25.30 / 23.76 / 28.59% MAC |
+| Skis, FPV | 2569.5 g | -365.57 | 24.62 / 23.10 / 27.87% MAC |
+| Wheels, FPV + 45-g HD central payload | 2578.5 g | -351.62 | 23.41 / 21.90 / 26.65% MAC |
 
 For wheels, move the pack forward about 3.4 mm from the nominal rail reference
 to make 25%; for skis, move it aft about 4.4 mm. For the 45-g recording case,
 move it aft about 18.4 mm. All 25% cases close without ballast. The current
-rail does **not** cover the complete 24--28% range for wheels, skis or the HD
-payload: wheels miss exact 24% by 2.28 mm, while the other limitations remain
-configuration-specific. These are explicitly reported limitations,
-not reasons to put electronics in the tail.  The HD study range is 25--60 g;
+rail covers exact 24% and 25% in all three stated configurations. It covers
+the full 24--28% range for wheels; skis miss exact 28% by 1.56 mm aft and the
+HD case misses it by 15.63 mm aft. These are explicitly reported limitations,
+not reasons to put electronics in the tail. The HD study range is 25--60 g;
 its actual mount/camera mass must be entered before any flight release.
 
 ## Handling implication

@@ -68,7 +68,7 @@ def test_unified_ledger_closes_baseline_without_ballast_and_reports_payload_limi
     assert wheels[1]["cg_percent_mac"] == pytest.approx(25.2992, abs=1e-4)
     assert summary["mass_budget"]["wheels"]["central_g"] == pytest.approx(2533.53)
     assert summary["mass_budget"]["skis_central_g"] == pytest.approx(2569.53)
-    assert summary["battery"]["rail_mm"]["forward"] > wheel_case["battery_x_for_targets_mm"]["24_percent_mac"]
+    assert summary["battery"]["rail_mm"]["forward"] <= wheel_case["battery_x_for_targets_mm"]["24_percent_mac"]
     assert summary["battery"]["rail_mm"]["forward"] <= wheel_case["battery_x_for_targets_mm"]["25_percent_mac"]
     hd = summary["cg_cases"]["wheels_with_hd"]["battery_x_for_targets_mm"]
     assert hd["25_percent_mac"] > summary["battery"]["rail_mm"]["nominal"]

@@ -436,6 +436,40 @@ class FuselageIntegrationConfig:
 
 
 @dataclass(frozen=True)
+class FuselagePrototypeConfig:
+    """Nominal, laser-ready skeleton parameters for fuselage prototype v1.
+
+    This is deliberately a small manufacturing contract: stock sizes and
+    load-bearing stations are editable here, while individual outlines remain
+    derived in :mod:`cad.fuselage`.  Values are nominal millimetres; laser kerf
+    and measured plywood thickness are production-process settings.
+    """
+
+    status: Literal["tbd", "prototype_v1"]
+    stations_x_mm: tuple[float, ...]
+    inner_width_mm: float | None
+    lower_keel_z_mm: float | None
+    upper_longeron_z_mm: float | None
+    longeron_width_mm: float | None
+    longeron_height_mm: float | None
+    battery_rail_x_min_mm: float | None
+    battery_rail_x_max_mm: float | None
+    battery_rail_y_mm: float | None
+    battery_rail_spacing_mm: float | None
+    main_gear_box_x_min_mm: float | None
+    main_gear_box_x_max_mm: float | None
+    boom_clamp_spacing_mm: float | None
+    boom_saddle_diameter_mm: float | None
+    motor_plate_width_mm: float | None
+    motor_plate_height_mm: float | None
+    nose_index_key_width_mm: float | None
+
+    @property
+    def is_defined(self) -> bool:
+        return self.status == "prototype_v1"
+
+
+@dataclass(frozen=True)
 class LinkageReferenceConfig:
     """Forward-servo route assumptions; not control-system release geometry."""
 
@@ -517,6 +551,7 @@ class AircraftConfig:
     battery: BatteryConfig
     ground_operations: GroundOperationsConfig
     fuselage_integration: FuselageIntegrationConfig
+    fuselage_prototype: FuselagePrototypeConfig
     linkage_reference: LinkageReferenceConfig
     avionics: AvionicsConfig
     mass_budget: MassBudgetConfig
@@ -531,7 +566,7 @@ def load_aircraft_config(path: Path = DEFAULT_CONFIG_PATH) -> AircraftConfig:
     except yaml.YAMLError as error:
         raise ConfigurationError(f"Invalid YAML in {path}: {error}") from error
 
-    top_level = {"project", "wing", "spar", "materials", "aircraft", "layout", "cg", "tail", "booms", "propulsion", "electrical", "battery", "ground_operations", "fuselage_integration", "linkage_reference", "avionics", "mass_budget"}
+    top_level = {"project", "wing", "spar", "materials", "aircraft", "layout", "cg", "tail", "booms", "propulsion", "electrical", "battery", "ground_operations", "fuselage_integration", "fuselage_prototype", "linkage_reference", "avionics", "mass_budget"}
     missing, unknown = top_level - set(document), set(document) - top_level
     if missing:
         raise ConfigurationError(f"Configuration is missing required sections: {sorted(missing)}")
@@ -927,6 +962,52 @@ def load_aircraft_config(path: Path = DEFAULT_CONFIG_PATH) -> AircraftConfig:
             motor_mount_x_mm=motor_x, forward_servos=tuple(servos),
         )
 
+    prototype = _section(document, "fuselage_prototype", {
+        "status", "stations_x_mm", "inner_width_mm", "lower_keel_z_mm",
+        "upper_longeron_z_mm", "longeron_width_mm", "longeron_height_mm",
+        "battery_rail_x_min_mm", "battery_rail_x_max_mm", "battery_rail_y_mm",
+        "battery_rail_spacing_mm", "main_gear_box_x_min_mm", "main_gear_box_x_max_mm",
+        "boom_clamp_spacing_mm", "boom_saddle_diameter_mm", "motor_plate_width_mm",
+        "motor_plate_height_mm", "nose_index_key_width_mm",
+    })
+    if prototype["status"] not in {"tbd", "prototype_v1"}:
+        raise ConfigurationError("fuselage_prototype.status must be 'tbd' or 'prototype_v1'")
+    prototype_scalar_keys = (
+        "inner_width_mm", "lower_keel_z_mm", "upper_longeron_z_mm", "longeron_width_mm",
+        "longeron_height_mm", "battery_rail_x_min_mm", "battery_rail_x_max_mm",
+        "battery_rail_y_mm", "battery_rail_spacing_mm", "main_gear_box_x_min_mm",
+        "main_gear_box_x_max_mm", "boom_clamp_spacing_mm", "boom_saddle_diameter_mm",
+        "motor_plate_width_mm", "motor_plate_height_mm", "nose_index_key_width_mm",
+    )
+    prototype_scalars = tuple(_nullable_number(prototype[key], f"fuselage_prototype.{key}") for key in prototype_scalar_keys)
+    stations_raw = prototype["stations_x_mm"]
+    if prototype["status"] == "tbd":
+        if stations_raw is not None or any(value is not None for value in prototype_scalars):
+            raise ConfigurationError("tbd fuselage_prototype must use null geometry")
+        prototype_config = FuselagePrototypeConfig("tbd", (), *(None for _ in prototype_scalars))
+    else:
+        if not fuselage_config.is_defined or not isinstance(stations_raw, list) or len(stations_raw) < 6:
+            raise ConfigurationError("prototype_v1 fuselage needs defined integration and at least six stations")
+        if any(value is None for value in prototype_scalars):
+            raise ConfigurationError("prototype_v1 fuselage needs every manufacturing parameter")
+        stations = tuple(_number(value, "fuselage_prototype.stations_x_mm item") for value in stations_raw)
+        if tuple(sorted(stations)) != stations or len(set(stations)) != len(stations):
+            raise ConfigurationError("fuselage_prototype stations must be unique and sorted")
+        (inner_width, lower_z, upper_z, longeron_w, longeron_h, rail_min, rail_max,
+         rail_y, rail_spacing, gear_min, gear_max, clamp_spacing, saddle_diameter,
+         plate_width, plate_height, index_width) = prototype_scalars
+        if min(inner_width, longeron_w, longeron_h, rail_spacing, saddle_diameter, plate_width, plate_height, index_width) <= 0:
+            raise ConfigurationError("fuselage_prototype positive dimensions are invalid")
+        if not lower_z < upper_z or rail_min >= rail_max or gear_min >= gear_max:
+            raise ConfigurationError("fuselage_prototype longitudinal or vertical ranges are invalid")
+        if not fuselage_config.outer_x_min_mm <= rail_min < rail_max <= fuselage_config.outer_x_max_mm:
+            raise ConfigurationError("fuselage_prototype battery rail lies outside fuselage envelope")
+        if not gear_min <= 65.0 < 130.0 <= gear_max or clamp_spacing < 80.0:
+            raise ConfigurationError("fuselage_prototype gear/boom stations violate accepted interface geometry")
+        if abs(longeron_w - 5.0) > 1e-9 or abs(longeron_h - 3.0) > 1e-9:
+            raise ConfigurationError("fuselage_prototype longeron stock must be 5x3 mm")
+        prototype_config = FuselagePrototypeConfig("prototype_v1", stations, *prototype_scalars)
+
     linkage_reference = _section(document, "linkage_reference", {
         "status", "servo_x_mm", "carbon_rod_outer_diameter_mm", "carbon_rod_inner_diameter_mm",
         "elevator_route_length_mm", "rudder_route_length_mm", "maximum_guide_spacing_mm",
@@ -1028,5 +1109,6 @@ def load_aircraft_config(path: Path = DEFAULT_CONFIG_PATH) -> AircraftConfig:
     return AircraftConfig(
         ProjectConfig(project["name"], project["units"]), wing_config, spar_config,
         materials_config, aircraft_config, layout_config, cg_config, tail_config, booms_config,
-        propulsion_config, electrical_config, battery_config, ground_operations_config, fuselage_config, linkage_reference_config, avionics_config, mass_budget_config,
+        propulsion_config, electrical_config, battery_config, ground_operations_config, fuselage_config,
+        prototype_config, linkage_reference_config, avionics_config, mass_budget_config,
     )

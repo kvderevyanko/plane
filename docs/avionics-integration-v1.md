@@ -41,12 +41,14 @@ The five selected servos total **43.2 g** at `Xcg = 119.3 mm`, `Ycg = 0`,
 tail locations; the old components/locations must not remain in any mass
 ledger.
 
-The first P60B pack must be entered as its weighed complete value; the current
-study input is **503 g**, protected block **70.2 x 64.7 x 43.1 mm**, cell axes
-along X.  Its rail position is deliberately owned by the CG closure, not by
-the avionics layout.  Reserve a protected cable exit at the aft, lower-right
-corner of the moving tray so that all pack positions leave at least 20 mm to
-the tray/hatch edge and cannot pull on the connector.
+The first P60B pack must be entered as its weighed complete value.  The active
+fuselage-prototype packaging contract is **503 g** and **155 x 75 x 28 mm**;
+this overrides the smaller historical cell-block comparison envelopes in
+`electrical-rebaseline.md`, which are not valid tray/removal geometry.  Its
+rail position is deliberately owned by the CG closure, not by the avionics
+layout.  Reserve a protected cable exit at the aft, lower-right corner of the
+moving tray so that all pack positions leave at least 20 mm to the tray/hatch
+edge and cannot pull on the connector.
 
 ## Forward-tail actuation
 

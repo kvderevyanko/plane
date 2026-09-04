@@ -428,10 +428,13 @@ battery_installation:
   usable_energy_wh_study: 103.68
   usable_fraction: 0.80
   x_nominal_mm: -370.0
-  x_min_mm: -382.5
+  # Mirrors aircraft.fuselage_prototype battery_rail_x_min_mm; the typed
+  # aircraft configuration is the geometry source, this is hardware context.
+  x_min_mm: -387.5
   x_max_mm: -332.5
   removal_axis: +z
-  hatch_opening_mm: {length: 230.0, width: 110.0, height: 45.0}
+  # Mirrors aircraft.fuselage_integration battery hatch envelope.
+  hatch_opening_mm: {length: 230.0, width: 125.0, height: 45.0}
   clearance_mm: 12.0
 
 # Battery positive -> fused/disconnect/current sensor -> ESC.  The drawn route
