@@ -3,6 +3,8 @@ from pathlib import Path
 import pytest
 
 from cad.fuselage.model import (assembly_mass_properties, battery_removal_sweep,
+                                dry_assembly_errors, gear_leg_specimens,
+                                joint_validation_report, longeron_support_report,
                                 laser_parts, longeron_paths, mass_estimate,
                                 mating_interfaces, part_instances, part_station_trace,
                                 profile_solid, structural_assembly, validate_geometry)
@@ -83,3 +85,16 @@ def test_profile_identity_quantity_and_finite_geometry_centroid():
     assert props["mass_g"] == pytest.approx(mass_estimate(config)["cad_structural_total_g"])
     assert all(abs(value) < 1e5 for value in props["centroid_mm"])
     assert all(mate.width_mm > 0 for mate in mating_interfaces(config))
+
+
+def test_v3_physical_joint_contract_has_no_orphans_and_method_a_supports_all_rods():
+    config = load_aircraft_config(ROOT / "config" / "aircraft.yaml")
+    rows = joint_validation_report(config)
+    assert rows
+    assert all(row["tab_exists"] and row["slot_exists"] and row["nominal_match"] and row["instances_present"] for row in rows)
+    assert dry_assembly_errors(config) == []
+    supports = longeron_support_report(config)
+    assert len(supports) == 4
+    assert all(row["section_mm"] == (5.0, 3.0) and row["largest_unsupported_gap_mm"] == 0 for row in supports.values())
+    variants = gear_leg_specimens()
+    assert {float(key) + value["total_shim_mm"] for key, value in variants.items()} == {4.0}

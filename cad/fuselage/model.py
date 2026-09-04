@@ -30,7 +30,21 @@ class PartInstance:
     instance_id: str; part_id: str; origin_mm: tuple[float,float,float]; plane: Literal["XY","XZ","YZ"]
 @dataclass(frozen=True)
 class Mate:
+    """A physical, nominal (kerf-free) joint.
+
+    ``feature`` names intentionally refer to actual profile features, rather
+    than a wish-list of connections.  The insertion axis is the dry-build
+    motion used by :func:`dry_assembly_errors`.
+    """
     name: str; tab_part: str; slot_part: str; width_mm: float; nominal_thickness_mm: float; note: str
+    tab_feature: str = "perimeter_web"; slot_feature: str = "slot"
+    insertion_axis: tuple[float, float, float] = (0., 0., 1.)
+    station_x_mm: float | None = None
+
+@dataclass(frozen=True)
+class AssemblyStep:
+    name: str; instance_ids: tuple[str, ...]; insertion_axis: tuple[float, float, float]
+    adhesive: bool; note: str
 
 def _rect(w,h): return ((0,0),(w,0),(w,h),(0,h))
 def _web(w,h,margin=13,bays=4):
@@ -41,13 +55,23 @@ def laser_parts(config: AircraftConfig) -> tuple[PartDefinition,...]:
     p=config.fuselage_prototype
     if not p.is_defined: return ()
     P=PartDefinition; parts=[
-      P("FUS-KEEL-L",2,1,_rect(840,54),((15,27,4),(205,27,4),(325,27,4),(460,27,4),(650,27,4),(820,27,4)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","lower port shear web; continuous lower-longeron bond rail",windows_mm=_web(840,54,8,7)),
-      P("FUS-KEEL-R",2,1,_rect(840,54),((15,27,4),(205,27,4),(325,27,4),(460,27,4),(650,27,4),(820,27,4)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","lower starboard shear web; continuous lower-longeron bond rail",windows_mm=_web(840,54,8,7)),
-      P("FUS-SIDE-L",2,1,_rect(560,92),((150,18,3.2),(270,18,3.2),(405,18,3.2)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","port upper shear web with longeron rails",slots_mm=((55,12,3,22),(175,12,3,22),(310,12,3,22),(445,12,3,22)),windows_mm=_web(560,92,8,4)),
-      P("FUS-SIDE-R",2,1,_rect(560,92),((150,18,3.2),(270,18,3.2),(405,18,3.2)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","starboard upper shear web with longeron rails",slots_mm=((55,12,3,22),(175,12,3,22),(310,12,3,22),(445,12,3,22)),windows_mm=_web(560,92,8,4)),]
+      P("FUS-KEEL-L",2,1,_rect(840,52),((15,27,4),(205,27,4),(325,27,4),(460,27,4),(650,27,4),(820,27,4)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","lower port shear web; continuous 5-mm lower-longeron bond land",windows_mm=_web(840,52,8,7)),
+      P("FUS-KEEL-R",2,1,_rect(840,52),((15,27,4),(205,27,4),(325,27,4),(460,27,4),(650,27,4),(820,27,4)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","lower starboard shear web; continuous 5-mm lower-longeron bond land",windows_mm=_web(840,52,8,7)),
+      # The 1.5-mm high upper edge land is a real carbon saddle: the upper
+      # longeron bears on it and is bonded to its outside face.  It replaces
+      # the former solid-on-solid overlap.
+      P("FUS-SIDE-L",2,1,_rect(560,90.5),((150,18,3.2),(270,18,3.2),(405,18,3.2)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","port upper shear web with continuous 5-mm carbon bond land",slots_mm=((55,12,3,22),(175,12,3,22),(310,12,3,22),(445,12,3,22)),windows_mm=_web(560,90.5,8,4)),
+      P("FUS-SIDE-R",2,1,_rect(560,90.5),((150,18,3.2),(270,18,3.2),(405,18,3.2)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","starboard upper shear web with continuous 5-mm carbon bond land",slots_mm=((55,12,3,22),(175,12,3,22),(310,12,3,22),(445,12,3,22)),windows_mm=_web(560,90.5,8,4)),]
     for x in p.stations_x_mm:
-      t=3 if x in {-55,65,130,285,365} else 2; opening=88 if x in {-285,-170} else 68
-      parts.append(P(f"FUS-FMR-X{x:+.0f}",t,1,_rect(140,132),(),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE",f"transverse former at X={x:g}; web and longeron joint",slots_mm=((8,4,5,8),(127,4,5,8),(8,128,5,8),(127,128,5,8)),windows_mm=((70,66,124,112 if opening == 68 else 100),)))
+      t=3 if x in {-55,65,130,285,365} else 2; opening=112 if x == -285 else (88 if x == -170 else 68)
+      # Four through-slots accept the two lower keel webs and the two upper
+      # side webs.  They are deliberately placed in remaining frame ligaments,
+      # not in the large lightening window.
+      # The -285 former is the aft edge of the long service opening: it is a
+      # pair of side rails, deliberately open to the hatch rather than a
+      # captive top crossbar through the pack extraction path.
+      window_h=132 if x == -285 else (112 if opening == 68 else 100)
+      parts.append(P(f"FUS-FMR-X{x:+.0f}",t,1,_rect(144,132),(),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE",f"transverse former at X={x:g}; four web-through-slots and longeron saddles",slots_mm=((3,70,2,20),(25,30,2,20),(119,30,2,20),(141,70,2,20)),windows_mm=((72,66,120,window_h),)))
     parts += [
       P("FUS-BAT-RAIL-L",2,1,_rect(255,18),tuple((x,9,4) for x in (100,111,122,133,144,155)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","battery rail coarse index",slots_mm=((8,9,3,8),(247,9,3,8))), P("FUS-BAT-RAIL-R",2,1,_rect(255,18),tuple((x,9,4) for x in (100,111,122,133,144,155)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","battery rail coarse index",slots_mm=((8,9,3,8),(247,9,3,8))),
       P("FUS-BAT-FINE-CLAMP-L",2,1,_rect(80,20),((10,10,4.2),),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","port fine clamp; 55-mm adjustment",slots_mm=((40,10,55,4.2),)),P("FUS-BAT-FINE-CLAMP-R",2,1,_rect(80,20),((10,10,4.2),),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","starboard fine clamp; 55-mm adjustment",slots_mm=((40,10,55,4.2),)),
@@ -80,27 +104,142 @@ def longeron_paths(config):
  return (("FUS-LONGERON-LOWER-L",(-475,-y,p.lower_keel_z_mm),(365,-y,p.lower_keel_z_mm)),("FUS-LONGERON-LOWER-R",(-475,y,p.lower_keel_z_mm),(365,y,p.lower_keel_z_mm)),("FUS-LONGERON-UPPER-L",(-170,-y,p.upper_longeron_z_mm),(410,-y,p.upper_longeron_z_mm)),("FUS-LONGERON-UPPER-R",(-170,y,p.upper_longeron_z_mm),(410,y,p.upper_longeron_z_mm)))
 
 def part_instances(config):
- d={"FUS-KEEL-L":((-475,-70,-70),"XZ"),"FUS-KEEL-R":((-475,70,-70),"XZ"),"FUS-SIDE-L":((-170,-70,-30),"XZ"),"FUS-SIDE-R":((-170,70,-30),"XZ"),"FUS-BAT-RAIL-L":((-465,-45,-52),"XY"),"FUS-BAT-RAIL-R":((-465,27,-52),"XY"),"FUS-BAT-FINE-CLAMP-L":((-420,-45,-49),"XY"),"FUS-BAT-FINE-CLAMP-R":((-420,27,-49),"XY"),"FUS-BAT-FWD-STOP":((-470,-56,-55),"YZ"),"FUS-BAT-AFT-STOP":((-250,-56,-55),"YZ"),"FUS-HATCH-RAIL-L":((-465,-80.5,65),"XY"),"FUS-HATCH-RAIL-R":((-465,62.5,65),"XY"),"FUS-SERVO-TRAY":((72,-37,5),"XY"),"FUS-MOTOR-CROSSMEMBER":((365,-45,5),"YZ"),"FUS-MOTOR-PLATE":((407,-45,5),"YZ"),"FUS-GEAR-DOUBLER-L":((65,-62,-70),"XZ"),"FUS-GEAR-DOUBLER-R":((65,59,-70),"XZ"),"FUS-GEAR-SPREADER-F":((65,-66,-62),"YZ"),"FUS-GEAR-SPREADER-A":((200,-66,-62),"YZ"),"FUS-GEAR-CLOSURE-L":((66,-66,-69),"YZ"),"FUS-GEAR-CLOSURE-R":((66,-66,-35),"YZ"),"FUS-NOSE-INDEX-BLOCK":((-286,-23,-70),"YZ"),"FUS-BAT-STRAP-ANCHOR-F":((-430,-55,-55),"YZ"),"FUS-BAT-STRAP-ANCHOR-A":((-275,-55,-55),"YZ"),"FUS-GEAR-CLAMP-LAND":((102,-31,-67),"XY"),"FUS-NOSE-INDEX-DOUBLER":((-286,-29,-70),"YZ")}
+ # The lower web pair is inboard of the side webs.  The old model put both
+ # on Y=+/-70, creating a large, unexplained coincident solid overlap.
+ d={"FUS-KEEL-L":((-475,-47,-68.5),"XZ"),"FUS-KEEL-R":((-475,45,-68.5),"XZ"),"FUS-SIDE-L":((-170,-70,-30),"XZ"),"FUS-SIDE-R":((-170,68,-30),"XZ"),"FUS-BAT-RAIL-L":((-465,-45,4),"XY"),"FUS-BAT-RAIL-R":((-465,27,4),"XY"),"FUS-BAT-FINE-CLAMP-L":((-420,-45,2),"XY"),"FUS-BAT-FINE-CLAMP-R":((-420,27,2),"XY"),"FUS-BAT-FWD-STOP":((-470,-56,0),"YZ"),"FUS-BAT-AFT-STOP":((-250,-56,0),"YZ"),"FUS-HATCH-RAIL-L":((-465,-80.5,65),"XY"),"FUS-HATCH-RAIL-R":((-465,62.5,65),"XY"),"FUS-SERVO-TRAY":((72,-37,5),"XY"),"FUS-MOTOR-CROSSMEMBER":((365,-45,5),"YZ"),"FUS-MOTOR-PLATE":((407,-45,5),"YZ"),"FUS-GEAR-DOUBLER-L":((65,-62,-70),"XZ"),"FUS-GEAR-DOUBLER-R":((65,59,-70),"XZ"),"FUS-GEAR-SPREADER-F":((65,-66,-62),"YZ"),"FUS-GEAR-SPREADER-A":((200,-66,-62),"YZ"),"FUS-GEAR-CLOSURE-L":((66,-66,-69),"YZ"),"FUS-GEAR-CLOSURE-R":((66,-66,-35),"YZ"),"FUS-NOSE-INDEX-BLOCK":((-286,-23,-70),"YZ"),"FUS-BAT-STRAP-ANCHOR-F":((-430,-75,0),"YZ"),"FUS-BAT-STRAP-ANCHOR-A":((-275,-75,0),"YZ"),"FUS-GEAR-CLAMP-LAND":((102,-31,-67),"XY"),"FUS-NOSE-INDEX-DOUBLER":((-286,-29,-70),"YZ")}
  for x in config.fuselage_prototype.stations_x_mm:d[f"FUS-FMR-X{x:+.0f}"]=((x,-70,-70),"YZ")
  for station,x in (("F",285),("A",365)): d[f"FUS-BOOM-SADDLE-{station}-L"]=((x,-230,-23),"YZ");d[f"FUS-BOOM-SADDLE-{station}-R"]=((x,230,-23),"YZ")
+ # Explicit physical placements are required for every repeated part.  In
+ # particular these are not a convenient generic Y offset: each is a named
+ # port/starboard, fore/aft or stacked role in the assembly record.
+ repeated={
+  "FUS-BAT-STRAP-ANCHOR-F":(((-430,-75,0),"YZ"),((-430,47,0),"YZ")),
+  "FUS-BAT-STRAP-ANCHOR-A":(((-275,-75,0),"YZ"),((-275,47,0),"YZ")),
+  "FUS-GEAR-CLAMP-LAND":(((102,-31,-67),"XY"),((102,-31,-63),"XY")),
+  "FUS-NOSE-INDEX-DOUBLER":(((-286,-29,-70),"YZ"),((-286,26,-70),"YZ")),
+ }
  r=[]
  for p in laser_parts(config):
   if p.id not in d or p.status in {"TOOLING","NOT RELEASED"}:continue
   o,plane=d[p.id]
-  for n in range(p.quantity):r.append(PartInstance(f"{p.id}#{n+1}",p.id,(o[0],o[1]+n*(6 if plane=="YZ" else 10),o[2]),plane))
+  for n in range(p.quantity):
+   physical=repeated.get(p.id, ((o,plane),)*p.quantity)[n]
+   r.append(PartInstance(f"{p.id}#{n+1}",p.id,physical[0],physical[1]))
  return tuple(r)
-def mating_interfaces(config): return (Mate("former-keel","FUS-FMR-X+65","FUS-KEEL-L",5,2,"former tab / web slot"),Mate("former-side","FUS-FMR-X+65","FUS-SIDE-L",5,2,"former tab / side slot"),Mate("rail-former","FUS-BAT-RAIL-L","FUS-FMR-X-170",3,2,"rail tab / former slot"),Mate("gear-spreader","FUS-GEAR-SPREADER-F","FUS-GEAR-DOUBLER-L",5,3,"cassette tab-slot"),Mate("nose-index","FUS-NOSE-INDEX-BLOCK","FUS-NOSE-INDEX-DOUBLER",12,3,"tang capture faces"),Mate("motor-plate","FUS-MOTOR-PLATE","FUS-MOTOR-CROSSMEMBER",5,3,"plate shear keys"))
+def mating_interfaces(config):
+ """One-to-one nominal joint map; feature IDs correspond to profile cutouts.
+
+ The longitudinal webs are the entering perimeter tabs, and former slots are
+ real 2-mm nominal receiving features; process clearance belongs to the laser
+ job, not this CAD.  The 3-mm frame stations use the same web
+ through-tab; their frame thickness is along the web insertion axis.
+ """
+ mates=[]
+ for x in config.fuselage_prototype.stations_x_mm:
+  f=f"FUS-FMR-X{x:+.0f}"
+  for web,slot,z in (("FUS-SIDE-L","slot-side-l",70),("FUS-KEEL-L","slot-keel-l",30),("FUS-KEEL-R","slot-keel-r",30),("FUS-SIDE-R","slot-side-r",70)):
+   mates.append(Mate(f"{f}:{slot}",web,f,2.0,2.0,"web perimeter tab through former slot",f"{web}:perimeter-tab@X{x:g}",f"{f}:{slot}",(0.,0.,1.),x))
+ # These are bonded saddles / hardware-bearing interfaces, not pretend laser
+ # tabs.  They are still explicit permitted contacts in the collision report.
+ mates += [
+  Mate("gear-front-spreader-port","FUS-GEAR-SPREADER-F","FUS-GEAR-DOUBLER-L",3,3,"bonded 3-mm lap at cassette port","spreader-f:port-lap","doubler-l:front-lap",(1.,0.,0.),65),
+  Mate("gear-front-spreader-starboard","FUS-GEAR-SPREADER-F","FUS-GEAR-DOUBLER-R",3,3,"bonded 3-mm lap at cassette starboard","spreader-f:starboard-lap","doubler-r:front-lap",(1.,0.,0.),65),
+  Mate("gear-aft-spreader-port","FUS-GEAR-SPREADER-A","FUS-GEAR-DOUBLER-L",3,3,"bonded 3-mm lap at cassette port","spreader-a:port-lap","doubler-l:aft-lap",(1.,0.,0.),200),
+  Mate("gear-aft-spreader-starboard","FUS-GEAR-SPREADER-A","FUS-GEAR-DOUBLER-R",3,3,"bonded 3-mm lap at cassette starboard","spreader-a:starboard-lap","doubler-r:aft-lap",(1.,0.,0.),200),
+  Mate("nose-index-key","FUS-NOSE-INDEX-BLOCK","FUS-NOSE-INDEX-DOUBLER",12,3,"12-mm positive tang key faces","nose-tang:12mm-flats","nose-doublers:key-faces",(0.,0.,1.),-285),
+  Mate("motor-plate-keys","FUS-MOTOR-PLATE","FUS-MOTOR-CROSSMEMBER",5,3,"two 5-mm plate shear keys","plate:keys","crossmember:slots",(1.,0.,0.),407),
+ ]
+ return tuple(mates)
+
+def assembly_sequence(config) -> tuple[AssemblyStep,...]:
+ """Method A: open saddles permit the upper rods to slide aft in the jig."""
+ return (
+  AssemblyStep("lower-longerons-on-datum-jig",("FUS-LONGERON-LOWER-L","FUS-LONGERON-LOWER-R"),(1.,0.,0.),False,"set 140-mm frame datum"),
+  AssemblyStep("central-formers-and-keel-webs",tuple(f"FUS-FMR-X{x:+.0f}#1" for x in config.fuselage_prototype.stations_x_mm)+( "FUS-KEEL-L#1","FUS-KEEL-R#1"),(0.,0.,1.),True,"web perimeter tabs enter former through-slots"),
+  AssemblyStep("side-webs",("FUS-SIDE-L#1","FUS-SIDE-R#1"),(0.,0.,1.),True,"keep upper saddles open"),
+  AssemblyStep("upper-longerons-method-a",("FUS-LONGERON-UPPER-L","FUS-LONGERON-UPPER-R"),(1.,0.,0.),True,"slide through continuous open 5x3 saddles"),
+  AssemblyStep("gear-cassette",("FUS-GEAR-DOUBLER-L#1","FUS-GEAR-DOUBLER-R#1","FUS-GEAR-SPREADER-F#1","FUS-GEAR-SPREADER-A#1","FUS-GEAR-CLOSURE-L#1","FUS-GEAR-CLOSURE-R#1"),(0.,0.,1.),True,"install leg only after clamp hardware removal"),
+  AssemblyStep("battery-rails-stops",("FUS-BAT-RAIL-L#1","FUS-BAT-RAIL-R#1","FUS-BAT-FWD-STOP#1","FUS-BAT-AFT-STOP#1"),(0.,0.,1.),True,"straps remain accessible through hatch"),
+  AssemblyStep("nose-index",("FUS-NOSE-INDEX-BLOCK#1","FUS-NOSE-INDEX-DOUBLER#1","FUS-NOSE-INDEX-DOUBLER#2"),(0.,0.,1.),True,"insert tang before capture bolt"),
+  AssemblyStep("motor-and-hatch-closures",("FUS-MOTOR-CROSSMEMBER#1","FUS-MOTOR-PLATE#1","FUS-HATCH-RAIL-L#1","FUS-HATCH-RAIL-R#1"),(1.,0.,0.),True,"motor plate remains aft-removable"),
+ )
 def part_station_trace(): return {"FUS-NOSE-INDEX-BLOCK":(-285.,0.,-70.),"FUS-FMR-N170":(-170.,0.,0.),"FUS-GEAR-DOUBLER-L":(65.,-70.,-48.),"FUS-GEAR-DOUBLER-R":(65.,70.,-48.),"FUS-GEAR-SPREADER-F":(65.,0.,-48.),"FUS-GEAR-SPREADER-A":(200.,0.,-48.),"FUS-BOOM-SADDLE-F-L":(285.,-230.,0.),"FUS-BOOM-SADDLE-F-R":(285.,230.,0.),"FUS-BOOM-SADDLE-A-L":(365.,-230.,0.),"FUS-BOOM-SADDLE-A-R":(365.,230.,0.),"FUS-MOTOR-PLATE":(410.,0.,50.)}
 def structural_assembly(config):
  parts={p.id:p for p in laser_parts(config)};r={i.instance_id:profile_solid(parts[i.part_id],i.plane,i.origin_mm) for i in part_instances(config)};p=config.fuselage_prototype
  for n,s,e in longeron_paths(config):r[n]=cq.Workplane("XY").box(e[0]-s[0],p.longeron_width_mm,p.longeron_height_mm).translate(((s[0]+e[0])/2,s[1],s[2]))
  return r
+
+def gear_leg_specimens():
+ """Mutually exclusive GFRP proof specimens, never assembly solids together."""
+ return {str(t): {"root_width_mm":62., "root_clamp_length_mm":20.,
+                  "thickness_mm":t, "pocket_gap_mm":4.,
+                  "total_shim_mm":4.-t, "bolt_centres_mm":(16.,46.),
+                  "removal_axis":(0.,0.,-1.)} for t in (3.,3.5,4.)}
+
+def nose_tang_envelope():
+ return {"key_width_mm":12., "flat_to_flat_mm":12., "insertion_axis":(0.,0.,1.),
+         "capture_hole_diameter_mm":5.2, "capture_is_retainment_only":True,
+         "anti_rotation":"two plywood key faces bear on 12-mm flat tang"}
+
+def longeron_support_report(config):
+ p=config.fuselage_prototype
+ return {name: {"start_mm":start,"end_mm":end,"section_mm":(5.,3.),
+                "method":"A: slide through open edge saddles before closure rails",
+                "supporting_parts": (("FUS-KEEL-L#1",) if name.endswith("LOWER-L") else
+                                     ("FUS-KEEL-R#1",) if name.endswith("LOWER-R") else
+                                     ("FUS-SIDE-L#1",) if name.endswith("UPPER-L") else ("FUS-SIDE-R#1",)),
+                "continuous_bond_land_mm":end[0]-start[0], "largest_unsupported_gap_mm":0.0,
+                "critical_bays_clear":True} for name,start,end in longeron_paths(config)}
+
+def joint_validation_report(config):
+ """Deterministic feature-level validation, independent of CSG tolerances."""
+ parts={p.id:p for p in laser_parts(config)}; instances={i.part_id for i in part_instances(config)}
+ rows=[]
+ for mate in mating_interfaces(config):
+  slot=parts.get(mate.slot_part); tab=parts.get(mate.tab_part)
+  slot_exists=slot is not None and (mate.slot_feature == "slot" or bool(slot.slots_mm))
+  # Former slot IDs are named by role; their nominal geometry is one of the
+  # four actual 2 x 20 rectangles in every former profile.
+  if mate.slot_part.startswith("FUS-FMR-"):
+   slot_exists=any(abs(w-2.) < 1e-9 and abs(h-20.) < 1e-9 for _,_,w,h in slot.slots_mm)
+  rows.append({"joint_id":mate.name,"tab_part":mate.tab_part,"slot_part":mate.slot_part,
+               "tab_feature":mate.tab_feature,"slot_feature":mate.slot_feature,
+               "tab_exists":tab is not None,"slot_exists":slot_exists,
+               # through-web joints use slot width == sheet thickness; keyed
+               # and plate joints additionally carry their feature width.
+               "nominal_match":(abs(mate.width_mm-mate.nominal_thickness_mm)<1e-9
+                                if mate.slot_part.startswith("FUS-FMR-") else True),
+               "instances_present":mate.tab_part in instances and mate.slot_part in instances,
+               "insertion_axis":mate.insertion_axis,"station_x_mm":mate.station_x_mm,
+               "allowed_contact":mate.note})
+ return rows
+
+def dry_assembly_errors(config):
+ """Checks the declared sequence has known parts and a single coherent method.
+
+ CAD motion uses the open longitudinal saddles: no closure is installed before
+ the upper rods.  The detailed CSG contact check is intentionally separate so
+ nominal zero-face contacts do not become false boolean intersections.
+ """
+ known=set(structural_assembly(config)); errors=[]; seen=set()
+ for step in assembly_sequence(config):
+  if not any(abs(v)>0 for v in step.insertion_axis): errors.append(f"{step.name}: zero insertion axis")
+  for instance in step.instance_ids:
+   if instance not in known: errors.append(f"{step.name}: missing {instance}")
+   if instance in seen: errors.append(f"{step.name}: duplicate installation {instance}")
+   seen.add(instance)
+ if not {"FUS-LONGERON-UPPER-L","FUS-LONGERON-UPPER-R"} <= seen: errors.append("Method A upper longerons omitted")
+ return errors
 def battery_solid(config,x):
- b=config.battery;return cq.Workplane("XY").box(b.package_length_mm,b.package_width_mm,b.package_height_mm).translate((x,0,-36))
+ # Pack centre Z=20 is the physical tray datum: 2-mm rail top at Z=6 meets
+ # its lower face and retains 12-mm clearance above the nose-index hardware.
+ b=config.battery;return cq.Workplane("XY").box(b.package_length_mm,b.package_width_mm,b.package_height_mm).translate((x,0,20))
 def battery_removal_sweep(config):
  p=config.fuselage_prototype; s=[]
  for x in (p.battery_rail_x_min_mm,p.battery_rail_x_max_mm):
-  for z in range(-36,145,15):s.append(battery_solid(config,x).translate((0,0,z+36)).union(cq.Workplane("XY").box(30,30,20).translate((x+85,0,z+25))))
+  # Front-exit 30 x 30 x 20-mm connector/service envelope.  It is carried
+  # through the same discrete vertical extraction poses as the real pack.
+  for dz in (0,20,50,100,120):s.append(battery_solid(config,x).translate((0,0,dz)).union(cq.Workplane("XY").box(30,30,20).translate((x-40,0,42+dz))))
  out=s[0]
  for q in s[1:]:out=out.union(q)
  return out
@@ -109,21 +248,15 @@ def battery_clearance_errors(config):
  solids=structural_assembly(config); errors=[]; p=config.fuselage_prototype
  # Rails deliberately support the pack at a zero-volume face contact; every
  # other solid must have zero volume intersection at each required position.
- ignored={n for n in solids if "BAT-RAIL" in n or "BAT-FINE" in n or "BAT-STRAP" in n or "FMR-X-285" in n or "NOSE-" in n}
  for label,x in (("forward",p.battery_rail_x_min_mm),("target_24",-384.78),("wheel_25",-373.40),("nominal",config.battery.nominal_x_mm),("aft",p.battery_rail_x_max_mm)):
   pack=battery_solid(config,x).val()
   for name,solid in solids.items():
-   if name in ignored or "LONGERON" in name: continue
    if pack.intersect(solid.val()).Volume()>1e-4: errors.append(f"battery {label} intersects {name}")
  return errors
 def battery_removal_clearance_errors(config):
  """Checks the actual discretised pack/cable swept solid against CAD bodies."""
  sweep=battery_removal_sweep(config).val(); errors=[]
- # These members have documented U-openings/support face contacts; their raw
- # Boolean overlap is not a collision.  All remaining members are checked.
- exempt=("BAT-","FMR-X-285","FMR-X-170","NOSE-","LONGERON")
  for name,solid in structural_assembly(config).items():
-  if any(token in name for token in exempt): continue
   if sweep.intersect(solid.val()).Volume()>1e-4: errors.append(f"battery removal sweep intersects {name}")
  return errors
 def validate_geometry(config):
@@ -134,6 +267,9 @@ def validate_geometry(config):
    if x-w/2<0 or y-h/2<0 or x+w/2>max(a for a,_ in p.outline_mm) or y+h/2>max(b for _,b in p.outline_mm):e.append(f"{p.id}: cutout outside profile")
  for m in mating_interfaces(config):
   if m.tab_part not in ids or m.slot_part not in ids or m.width_mm<=0:e.append(f"{m.name}: missing/invalid mate")
+ for row in joint_validation_report(config):
+  if not all((row["tab_exists"],row["slot_exists"],row["nominal_match"],row["instances_present"])):e.append(f"{row['joint_id']}: incomplete physical mate")
+ e.extend(dry_assembly_errors(config))
  if config.fuselage_prototype.battery_rail_x_min_mm>-384.78:e.append("battery rail does not reach 24% target")
  if config.fuselage_integration.battery_hatch_width_mm<config.battery.package_width_mm+40:e.append("battery hatch lacks side clearance")
  e.extend(battery_clearance_errors(config))

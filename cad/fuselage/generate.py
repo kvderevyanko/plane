@@ -12,7 +12,10 @@ import ezdxf
 from cad.fuselage.model import (LaserPart, assembly_mass_properties,
                                 battery_removal_sweep, laser_parts, longeron_paths,
                                 mating_interfaces, part_instances, part_station_trace,
-                                structural_assembly, validate_geometry, mass_estimate)
+                                structural_assembly, validate_geometry, mass_estimate,
+                                assembly_sequence, dry_assembly_errors,
+                                gear_leg_specimens, joint_validation_report,
+                                longeron_support_report, nose_tang_envelope)
 from scripts.config import load_aircraft_config
 
 
@@ -92,7 +95,7 @@ def generate(root: Path) -> dict[str, Path]:
     instance_map = {}
     for instance in part_instances(config):
         instance_map.setdefault(instance.part_id, []).append({"instance_id": instance.instance_id, "origin_mm": instance.origin_mm, "plane": instance.plane})
-    summary = {"status": "PROTOTYPE V2 — NOT RELEASED", "geometry_contract": "DXF profile == STEP extrusion == geometry mass profile", "battery_rail_usable_centres_mm": [config.fuselage_prototype.battery_rail_x_min_mm, config.fuselage_prototype.battery_rail_x_max_mm], "part_station_trace_mm": part_station_trace(), "part_definitions": definitions, "part_instances": instance_map, "assembly_components": list(assembly), "mating_interfaces": [mate.__dict__ for mate in mating_interfaces(config)], "battery_removal_sweep_bbox_mm": [battery_removal_sweep(config).val().BoundingBox().xlen, battery_removal_sweep(config).val().BoundingBox().ylen, battery_removal_sweep(config).val().BoundingBox().zlen], "cad_mass_estimate_g": mass_estimate(config), "cad_mass_properties": assembly_mass_properties(config), "longerons": [{"id": n, "start_mm": a, "end_mm": b} for n, a, b in longeron_paths(config)]}
+    summary = {"status": "PROTOTYPE V3 — NOT RELEASED PENDING INDEPENDENT REVIEW", "geometry_contract": "DXF profile == STEP extrusion == geometry mass profile", "battery_rail_usable_centres_mm": [config.fuselage_prototype.battery_rail_x_min_mm, config.fuselage_prototype.battery_rail_x_max_mm], "part_station_trace_mm": part_station_trace(), "part_definitions": definitions, "part_instances": instance_map, "assembly_components": list(assembly), "mating_interfaces": [mate.__dict__ for mate in mating_interfaces(config)], "joint_validation": joint_validation_report(config), "dry_assembly_errors": dry_assembly_errors(config), "assembly_sequence": [step.__dict__ for step in assembly_sequence(config)], "longeron_support_report": longeron_support_report(config), "gear_leg_specimens": gear_leg_specimens(), "nose_tang_envelope": nose_tang_envelope(), "battery_removal_sweep_bbox_mm": [battery_removal_sweep(config).val().BoundingBox().xlen, battery_removal_sweep(config).val().BoundingBox().ylen, battery_removal_sweep(config).val().BoundingBox().zlen], "cad_mass_estimate_g": mass_estimate(config), "cad_mass_properties": assembly_mass_properties(config), "longerons": [{"id": n, "start_mm": a, "end_mm": b} for n, a, b in longeron_paths(config)]}
     paths["manifest"].with_suffix(".json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
     paths["battery_dummy_stl"].parent.mkdir(parents=True, exist_ok=True)
     exporters.export(_battery_dummy(config), str(paths["battery_dummy_stl"]))
