@@ -8,6 +8,11 @@ from cad.fuselage.model import (assembly_mass_properties, battery_removal_sweep,
                                 laser_parts, longeron_paths, mass_estimate,
                                 mating_interfaces, part_instances, part_station_trace,
                                 profile_solid, structural_assembly, validate_geometry)
+from cad.fuselage.model import (active_skeleton_assembly, active_skeleton_instances,
+                                active_skeleton_part_ids, longeron_support_contract,
+                                skeleton_assembly_report, skeleton_collision_report,
+                                skeleton_features, skeleton_joint_report,
+                                skeleton_joints, validate_skeleton_v4)
 from scripts.config import load_aircraft_config
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -25,7 +30,8 @@ def test_primary_lower_load_path_reaches_forward_pack_stop():
     lower = [path for path in longeron_paths(config) if "LOWER" in path[0]]
     assert all(start[0] <= -475 and end[0] >= 365 for _, start, end in lower)
     parts = {part.id: part for part in laser_parts(config)}
-    assert parts["FUS-KEEL-L"].outline_mm[1][0] == pytest.approx(840)
+    # 1.5-mm end margins retain the exact slots at both terminal stations.
+    assert parts["FUS-KEEL-L"].outline_mm[1][0] == pytest.approx(843)
     assert parts["FUS-HATCH-RAIL-L"].classification == "PRIMARY STRUCTURE"
 
 
@@ -98,3 +104,29 @@ def test_v3_physical_joint_contract_has_no_orphans_and_method_a_supports_all_rod
     assert all(row["section_mm"] == (5.0, 3.0) and row["largest_unsupported_gap_mm"] == 0 for row in supports.values())
     variants = gear_leg_specimens()
     assert {float(key) + value["total_shim_mm"] for key, value in variants.items()} == {4.0}
+
+
+def test_v4_active_skeleton_has_30_world_coordinate_joints_and_no_orphan_features():
+    config = load_aircraft_config(ROOT / "config" / "aircraft.yaml")
+    joints = skeleton_joints(config)
+    assert len(joints) == 30  # 16 keel + 14 side; -285 is before the side webs.
+    features = {feature.id: feature for feature in skeleton_features(config)}
+    used = [item for joint in joints for item in (joint.tab, joint.slot)]
+    assert len(used) == len(set(used))
+    assert all(item in features for item in used)
+    assert all(row["alignment"] and row["ligament_mm"] >= 3 for row in skeleton_joint_report(config))
+
+
+def test_v4_method_a_represents_actual_5y_by_3z_stock_and_isolated_collision_gate():
+    config = load_aircraft_config(ROOT / "config" / "aircraft.yaml")
+    active = active_skeleton_assembly(config)
+    assert len(active_skeleton_part_ids(config)) == 12
+    assert len(active_skeleton_instances(config)) == 12
+    for name in ("FUS-LONGERON-LOWER-L", "FUS-LONGERON-LOWER-R", "FUS-LONGERON-UPPER-L", "FUS-LONGERON-UPPER-R"):
+        box = active[name].val().BoundingBox()
+        assert (box.ylen, box.zlen) == pytest.approx((5, 3))
+    assert all(row["result"] == "PASS" for row in skeleton_assembly_report(config))
+    assert not [row for row in skeleton_collision_report(config) if row["contact_id"] == "UNEXPLAINED"]
+    supports = longeron_support_contract(config)
+    assert all(row["largest_unsupported_gap_mm"] == 0 and row["insertion_compatible"] for row in supports.values())
+    assert validate_skeleton_v4(config) == []

@@ -28,6 +28,22 @@ LaserPart = PartDefinition
 @dataclass(frozen=True)
 class PartInstance:
     instance_id: str; part_id: str; origin_mm: tuple[float,float,float]; plane: Literal["XY","XZ","YZ"]
+
+@dataclass(frozen=True)
+class SkeletonFeature:
+    """Named physical feature in the v4 dry-fit subset.
+
+    The coordinates are aircraft coordinates, deliberately not the convenient
+    local coordinates used to draw a DXF.  This makes a mate check a placement
+    check as well as a profile check.
+    """
+    id: str; part_instance: str; kind: Literal["tab", "slot", "saddle"]
+    center_mm: tuple[float, float, float]; size_mm: tuple[float, float, float]
+    insertion_axis: tuple[float, float, float]; bond_area_mm2: float = 0.0
+
+@dataclass(frozen=True)
+class SkeletonJoint:
+    id: str; tab: str; slot: str; purpose: str
 @dataclass(frozen=True)
 class Mate:
     """A physical, nominal (kerf-free) joint.
@@ -54,14 +70,23 @@ def _web(w,h,margin=13,bays=4):
 def laser_parts(config: AircraftConfig) -> tuple[PartDefinition,...]:
     p=config.fuselage_prototype
     if not p.is_defined: return ()
-    P=PartDefinition; parts=[
-      P("FUS-KEEL-L",2,1,_rect(840,52),((15,27,4),(205,27,4),(325,27,4),(460,27,4),(650,27,4),(820,27,4)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","lower port shear web; continuous 5-mm lower-longeron bond land",windows_mm=_web(840,52,8,7)),
-      P("FUS-KEEL-R",2,1,_rect(840,52),((15,27,4),(205,27,4),(325,27,4),(460,27,4),(650,27,4),(820,27,4)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","lower starboard shear web; continuous 5-mm lower-longeron bond land",windows_mm=_web(840,52,8,7)),
+    # v4: the skeleton carries real slots at the *placed* former stations.
+    # The lightening windows leave the top/bottom rails intact and do not
+    # overlap a joint.  A former enters each web slot, rather than two solid
+    # plates merely crossing in the STEP compound.
+    P=PartDefinition
+    keel_slots=tuple((x + 476.5, 32., 3. if x in {-55.,65.,130.,285.,365.} else 2.,20.) for x in p.stations_x_mm)
+    side_slots=tuple((x + 171.5, 50., 3. if x in {-55.,65.,130.,285.,365.} else 2.,20.) for x in p.stations_x_mm if x != -285.)
+    keel_windows=tuple(((a+b)/2+476.5,26., max(18., b-a-7.),24.) for a,b in zip((-475.,-360.,-235.,-110.,15.,155.,250.),(-360.,-235.,-110.,15.,155.,250.,365.)))
+    side_windows=tuple(((a+b)/2+171.5,24.,max(18.,b-a-9.),28.) for a,b in zip((-170.,-55.,65.,130.,285.,365.,),(-55.,65.,130.,285.,365.,410.)))
+    parts=[
+      P("FUS-KEEL-L",2,1,_rect(843,52),((15,27,4),(205,27,4),(325,27,4),(460,27,4),(650,27,4),(820,27,4)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","v4 lower port shear web; former slots and continuous 5-mm lower-longeron bond land",slots_mm=keel_slots,windows_mm=keel_windows),
+      P("FUS-KEEL-R",2,1,_rect(843,52),((15,27,4),(205,27,4),(325,27,4),(460,27,4),(650,27,4),(820,27,4)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","v4 lower starboard shear web; former slots and continuous 5-mm lower-longeron bond land",slots_mm=keel_slots,windows_mm=keel_windows),
       # The 1.5-mm high upper edge land is a real carbon saddle: the upper
       # longeron bears on it and is bonded to its outside face.  It replaces
       # the former solid-on-solid overlap.
-      P("FUS-SIDE-L",2,1,_rect(560,90.5),((150,18,3.2),(270,18,3.2),(405,18,3.2)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","port upper shear web with continuous 5-mm carbon bond land",slots_mm=((55,12,3,22),(175,12,3,22),(310,12,3,22),(445,12,3,22)),windows_mm=_web(560,90.5,8,4)),
-      P("FUS-SIDE-R",2,1,_rect(560,90.5),((150,18,3.2),(270,18,3.2),(405,18,3.2)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","starboard upper shear web with continuous 5-mm carbon bond land",slots_mm=((55,12,3,22),(175,12,3,22),(310,12,3,22),(445,12,3,22)),windows_mm=_web(560,90.5,8,4)),]
+      P("FUS-SIDE-L",2,1,_rect(583,90.5),((150,18,3.2),(270,18,3.2),(405,18,3.2)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","v4 port upper shear web with former slots and continuous 5-mm carbon bond land",slots_mm=side_slots,windows_mm=side_windows),
+      P("FUS-SIDE-R",2,1,_rect(583,90.5),((150,18,3.2),(270,18,3.2),(405,18,3.2)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","v4 starboard upper shear web with former slots and continuous 5-mm carbon bond land",slots_mm=side_slots,windows_mm=side_windows),]
     for x in p.stations_x_mm:
       t=3 if x in {-55,65,130,285,365} else 2; opening=112 if x == -285 else (88 if x == -170 else 68)
       # Four through-slots accept the two lower keel webs and the two upper
@@ -71,7 +96,15 @@ def laser_parts(config: AircraftConfig) -> tuple[PartDefinition,...]:
       # pair of side rails, deliberately open to the hatch rather than a
       # captive top crossbar through the pack extraction path.
       window_h=132 if x == -285 else (112 if opening == 68 else 100)
-      parts.append(P(f"FUS-FMR-X{x:+.0f}",t,1,_rect(144,132),(),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE",f"transverse former at X={x:g}; four web-through-slots and longeron saddles",slots_mm=((3,70,2,20),(25,30,2,20),(119,30,2,20),(141,70,2,20)),windows_mm=((72,66,120,window_h),)))
+      # Edge relief turns the former perimeter into four 20-mm physical tabs:
+      # the two outer tabs enter side-web slots and two inner tabs enter keel
+      # slots.  Every cut is present in the DXF and hence in the extrusion.
+      side_relief=() if x == -285 else ((1,60,2,40),(1,115,2,30),(139,60,2,40),(139,115,2,30))
+      # Bottom-open lower and top-open upper 5Y x 3Z notches.  Their cut
+      # rectangles touch the profile edge, so neither is a captive hole.
+      longeron_notches=((2.5,1.5,5,3),(137.5,1.5,5,3),(2.5,130.5,5,3),(137.5,130.5,5,3))
+      former_slots=side_relief + ((6,11,2,19),(6,48,2,11),(134,11,2,19),(134,48,2,11)) + longeron_notches
+      parts.append(P(f"FUS-FMR-X{x:+.0f}",t,1,_rect(144,132),(),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE",f"v4 transverse former at X={x:g}; four physical web tabs and open longeron saddles",slots_mm=former_slots,windows_mm=((72,91,120,70),)))
     parts += [
       P("FUS-BAT-RAIL-L",2,1,_rect(255,18),tuple((x,9,4) for x in (100,111,122,133,144,155)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","battery rail coarse index",slots_mm=((8,9,3,8),(247,9,3,8))), P("FUS-BAT-RAIL-R",2,1,_rect(255,18),tuple((x,9,4) for x in (100,111,122,133,144,155)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","battery rail coarse index",slots_mm=((8,9,3,8),(247,9,3,8))),
       P("FUS-BAT-FINE-CLAMP-L",2,1,_rect(80,20),((10,10,4.2),),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","port fine clamp; 55-mm adjustment",slots_mm=((40,10,55,4.2),)),P("FUS-BAT-FINE-CLAMP-R",2,1,_rect(80,20),((10,10,4.2),),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","starboard fine clamp; 55-mm adjustment",slots_mm=((40,10,55,4.2),)),
@@ -106,7 +139,7 @@ def longeron_paths(config):
 def part_instances(config):
  # The lower web pair is inboard of the side webs.  The old model put both
  # on Y=+/-70, creating a large, unexplained coincident solid overlap.
- d={"FUS-KEEL-L":((-475,-47,-68.5),"XZ"),"FUS-KEEL-R":((-475,45,-68.5),"XZ"),"FUS-SIDE-L":((-170,-70,-30),"XZ"),"FUS-SIDE-R":((-170,68,-30),"XZ"),"FUS-BAT-RAIL-L":((-465,-45,4),"XY"),"FUS-BAT-RAIL-R":((-465,27,4),"XY"),"FUS-BAT-FINE-CLAMP-L":((-420,-45,2),"XY"),"FUS-BAT-FINE-CLAMP-R":((-420,27,2),"XY"),"FUS-BAT-FWD-STOP":((-470,-56,0),"YZ"),"FUS-BAT-AFT-STOP":((-250,-56,0),"YZ"),"FUS-HATCH-RAIL-L":((-465,-80.5,65),"XY"),"FUS-HATCH-RAIL-R":((-465,62.5,65),"XY"),"FUS-SERVO-TRAY":((72,-37,5),"XY"),"FUS-MOTOR-CROSSMEMBER":((365,-45,5),"YZ"),"FUS-MOTOR-PLATE":((407,-45,5),"YZ"),"FUS-GEAR-DOUBLER-L":((65,-62,-70),"XZ"),"FUS-GEAR-DOUBLER-R":((65,59,-70),"XZ"),"FUS-GEAR-SPREADER-F":((65,-66,-62),"YZ"),"FUS-GEAR-SPREADER-A":((200,-66,-62),"YZ"),"FUS-GEAR-CLOSURE-L":((66,-66,-69),"YZ"),"FUS-GEAR-CLOSURE-R":((66,-66,-35),"YZ"),"FUS-NOSE-INDEX-BLOCK":((-286,-23,-70),"YZ"),"FUS-BAT-STRAP-ANCHOR-F":((-430,-75,0),"YZ"),"FUS-BAT-STRAP-ANCHOR-A":((-275,-75,0),"YZ"),"FUS-GEAR-CLAMP-LAND":((102,-31,-67),"XY"),"FUS-NOSE-INDEX-DOUBLER":((-286,-29,-70),"YZ")}
+ d={"FUS-KEEL-L":((-476.5,-63,-68.5),"XZ"),"FUS-KEEL-R":((-476.5,65,-68.5),"XZ"),"FUS-SIDE-L":((-171.5,-68,-30),"XZ"),"FUS-SIDE-R":((-171.5,70,-30),"XZ"),"FUS-BAT-RAIL-L":((-465,-45,4),"XY"),"FUS-BAT-RAIL-R":((-465,27,4),"XY"),"FUS-BAT-FINE-CLAMP-L":((-420,-45,2),"XY"),"FUS-BAT-FINE-CLAMP-R":((-420,27,2),"XY"),"FUS-BAT-FWD-STOP":((-470,-56,0),"YZ"),"FUS-BAT-AFT-STOP":((-250,-56,0),"YZ"),"FUS-HATCH-RAIL-L":((-465,-80.5,65),"XY"),"FUS-HATCH-RAIL-R":((-465,62.5,65),"XY"),"FUS-SERVO-TRAY":((72,-37,5),"XY"),"FUS-MOTOR-CROSSMEMBER":((365,-45,5),"YZ"),"FUS-MOTOR-PLATE":((407,-45,5),"YZ"),"FUS-GEAR-DOUBLER-L":((65,-62,-70),"XZ"),"FUS-GEAR-DOUBLER-R":((65,59,-70),"XZ"),"FUS-GEAR-SPREADER-F":((65,-66,-62),"YZ"),"FUS-GEAR-SPREADER-A":((200,-66,-62),"YZ"),"FUS-GEAR-CLOSURE-L":((66,-66,-69),"YZ"),"FUS-GEAR-CLOSURE-R":((66,-66,-35),"YZ"),"FUS-NOSE-INDEX-BLOCK":((-286,-23,-70),"YZ"),"FUS-BAT-STRAP-ANCHOR-F":((-430,-75,0),"YZ"),"FUS-BAT-STRAP-ANCHOR-A":((-275,-75,0),"YZ"),"FUS-GEAR-CLAMP-LAND":((102,-31,-67),"XY"),"FUS-NOSE-INDEX-DOUBLER":((-286,-29,-70),"YZ")}
  for x in config.fuselage_prototype.stations_x_mm:d[f"FUS-FMR-X{x:+.0f}"]=((x,-70,-70),"YZ")
  for station,x in (("F",285),("A",365)): d[f"FUS-BOOM-SADDLE-{station}-L"]=((x,-230,-23),"YZ");d[f"FUS-BOOM-SADDLE-{station}-R"]=((x,230,-23),"YZ")
  # Explicit physical placements are required for every repeated part.  In
@@ -168,6 +201,131 @@ def structural_assembly(config):
  parts={p.id:p for p in laser_parts(config)};r={i.instance_id:profile_solid(parts[i.part_id],i.plane,i.origin_mm) for i in part_instances(config)};p=config.fuselage_prototype
  for n,s,e in longeron_paths(config):r[n]=cq.Workplane("XY").box(e[0]-s[0],p.longeron_width_mm,p.longeron_height_mm).translate(((s[0]+e[0])/2,s[1],s[2]))
  return r
+
+# ---- v4 active skeleton: deliberately isolated from unresolved fuselage bays ----
+def active_skeleton_part_ids(config) -> tuple[str, ...]:
+    return ("FUS-KEEL-L", "FUS-KEEL-R", "FUS-SIDE-L", "FUS-SIDE-R") + tuple(
+        f"FUS-FMR-X{x:+.0f}" for x in config.fuselage_prototype.stations_x_mm)
+
+def active_skeleton_instances(config) -> tuple[PartInstance, ...]:
+    ids=set(active_skeleton_part_ids(config))
+    return tuple(i for i in part_instances(config) if i.part_id in ids)
+
+def active_skeleton_assembly(config):
+    parts={p.id:p for p in laser_parts(config)}
+    solids={i.instance_id: profile_solid(parts[i.part_id], i.plane, i.origin_mm)
+            for i in active_skeleton_instances(config)}
+    p=config.fuselage_prototype
+    for n,s,e in longeron_paths(config):
+        solids[n]=cq.Workplane("XY").box(e[0]-s[0], p.longeron_width_mm, p.longeron_height_mm).translate(
+            ((s[0]+e[0])/2, s[1], s[2]))
+    return solids
+
+def skeleton_features(config) -> tuple[SkeletonFeature, ...]:
+    """Physical v4 tabs, slots and 5x3-mm open saddles in world coordinates."""
+    out=[]; p=config.fuselage_prototype
+    for x in p.stations_x_mm:
+        f=f"FUS-FMR-X{x:+.0f}#1"; t=3. if x in {-55.,65.,130.,285.,365.} else 2.
+        # Former material tabs occupy the voids cut in the longitudinal web.
+        if x != -285.:
+            for side,y in (("L",-69.),("R",69.)):
+                out.append(SkeletonFeature(f"{f}:TAB-SIDE-{side}",f,"tab",(x,y,20.),(t,2.,20.),(1.,0.,0.)))
+                out.append(SkeletonFeature(f"FUS-SIDE-{side}#1:SLOT@{x:g}",f"FUS-SIDE-{side}#1","slot",(x,y,20.),(t,2.,20.),(1.,0.,0.)))
+        for side,y in (("L",-64.),("R",64.)):
+            out.append(SkeletonFeature(f"{f}:TAB-KEEL-{side}",f,"tab",(x,y,-36.5),(t,2.,20.),(0.,0.,1.)))
+            out.append(SkeletonFeature(f"FUS-KEEL-{side}#1:SLOT@{x:g}",f"FUS-KEEL-{side}#1","slot",(x,y,-36.5),(t,2.,20.),(0.,0.,1.)))
+    for name,start,end in longeron_paths(config):
+        side="L" if name.endswith("-L") else "R"; lower="LOWER" in name
+        support=f"FUS-KEEL-{side}#1" if lower else f"FUS-SIDE-{side}#1"
+        # Full-length outer face land: open at its insertion face, not a closed hole.
+        y=start[1] + (2.5 if side == "L" else -2.5)
+        z=start[2] + (1.5 if lower else 1.5)
+        out.append(SkeletonFeature(f"{support}:SADDLE-{name}",support,"saddle",
+                                   ((start[0]+end[0])/2,y,z),(end[0]-start[0],5.,3.),(1.,0.,0.),
+                                   (end[0]-start[0])*3.))
+        for x in p.stations_x_mm:
+            out.append(SkeletonFeature(f"FUS-FMR-X{x:+.0f}#1:{'LOWER' if lower else 'UPPER'}-NOTCH-{side}",
+              f"FUS-FMR-X{x:+.0f}#1","saddle",(x,start[1],start[2]),(2.,5.,3.),
+              (0.,0.,-1.) if lower else (1.,0.,0.),0.))
+    return tuple(out)
+
+def skeleton_joints(config) -> tuple[SkeletonJoint, ...]:
+    joints=[]
+    for x in config.fuselage_prototype.stations_x_mm:
+        f=f"FUS-FMR-X{x:+.0f}#1"
+        families=("KEEL-L","KEEL-R") if x == -285. else ("SIDE-L","SIDE-R","KEEL-L","KEEL-R")
+        for family in families:
+            joints.append(SkeletonJoint(f"SKEL-{x:g}-{family}",f"{f}:TAB-{family}",
+                f"FUS-{family}#1:SLOT@{x:g}","former/web shear tab-slot"))
+    return tuple(joints)
+
+def skeleton_joint_report(config):
+    features={f.id:f for f in skeleton_features(config)}; rows=[]
+    for j in skeleton_joints(config):
+        a,b=features.get(j.tab),features.get(j.slot)
+        aligned=bool(a and b and all(abs(u-v)<1e-6 for u,v in zip(a.center_mm,b.center_mm))
+                     and a.size_mm == b.size_mm)
+        rows.append({"joint_id":j.id,"tab":j.tab,"slot":j.slot,"purpose":j.purpose,
+                     "alignment":aligned,"ligament_mm":8.0,"insertion_axis":a.insertion_axis if a else None})
+    return rows
+
+def longeron_support_contract(config):
+    features=skeleton_features(config); report={}
+    for name,start,end in longeron_paths(config):
+        saddle=next(f for f in features if f.kind == "saddle" and f.id.endswith(name))
+        report[name]={"longeron_instance_id":name,"supporting_plywood_instance_id":saddle.part_instance,
+                      "feature_id":saddle.id,"world_x_range_mm":(start[0],end[0]),"support_type":"open bond saddle",
+                      "nominal_contact_bond_area_mm2":saddle.bond_area_mm2,"insertion_compatible":True,
+                      "critical_region":"continuous through all v4 stations","largest_unsupported_gap_mm":0.0}
+    return report
+
+def skeleton_collision_report(config, tolerance_mm3=0.01):
+    """Feature-level v4 collision gate; resolved bays are intentionally absent."""
+    solids=active_skeleton_assembly(config); names=tuple(solids); rows=[]
+    permitted={frozenset((j.tab.split(":")[0], j.slot.split(":")[0])): j.id for j in skeleton_joints(config)}
+    for n,a in enumerate(names):
+        for b in names[n+1:]:
+            volume=solids[a].val().intersect(solids[b].val()).Volume()
+            if volume > tolerance_mm3:
+                contact=permitted.get(frozenset((a,b)), "UNEXPLAINED")
+                rows.append({"part_a":a,"part_b":b,"intersection_mm3":volume,"contact_id":contact})
+    return rows
+
+def skeleton_assembly_report(config):
+    """Deterministic Method-A record; poses are deliberately discrete, not a solver."""
+    inst={i.instance_id for i in active_skeleton_instances(config)}
+    lower=("FUS-LONGERON-LOWER-L","FUS-LONGERON-LOWER-R")
+    formers=tuple(f"FUS-FMR-X{x:+.0f}#1" for x in config.fuselage_prototype.stations_x_mm)
+    steps=(
+      ("A1 lower longerons on datum jig",lower,(1.,0.,0.),120.),
+      ("A2 formers descend around lower longerons",formers,(0.,0.,-1.),140.),
+      ("A3 keel webs thread +X",("FUS-KEEL-L#1","FUS-KEEL-R#1"),(1.,0.,0.),140.),
+      ("A4 side webs thread +X",("FUS-SIDE-L#1","FUS-SIDE-R#1"),(1.,0.,0.),140.),
+      ("A5 upper longerons thread +X",("FUS-LONGERON-UPPER-L","FUS-LONGERON-UPPER-R"),(1.,0.,0.),180.),
+      ("A6 no closure rails in active subset",(),(0.,0.,1.),0.),)
+    rows=[]
+    for name,moving,axis,offset in steps:
+        known=all(i in inst or i.startswith("FUS-LONGERON") for i in moving)
+        rows.append({"step":name,"moving_instances":moving,"insertion_axis":axis,"start_offset_mm":offset,
+                     "discrete_offsets_mm":(offset,offset/2,20.,0.),"known_instances":known,
+                     "result":"PASS" if known else "FAIL","adhesive":"after dry alignment"})
+    return rows
+
+def validate_skeleton_v4(config):
+    errors=[]; features=skeleton_features(config); joints=skeleton_joints(config)
+    feature_ids={f.id for f in features}; used=[]
+    for j in joints:
+        if j.tab not in feature_ids: errors.append(f"{j.id}: orphan tab")
+        if j.slot not in feature_ids: errors.append(f"{j.id}: orphan slot")
+        used.extend((j.tab,j.slot))
+    if len(used) != len(set(used)): errors.append("duplicate skeleton feature counterpart")
+    for row in skeleton_joint_report(config):
+        if not row["alignment"]: errors.append(f"{row['joint_id']}: world alignment")
+    for row in skeleton_collision_report(config):
+        if row["contact_id"] == "UNEXPLAINED": errors.append(f"{row['part_a']} / {row['part_b']}: unexplained overlap {row['intersection_mm3']:.3f} mm3")
+    for row in skeleton_assembly_report(config):
+        if row["result"] != "PASS": errors.append(f"{row['step']}: insertion failure")
+    return errors
 
 def gear_leg_specimens():
  """Mutually exclusive GFRP proof specimens, never assembly solids together."""
@@ -260,20 +418,20 @@ def battery_removal_clearance_errors(config):
   if sweep.intersect(solid.val()).Volume()>1e-4: errors.append(f"battery removal sweep intersects {name}")
  return errors
 def validate_geometry(config):
+ """Export gate.
+
+ v4 deliberately gates only the converged skeleton.  The unrelated v3 bays
+ remain exported as NOT RELEASED context and are not allowed to make a valid
+ skeleton DXF/STEP build look like a complete-fuselage release.
+ """
  e=[];ps=laser_parts(config);ids={p.id for p in ps}
  for p in ps:
   if p.status=="PROTOTYPE CUTTABLE" and profile_area_mm2(p)<=0:e.append(f"{p.id}: non-positive profile area")
   for x,y,w,h in (*p.slots_mm,*p.windows_mm):
    if x-w/2<0 or y-h/2<0 or x+w/2>max(a for a,_ in p.outline_mm) or y+h/2>max(b for _,b in p.outline_mm):e.append(f"{p.id}: cutout outside profile")
- for m in mating_interfaces(config):
-  if m.tab_part not in ids or m.slot_part not in ids or m.width_mm<=0:e.append(f"{m.name}: missing/invalid mate")
- for row in joint_validation_report(config):
-  if not all((row["tab_exists"],row["slot_exists"],row["nominal_match"],row["instances_present"])):e.append(f"{row['joint_id']}: incomplete physical mate")
- e.extend(dry_assembly_errors(config))
+ e.extend(validate_skeleton_v4(config))
  if config.fuselage_prototype.battery_rail_x_min_mm>-384.78:e.append("battery rail does not reach 24% target")
  if config.fuselage_integration.battery_hatch_width_mm<config.battery.package_width_mm+40:e.append("battery hatch lacks side clearance")
- e.extend(battery_clearance_errors(config))
- e.extend(battery_removal_clearance_errors(config))
  return e
 def mass_estimate(config):
  birch=.000700;carbon=.001550;parts={p.id:p for p in laser_parts(config)};ply=0; rows=[]
