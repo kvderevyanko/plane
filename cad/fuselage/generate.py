@@ -9,8 +9,9 @@ import cadquery as cq
 from cadquery import exporters
 import ezdxf
 
-from cad.fuselage.model import (LaserPart, battery_removal_sweep, laser_parts,
-                                longeron_paths, part_station_trace,
+from cad.fuselage.model import (LaserPart, assembly_mass_properties,
+                                battery_removal_sweep, laser_parts, longeron_paths,
+                                mating_interfaces, part_instances, part_station_trace,
                                 structural_assembly, validate_geometry, mass_estimate)
 from scripts.config import load_aircraft_config
 
@@ -20,7 +21,7 @@ def _add_part(document: ezdxf.document.Drawing, part: LaserPart, offset: float) 
     msp.add_lwpolyline([(x + offset, y) for x, y in part.outline_mm], close=True, dxfattribs={"layer": "CUT"})
     for x, y, diameter in part.holes_mm:
         msp.add_circle((x + offset, y), diameter / 2, dxfattribs={"layer": "CUT"})
-    for x, y, width, height in part.slots_mm:
+    for x, y, width, height in (*part.slots_mm, *part.windows_mm):
         half_w, half_h = width / 2, height / 2
         msp.add_lwpolyline([(x + offset - half_w, y - half_h), (x + offset + half_w, y - half_h), (x + offset + half_w, y + half_h), (x + offset - half_w, y + half_h)], close=True, dxfattribs={"layer": "CUT"})
     msp.add_text(part.id, dxfattribs={"height": 4, "layer": "ETCH"}).set_placement((offset, -8))
@@ -77,17 +78,21 @@ def generate(root: Path) -> dict[str, Path]:
     _write_sheet(tuple(p for p in parts if p.status == "TOOLING"), paths["tooling"])
     paths["manifest"].parent.mkdir(parents=True, exist_ok=True)
     with paths["manifest"].open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=("id", "thickness_mm", "quantity", "classification", "status", "reason"))
+        writer = csv.DictWriter(handle, fieldnames=("id", "thickness_mm", "quantity", "classification", "status", "profile_hash", "reason"))
         writer.writeheader()
         for part in parts:
-            writer.writerow({"id": part.id, "thickness_mm": part.thickness_mm, "quantity": part.quantity, "classification": part.classification, "status": part.status, "reason": part.reason})
+            writer.writerow({"id": part.id, "thickness_mm": part.thickness_mm, "quantity": part.quantity, "classification": part.classification, "status": part.status, "profile_hash": part.profile_hash(), "reason": part.reason})
     assembly = structural_assembly(config)
     compound = cq.Compound.makeCompound([solid.val() for solid in assembly.values()])
     paths["assembly_step"].parent.mkdir(parents=True, exist_ok=True)
     exporters.export(compound, str(paths["assembly_step"]))
     paths["assembly_svg"].parent.mkdir(parents=True, exist_ok=True)
     paths["assembly_svg"].write_text("""<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"910mm\" height=\"190mm\" viewBox=\"-500 -95 910 190\"><style>text{font:8px sans-serif}.p{fill:none;stroke:#183a55;stroke-width:2}.d{stroke:#b44;stroke-width:1}</style><rect class=\"p\" x=\"-500\" y=\"-90\" width=\"910\" height=\"180\"/><line class=\"d\" x1=\"-475\" y1=\"-68\" x2=\"365\" y2=\"-68\"/><line class=\"d\" x1=\"-475\" y1=\"68\" x2=\"365\" y2=\"68\"/><rect class=\"p\" x=\"-465\" y=\"-48\" width=\"210\" height=\"96\"/><rect class=\"p\" x=\"65\" y=\"-46\" width=\"135\" height=\"92\"/><line class=\"d\" x1=\"285\" y1=\"-90\" x2=\"285\" y2=\"90\"/><line class=\"d\" x1=\"365\" y1=\"-90\" x2=\"365\" y2=\"90\"/><text x=\"-460\" y=\"-58\">BATTERY TRAY / STOPS</text><text x=\"70\" y=\"-54\">MAIN GEAR BOX</text><text x=\"285\" y=\"-82\">BOOM STATIONS</text><text x=\"370\" y=\"40\">MOTOR CROSS-MEMBER</text></svg>""", encoding="utf-8")
-    summary = {"status": "PROTOTYPE V1 — NOT RELEASED", "battery_rail_usable_centres_mm": [config.fuselage_prototype.battery_rail_x_min_mm, config.fuselage_prototype.battery_rail_x_max_mm], "part_station_trace_mm": part_station_trace(), "assembly_components": list(assembly), "battery_removal_sweep_bbox_mm": [battery_removal_sweep(config).val().BoundingBox().xlen, battery_removal_sweep(config).val().BoundingBox().ylen, battery_removal_sweep(config).val().BoundingBox().zlen], "cad_mass_estimate_g": mass_estimate(config), "longerons": [{"id": n, "start_mm": a, "end_mm": b} for n, a, b in longeron_paths(config)]}
+    definitions = {part.id: {"profile_hash": part.profile_hash(), "thickness_mm": part.thickness_mm, "quantity": part.quantity, "status": part.status, "classification": part.classification, "include_flight_mass": part.include_flight_mass} for part in parts}
+    instance_map = {}
+    for instance in part_instances(config):
+        instance_map.setdefault(instance.part_id, []).append({"instance_id": instance.instance_id, "origin_mm": instance.origin_mm, "plane": instance.plane})
+    summary = {"status": "PROTOTYPE V2 — NOT RELEASED", "geometry_contract": "DXF profile == STEP extrusion == geometry mass profile", "battery_rail_usable_centres_mm": [config.fuselage_prototype.battery_rail_x_min_mm, config.fuselage_prototype.battery_rail_x_max_mm], "part_station_trace_mm": part_station_trace(), "part_definitions": definitions, "part_instances": instance_map, "assembly_components": list(assembly), "mating_interfaces": [mate.__dict__ for mate in mating_interfaces(config)], "battery_removal_sweep_bbox_mm": [battery_removal_sweep(config).val().BoundingBox().xlen, battery_removal_sweep(config).val().BoundingBox().ylen, battery_removal_sweep(config).val().BoundingBox().zlen], "cad_mass_estimate_g": mass_estimate(config), "cad_mass_properties": assembly_mass_properties(config), "longerons": [{"id": n, "start_mm": a, "end_mm": b} for n, a, b in longeron_paths(config)]}
     paths["manifest"].with_suffix(".json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
     paths["battery_dummy_stl"].parent.mkdir(parents=True, exist_ok=True)
     exporters.export(_battery_dummy(config), str(paths["battery_dummy_stl"]))

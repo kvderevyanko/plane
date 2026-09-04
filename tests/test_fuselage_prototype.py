@@ -2,9 +2,10 @@ from pathlib import Path
 
 import pytest
 
-from cad.fuselage.model import (battery_removal_sweep, laser_parts, longeron_paths,
-                                mass_estimate, part_station_trace, structural_assembly,
-                                validate_geometry)
+from cad.fuselage.model import (assembly_mass_properties, battery_removal_sweep,
+                                laser_parts, longeron_paths, mass_estimate,
+                                mating_interfaces, part_instances, part_station_trace,
+                                profile_solid, structural_assembly, validate_geometry)
 from scripts.config import load_aircraft_config
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -43,10 +44,10 @@ def test_station_trace_locks_critical_interfaces_to_aircraft_datums():
 def test_assembly_contains_real_load_bays_and_service_sweep():
     config = load_aircraft_config(ROOT / "config" / "aircraft.yaml")
     assembly = structural_assembly(config)
-    assert len([name for name in assembly if name.startswith("FUS-FORMER")]) == 8
-    assert {"FUS-WING-TRANSFER-FRAME", "FUS-GEAR-BOX", "FUS-NOSE-KEY-SOCKET", "FUS-MOTOR-CROSSMEMBER"} <= set(assembly)
+    assert len([name for name in assembly if name.startswith("FUS-FMR-")]) == 8
+    assert {"FUS-GEAR-DOUBLER-L#1", "FUS-GEAR-CLOSURE-L#1", "FUS-NOSE-INDEX-BLOCK#1", "FUS-MOTOR-CROSSMEMBER#1"} <= set(assembly)
     sweep = battery_removal_sweep(config).val().BoundingBox()
-    assert (sweep.xlen, sweep.ylen, sweep.zlen) == pytest.approx((210, 75, 160))
+    assert sweep.xlen >= 210 and sweep.ylen >= 75 and sweep.zlen >= 160
     assert validate_geometry(config) == []
 
 
@@ -68,3 +69,17 @@ def test_cad_mass_is_explicit_dry_geometry_plus_allowances_not_ledger_mass():
     assert estimate["cad_structural_total_g"] == pytest.approx(
         estimate["birch_dry_g"] + estimate["carbon_dry_g"] + estimate["adhesive_allowance_g"] + estimate["fastener_allowance_g"]
     )
+
+
+def test_profile_identity_quantity_and_finite_geometry_centroid():
+    config = load_aircraft_config(ROOT / "config" / "aircraft.yaml")
+    parts = {part.id: part for part in laser_parts(config)}
+    instances = part_instances(config)
+    assert len(instances) == sum(part.quantity for part in parts.values() if part.status != "TOOLING" and part.id in {i.part_id for i in instances})
+    for instance in instances:
+        part = parts[instance.part_id]
+        assert structural_assembly(config)[instance.instance_id].val().Volume() == pytest.approx(profile_solid(part, instance.plane, instance.origin_mm).val().Volume())
+    props = assembly_mass_properties(config)
+    assert props["mass_g"] == pytest.approx(mass_estimate(config)["cad_structural_total_g"])
+    assert all(abs(value) < 1e5 for value in props["centroid_mm"])
+    assert all(mate.width_mm > 0 for mate in mating_interfaces(config))

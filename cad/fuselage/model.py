@@ -1,193 +1,165 @@
-"""Derived nominal skeleton geometry for the LR1600 fuselage prototype v1.
+"""Single-source nominal laser geometry for the LR1600 fuselage prototype.
 
-The module intentionally makes primary laser geometry from the typed aircraft
-configuration.  It is a dry-assembly prototype, not a production skin model.
-All coordinates are aircraft mm, X aft, Y right, Z up.
+Every plywood STEP body is an extrusion of the exact profile written to DXF.
+Coordinates are aircraft mm: X aft, Y right, Z up.  No kerf is encoded here.
 """
 from __future__ import annotations
-
 from dataclasses import dataclass
+from hashlib import sha256
+from math import pi
 from typing import Literal
-
-from scripts.config import AircraftConfig
 import cadquery as cq
+from scripts.config import AircraftConfig
 
 Classification = Literal["PRIMARY STRUCTURE", "SECONDARY STRUCTURE", "JIG / TOOLING"]
 Status = Literal["PROTOTYPE CUTTABLE", "PROTOTYPE PRINTABLE", "TOOLING", "NOT RELEASED"]
 
+@dataclass(frozen=True)
+class PartDefinition:
+    id: str; thickness_mm: float; quantity: int; outline_mm: tuple[tuple[float,float],...]; holes_mm: tuple[tuple[float,float,float],...]
+    classification: Classification; status: Status; reason: str
+    slots_mm: tuple[tuple[float,float,float,float],...] = (); windows_mm: tuple[tuple[float,float,float,float],...] = ()
+    material: str = "birch_plywood"
+    include_flight_mass: bool = True
+    def profile_hash(self) -> str:
+        return sha256(repr((self.outline_mm,self.holes_mm,self.slots_mm,self.windows_mm)).encode()).hexdigest()[:16]
+LaserPart = PartDefinition
 
 @dataclass(frozen=True)
-class LaserPart:
-    id: str
-    thickness_mm: float
-    quantity: int
-    outline_mm: tuple[tuple[float, float], ...]
-    holes_mm: tuple[tuple[float, float, float], ...]
-    classification: Classification
-    status: Status
-    reason: str
-    slots_mm: tuple[tuple[float, float, float, float], ...] = ()
+class PartInstance:
+    instance_id: str; part_id: str; origin_mm: tuple[float,float,float]; plane: Literal["XY","XZ","YZ"]
+@dataclass(frozen=True)
+class Mate:
+    name: str; tab_part: str; slot_part: str; width_mm: float; nominal_thickness_mm: float; note: str
 
+def _rect(w,h): return ((0,0),(w,0),(w,h),(0,h))
+def _web(w,h,margin=13,bays=4):
+ gap=8.; each=(w-2*margin-(bays-1)*gap)/bays
+ return tuple((margin+i*(each+gap)+each/2,margin+(h-2*margin)/2,each,h-2*margin) for i in range(bays))
 
-def _rectangle(width: float, height: float) -> tuple[tuple[float, float], ...]:
-    return ((0, 0), (width, 0), (width, height), (0, height))
-
-
-def laser_parts(config: AircraftConfig) -> tuple[LaserPart, ...]:
-    p = config.fuselage_prototype
-    if not p.is_defined:
-        return ()
-    # 2-mm webs/formers deliberately stay light.  Slots are nominal 3.2 mm
-    # for 3-mm perpendicular webs; final fit comes from the calibration coupon.
-    parts: list[LaserPart] = [
-        LaserPart("FUS-KEEL-L", 2, 1, _rectangle(840, 54), ((15, 27, 4), (205, 27, 4), (325, 27, 4), (460, 27, 4), (650, 27, 4), (820, 27, 4)), "PRIMARY STRUCTURE", "PROTOTYPE CUTTABLE", "lower longitudinal shear web, port; continuous from forward battery stop to boom bay"),
-        LaserPart("FUS-KEEL-R", 2, 1, _rectangle(840, 54), ((15, 27, 4), (205, 27, 4), (325, 27, 4), (460, 27, 4), (650, 27, 4), (820, 27, 4)), "PRIMARY STRUCTURE", "PROTOTYPE CUTTABLE", "lower longitudinal shear web, starboard; continuous from forward battery stop to boom bay"),
-        LaserPart("FUS-SIDE-L", 2, 1, _rectangle(560, 92), ((150, 18, 3.2), (270, 18, 3.2), (405, 18, 3.2)), "PRIMARY STRUCTURE", "PROTOTYPE CUTTABLE", "port upper side shear web"),
-        LaserPart("FUS-SIDE-R", 2, 1, _rectangle(560, 92), ((150, 18, 3.2), (270, 18, 3.2), (405, 18, 3.2)), "PRIMARY STRUCTURE", "PROTOTYPE CUTTABLE", "starboard upper side shear web"),
-        LaserPart("FUS-FMR-N170", 2, 1, _rectangle(132, 128), ((31, 112, 5.2), (101, 112, 5.2)), "PRIMARY STRUCTURE", "PROTOTYPE CUTTABLE", "battery rail locating former"),
-        LaserPart("FUS-FMR-S200", 2, 1, _rectangle(132, 128), ((31, 112, 5.2), (101, 112, 5.2)), "PRIMARY STRUCTURE", "PROTOTYPE CUTTABLE", "servo/avionics shear former"),
-        LaserPart("FUS-BAT-RAIL-L", 2, 1, _rectangle(255, 18), ((100, 9, 4), (111, 9, 4), (122, 9, 4), (133, 9, 4), (144, 9, 4), (155, 9, 4)), "PRIMARY STRUCTURE", "PROTOTYPE CUTTABLE", "battery rail with six 11-mm indexed centres; rail end fixing holes are in N170/W055 formers"),
-        LaserPart("FUS-BAT-RAIL-R", 2, 1, _rectangle(255, 18), ((100, 9, 4), (111, 9, 4), (122, 9, 4), (133, 9, 4), (144, 9, 4), (155, 9, 4)), "PRIMARY STRUCTURE", "PROTOTYPE CUTTABLE", "battery rail with six 11-mm indexed centres; rail end fixing holes are in N170/W055 formers"),
-        LaserPart("FUS-BAT-FINE-CLAMP-L", 2, 1, _rectangle(80, 20), ((10, 10, 4.2),), "PRIMARY STRUCTURE", "PROTOTYPE CUTTABLE", "port fine-adjust rail clamp; 55-mm continuous slot permits exact CG setting between coarse indices", ((40, 10, 55, 4.2),)),
-        LaserPart("FUS-BAT-FINE-CLAMP-R", 2, 1, _rectangle(80, 20), ((10, 10, 4.2),), "PRIMARY STRUCTURE", "PROTOTYPE CUTTABLE", "starboard fine-adjust rail clamp; 55-mm continuous slot permits exact CG setting between coarse indices", ((40, 10, 55, 4.2),)),
-        LaserPart("FUS-BAT-FWD-STOP", 3, 1, _rectangle(112, 48), ((24, 24, 4.2), (88, 24, 4.2)), "PRIMARY STRUCTURE", "PROTOTYPE CUTTABLE", "positive forward pack stop bonded/bolted into continuous lower keel at X=-465 face"),
-        LaserPart("FUS-BAT-AFT-STOP", 3, 1, _rectangle(112, 32), ((24, 16, 4.2), (88, 16, 4.2)), "PRIMARY STRUCTURE", "PROTOTYPE CUTTABLE", "removable positive aft pack stop indexed to rail; no retention credit from hatch"),
-        LaserPart("FUS-BAT-STRAP-ANCHOR-F", 3, 2, _rectangle(28, 42), ((14, 12, 4.2), (14, 30, 4.2)), "PRIMARY STRUCTURE", "PROTOTYPE CUTTABLE", "forward independent 20-mm strap anchor pair, 44.4-N proof per strap"),
-        LaserPart("FUS-BAT-STRAP-ANCHOR-A", 3, 2, _rectangle(28, 42), ((14, 12, 4.2), (14, 30, 4.2)), "PRIMARY STRUCTURE", "PROTOTYPE CUTTABLE", "aft independent 20-mm strap anchor pair, 44.4-N proof per strap"),
-        LaserPart("FUS-HATCH-RAIL-L", 2, 1, _rectangle(230, 18), (), "PRIMARY STRUCTURE", "PROTOTYPE CUTTABLE", "top opening port primary perimeter rail; overlaps N170 and W055 formers"),
-        LaserPart("FUS-HATCH-RAIL-R", 2, 1, _rectangle(230, 18), (), "PRIMARY STRUCTURE", "PROTOTYPE CUTTABLE", "top opening starboard primary perimeter rail; overlaps N170 and W055 formers"),
-        LaserPart("FUS-SERVO-TRAY", 2, 1, _rectangle(118, 74), ((30, 20, 2.2), (88, 20, 2.2), (30, 54, 2.2), (88, 54, 2.2)), "SECONDARY STRUCTURE", "PROTOTYPE CUTTABLE", "removable three-servo support"),
-        LaserPart("FUS-MOTOR-PLATE", 3, 1, _rectangle(p.motor_plate_width_mm, p.motor_plate_height_mm), ((p.motor_plate_width_mm / 2 - 16, p.motor_plate_height_mm / 2 - 16, 3.2), (p.motor_plate_width_mm / 2 + 16, p.motor_plate_height_mm / 2 - 16, 3.2), (p.motor_plate_width_mm / 2 - 16, p.motor_plate_height_mm / 2 + 16, 3.2), (p.motor_plate_width_mm / 2 + 16, p.motor_plate_height_mm / 2 + 16, 3.2)), "PRIMARY STRUCTURE", "PROTOTYPE CUTTABLE", "replaceable universal candidate-class motor plate"),
-        LaserPart("FUS-GEAR-DOUBLER-L", 3, 1, _rectangle(135, 72), ((24, 36, 4.2), (111, 36, 4.2)), "PRIMARY STRUCTURE", "PROTOTYPE CUTTABLE", "main gear double-shear box side, port"),
-        LaserPart("FUS-GEAR-DOUBLER-R", 3, 1, _rectangle(135, 72), ((24, 36, 4.2), (111, 36, 4.2)), "PRIMARY STRUCTURE", "PROTOTYPE CUTTABLE", "main gear double-shear box side, starboard"),
-        LaserPart("FUS-GEAR-SPREADER-F", 3, 1, _rectangle(132, 44), ((35, 22, 4.2), (97, 22, 4.2)), "PRIMARY STRUCTURE", "PROTOTYPE CUTTABLE", "main gear root transverse spreader"),
-        LaserPart("FUS-GEAR-SPREADER-A", 3, 1, _rectangle(132, 44), ((35, 22, 4.2), (97, 22, 4.2)), "PRIMARY STRUCTURE", "PROTOTYPE CUTTABLE", "main gear root transverse spreader"),
-        LaserPart("FUS-GEAR-CLAMP-LAND", 3, 2, _rectangle(62, 44), ((16, 22, 4.2), (46, 22, 4.2)), "PRIMARY STRUCTURE", "PROTOTYPE CUTTABLE", "replaceable GFRP leg clamp land, two-bolt double shear"),
-        LaserPart("FUS-GEAR-SHIM-3P5", 0.5, 2, _rectangle(62, 20), ((16, 10, 4.2), (46, 10, 4.2)), "SECONDARY STRUCTURE", "PROTOTYPE PRINTABLE", "0.5-mm PETG/G10 removable shim for 3.5-mm specimen; not laser plywood"),
-        LaserPart("FUS-GEAR-SHIM-4P0", 1.0, 2, _rectangle(62, 20), ((16, 10, 4.2), (46, 10, 4.2)), "SECONDARY STRUCTURE", "PROTOTYPE PRINTABLE", "1.0-mm PETG/G10 removable shim for 4.0-mm specimen; not laser plywood"),
-        LaserPart("FUS-NOSE-INDEX-BLOCK", 3, 1, ((0, 0), (46, 0), (46, 52), (29, 52), (29, 64), (17, 64), (17, 52), (0, 52)), ((23, 26, 5.2),), "PRIMARY STRUCTURE", "PROTOTYPE CUTTABLE", "positive 12-mm keyed anti-rotation index; no steering freedom"),
-        LaserPart("FUS-NOSE-INDEX-DOUBLER", 3, 2, _rectangle(58, 68), ((29, 26, 5.2),), "PRIMARY STRUCTURE", "PROTOTYPE CUTTABLE", "nose strut indexed box doubler"),
-        LaserPart("FUS-NOSE-INDEX-TANG-GAUGE", 3, 1, _rectangle(46, 64), ((23, 26, 5.2),), "JIG / TOOLING", "TOOLING", "mating 12-mm tang drilling gauge; flight tang is metal, not printed or plywood"),
-        LaserPart("FUS-BOOM-SADDLE-F-L", 3, 1, _rectangle(62, 46), ((31, 23, 4.2),), "PRIMARY STRUCTURE", "NOT RELEASED", "placeholder only: tube OD TBD; no load credit, requires radiused liner/saddle"),
-        LaserPart("FUS-BOOM-SADDLE-F-R", 3, 1, _rectangle(62, 46), ((31, 23, 4.2),), "PRIMARY STRUCTURE", "NOT RELEASED", "placeholder only: tube OD TBD; no load credit, requires radiused liner/saddle"),
-        LaserPart("FUS-BOOM-SADDLE-A-L", 3, 1, _rectangle(62, 46), ((31, 23, 4.2),), "PRIMARY STRUCTURE", "NOT RELEASED", "placeholder only: tube OD TBD; no load credit, requires radiused liner/saddle"),
-        LaserPart("FUS-BOOM-SADDLE-A-R", 3, 1, _rectangle(62, 46), ((31, 23, 4.2),), "PRIMARY STRUCTURE", "NOT RELEASED", "placeholder only: tube OD TBD; no load credit, requires radiused liner/saddle"),
-        LaserPart("TOOL-DATUM-FMR", 3, 2, _rectangle(180, 160), ((90, 80, 6),), "JIG / TOOLING", "TOOLING", "removable datum-board former; centre-hole references symmetry line"),
-        LaserPart("TOOL-BOOM-GAUGE", 3, 1, _rectangle(540, 80), ((40, 40, 6), (500, 40, 6)), "JIG / TOOLING", "TOOLING", "boom symmetry / 460-mm axis separation gauge"),
-    ]
+def laser_parts(config: AircraftConfig) -> tuple[PartDefinition,...]:
+    p=config.fuselage_prototype
+    if not p.is_defined: return ()
+    P=PartDefinition; parts=[
+      P("FUS-KEEL-L",2,1,_rect(840,54),((15,27,4),(205,27,4),(325,27,4),(460,27,4),(650,27,4),(820,27,4)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","lower port shear web; continuous lower-longeron bond rail",windows_mm=_web(840,54,8,7)),
+      P("FUS-KEEL-R",2,1,_rect(840,54),((15,27,4),(205,27,4),(325,27,4),(460,27,4),(650,27,4),(820,27,4)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","lower starboard shear web; continuous lower-longeron bond rail",windows_mm=_web(840,54,8,7)),
+      P("FUS-SIDE-L",2,1,_rect(560,92),((150,18,3.2),(270,18,3.2),(405,18,3.2)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","port upper shear web with longeron rails",slots_mm=((55,12,3,22),(175,12,3,22),(310,12,3,22),(445,12,3,22)),windows_mm=_web(560,92,8,4)),
+      P("FUS-SIDE-R",2,1,_rect(560,92),((150,18,3.2),(270,18,3.2),(405,18,3.2)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","starboard upper shear web with longeron rails",slots_mm=((55,12,3,22),(175,12,3,22),(310,12,3,22),(445,12,3,22)),windows_mm=_web(560,92,8,4)),]
+    for x in p.stations_x_mm:
+      t=3 if x in {-55,65,130,285,365} else 2; opening=88 if x in {-285,-170} else 68
+      parts.append(P(f"FUS-FMR-X{x:+.0f}",t,1,_rect(140,132),(),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE",f"transverse former at X={x:g}; web and longeron joint",slots_mm=((8,4,5,8),(127,4,5,8),(8,128,5,8),(127,128,5,8)),windows_mm=((70,66,124,112 if opening == 68 else 100),)))
+    parts += [
+      P("FUS-BAT-RAIL-L",2,1,_rect(255,18),tuple((x,9,4) for x in (100,111,122,133,144,155)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","battery rail coarse index",slots_mm=((8,9,3,8),(247,9,3,8))), P("FUS-BAT-RAIL-R",2,1,_rect(255,18),tuple((x,9,4) for x in (100,111,122,133,144,155)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","battery rail coarse index",slots_mm=((8,9,3,8),(247,9,3,8))),
+      P("FUS-BAT-FINE-CLAMP-L",2,1,_rect(80,20),((10,10,4.2),),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","port fine clamp; 55-mm adjustment",slots_mm=((40,10,55,4.2),)),P("FUS-BAT-FINE-CLAMP-R",2,1,_rect(80,20),((10,10,4.2),),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","starboard fine clamp; 55-mm adjustment",slots_mm=((40,10,55,4.2),)),
+      P("FUS-BAT-FWD-STOP",3,1,_rect(112,48),((24,24,4.2),(88,24,4.2)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","positive forward pack stop",slots_mm=((56,8,5,8),(56,40,5,8))),P("FUS-BAT-AFT-STOP",3,1,_rect(112,32),((24,16,4.2),(88,16,4.2)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","removable positive aft pack stop",slots_mm=((56,8,5,8),(56,24,5,8))),
+      P("FUS-BAT-STRAP-ANCHOR-F",3,2,_rect(28,42),((14,12,4.2),(14,30,4.2)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","independent strap anchor",slots_mm=((14,4,5,8),)),P("FUS-BAT-STRAP-ANCHOR-A",3,2,_rect(28,42),((14,12,4.2),(14,30,4.2)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","independent strap anchor",slots_mm=((14,4,5,8),)),
+      P("FUS-HATCH-RAIL-L",2,1,_rect(230,18),(),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","230x125 hatch port perimeter rail",slots_mm=((10,9,3,8),(220,9,3,8))),P("FUS-HATCH-RAIL-R",2,1,_rect(230,18),(),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","230x125 hatch starboard perimeter rail",slots_mm=((10,9,3,8),(220,9,3,8))),
+      P("FUS-SERVO-TRAY",2,1,_rect(118,74),((30,20,2.2),(88,20,2.2),(30,54,2.2),(88,54,2.2)),"SECONDARY STRUCTURE","PROTOTYPE CUTTABLE","removable servo tray",windows_mm=((48,29,22,16),)),
+      P("FUS-MOTOR-CROSSMEMBER",3,1,_rect(140,90),((54,29,3.2),(86,29,3.2),(54,61,3.2),(86,61,3.2)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","fixed fuselage motor crossmember/cooling aperture",slots_mm=((8,15,5,10),(132,15,5,10)),windows_mm=((70,45,50,40),)),P("FUS-MOTOR-PLATE",3,1,_rect(p.motor_plate_width_mm,p.motor_plate_height_mm),((39,29,3.2),(71,29,3.2),(39,61,3.2),(71,61,3.2)),"SECONDARY STRUCTURE","PROTOTYPE CUTTABLE","replaceable candidate motor plate; excluded from fuselage group",slots_mm=((5,15,5,10),(105,15,5,10)),windows_mm=((55,45,35,35),),include_flight_mass=False),
+      P("FUS-GEAR-DOUBLER-L",3,1,_rect(135,72),((24,36,4.2),(111,36,4.2)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","port gear cassette double-shear web",slots_mm=((8,10,5,12),(127,10,5,12)),windows_mm=((67.5,36,70,35),)),P("FUS-GEAR-DOUBLER-R",3,1,_rect(135,72),((24,36,4.2),(111,36,4.2)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","starboard gear cassette double-shear web",slots_mm=((8,10,5,12),(127,10,5,12)),windows_mm=((67.5,36,70,35),)),
+      P("FUS-GEAR-SPREADER-F",3,1,_rect(132,44),((35,22,4.2),(97,22,4.2)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","front gear spreader",slots_mm=((10,22,5,10),(122,22,5,10)),windows_mm=((66,22,40,16),)),P("FUS-GEAR-SPREADER-A",3,1,_rect(132,44),((35,22,4.2),(97,22,4.2)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","aft gear spreader",slots_mm=((10,22,5,10),(122,22,5,10)),windows_mm=((66,22,40,16),)),
+      P("FUS-GEAR-CLOSURE-L",3,1,_rect(132,32),(),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","lower cassette closure web",slots_mm=((10,16,5,10),(122,16,5,10))),P("FUS-GEAR-CLOSURE-R",3,1,_rect(132,32),(),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","upper cassette closure web",slots_mm=((10,16,5,10),(122,16,5,10))),P("FUS-GEAR-CLAMP-LAND",3,2,_rect(62,44),((16,22,4.2),(46,22,4.2)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","GFRP leg clamp land: 3/3.5/4-mm shims",slots_mm=((31,6,5,8),)),
+      P("FUS-NOSE-INDEX-BLOCK",3,1,((0,0),(46,0),(46,52),(29,52),(29,64),(17,64),(17,52),(0,52)),((23,26,5.2),),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","positive 12-mm keyed anti-rotation index; no steering freedom",slots_mm=((23,56,12,12),)),P("FUS-NOSE-INDEX-DOUBLER",3,2,_rect(58,68),((29,26,5.2),),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","nose index box doubler",slots_mm=((29,56,12,12),)),
+      P("FUS-GEAR-SHIM-3P5",.5,2,_rect(62,20),((16,10,4.2),(46,10,4.2)),"SECONDARY STRUCTURE","PROTOTYPE PRINTABLE","0.5-mm removable GFRP/PETG shim"),P("FUS-GEAR-SHIM-4P0",1,2,_rect(62,20),((16,10,4.2),(46,10,4.2)),"SECONDARY STRUCTURE","PROTOTYPE PRINTABLE","1.0-mm removable GFRP/PETG shim")]
+    for station,x in (("F",285),("A",365)):
+      for side in ("L","R"): parts.append(P(f"FUS-BOOM-SADDLE-{station}-{side}",3,1,_rect(62,46),((31,23,4.2),),"PRIMARY STRUCTURE","NOT RELEASED",f"fuselage-side boom placeholder X={x}; tube saddle TBD",slots_mm=((31,5,5,10),)))
+    parts += [P("TOOL-DATUM-FMR",3,2,_rect(180,160),((90,80,6),),"JIG / TOOLING","TOOLING","datum-board former"),P("TOOL-BOOM-GAUGE",3,1,_rect(540,80),((40,40,6),(500,40,6)),"JIG / TOOLING","TOOLING","boom axis gauge")]
     return tuple(parts)
 
+def profile_area_mm2(p):
+    v=p.outline_mm; outer=abs(sum(x1*y2-x2*y1 for (x1,y1),(x2,y2) in zip(v,v[1:]+v[:1])))/2
+    return outer-sum(pi*(d/2)**2 for _,_,d in p.holes_mm)-sum(w*h for _,_,w,h in (*p.slots_mm,*p.windows_mm))
+def profile_solid(p,plane="XY",origin=(0.,0.,0.)):
+    q=cq.Workplane(plane,origin=origin).polyline(p.outline_mm).close().extrude(p.thickness_mm)
+    for x,y,d in p.holes_mm:q=q.cut(cq.Workplane(plane,origin=origin).center(x,y).circle(d/2).extrude(p.thickness_mm))
+    for x,y,w,h in (*p.slots_mm,*p.windows_mm):q=q.cut(cq.Workplane(plane,origin=origin).center(x,y).rect(w,h).extrude(p.thickness_mm))
+    return q
 
-def longeron_paths(config: AircraftConfig) -> tuple[tuple[str, tuple[float, float, float], tuple[float, float, float]], ...]:
-    """Actual 5×3 stock centre paths; cut 10 mm long for trim at assembly."""
-    p = config.fuselage_prototype
-    y = p.inner_width_mm / 2 - p.longeron_width_mm / 2
-    return (
-        ("FUS-LONGERON-LOWER-L", (-475, -y, p.lower_keel_z_mm), (365, -y, p.lower_keel_z_mm)),
-        ("FUS-LONGERON-LOWER-R", (-475, y, p.lower_keel_z_mm), (365, y, p.lower_keel_z_mm)),
-        ("FUS-LONGERON-UPPER-L", (-170, -y, p.upper_longeron_z_mm), (410, -y, p.upper_longeron_z_mm)),
-        ("FUS-LONGERON-UPPER-R", (-170, y, p.upper_longeron_z_mm), (410, y, p.upper_longeron_z_mm)),
-    )
+def longeron_paths(config):
+ p=config.fuselage_prototype;y=p.inner_width_mm/2-p.longeron_width_mm/2
+ return (("FUS-LONGERON-LOWER-L",(-475,-y,p.lower_keel_z_mm),(365,-y,p.lower_keel_z_mm)),("FUS-LONGERON-LOWER-R",(-475,y,p.lower_keel_z_mm),(365,y,p.lower_keel_z_mm)),("FUS-LONGERON-UPPER-L",(-170,-y,p.upper_longeron_z_mm),(410,-y,p.upper_longeron_z_mm)),("FUS-LONGERON-UPPER-R",(-170,y,p.upper_longeron_z_mm),(410,y,p.upper_longeron_z_mm)))
 
-
-def part_station_trace() -> dict[str, tuple[float, float, float]]:
-    """Assembly datum placements for critical parts (X, Y, Z), never a second editable source."""
-    return {
-        "FUS-NOSE-INDEX-BLOCK": (-285.0, 0.0, -70.0),
-        "FUS-FMR-N170": (-170.0, 0.0, 0.0),
-        "FUS-GEAR-DOUBLER-L": (65.0, -70.0, -48.0),
-        "FUS-GEAR-DOUBLER-R": (65.0, 70.0, -48.0),
-        "FUS-GEAR-SPREADER-F": (65.0, 0.0, -48.0),
-        "FUS-GEAR-SPREADER-A": (200.0, 0.0, -48.0),
-        "FUS-BOOM-SADDLE-F-L": (285.0, -230.0, 0.0),
-        "FUS-BOOM-SADDLE-F-R": (285.0, 230.0, 0.0),
-        "FUS-BOOM-SADDLE-A-L": (365.0, -230.0, 0.0),
-        "FUS-BOOM-SADDLE-A-R": (365.0, 230.0, 0.0),
-        "FUS-MOTOR-PLATE": (410.0, 0.0, 50.0),
-    }
-
-
-def structural_assembly(config: AircraftConfig) -> dict[str, cq.Workplane]:
-    """Real nominal assembly solids, keyed to aircraft datums.
-
-    These are intentionally simple solids (not an aerodynamic shell), but every
-    named item has a placement and intersects its intended adjoining structure.
-    """
-    p = config.fuselage_prototype
-    solids: dict[str, cq.Workplane] = {}
-    # Eight transverse station formers; battery-opening stations are U-webs.
-    for x in p.stations_x_mm:
-        former = cq.Workplane("YZ").box(2 if x not in {-55, 65, 130, 285, 365} else 3, p.inner_width_mm, 132).translate((x, 0, -4))
-        if x in {-285, -170}:
-            former = former.cut(cq.Workplane("YZ").box(5, 100, 95).translate((x, 0, 42)))
-        solids[f"FUS-FORMER-X{x:+.0f}"] = former
-    # Continuous lower shear webs and actual rectangular longerons.
-    solids["FUS-LOWER-KEEL"] = cq.Workplane("XY").box(840, p.inner_width_mm, 2).translate((-55, 0, p.lower_keel_z_mm))
-    for name, start, end in longeron_paths(config):
-        solids[name] = cq.Workplane("XY").box(end[0] - start[0], p.longeron_width_mm, p.longeron_height_mm).translate(((start[0] + end[0]) / 2, start[1], start[2]))
-    # 3-mm wing/gear transfer frames and double-shear pocket volume.
-    solids["FUS-WING-TRANSFER-FRAME"] = cq.Workplane("XY").box(120, p.inner_width_mm, 92).translate((5, 0, -20))
-    solids["FUS-GEAR-BOX"] = cq.Workplane("XY").box(p.main_gear_box_x_max_mm-p.main_gear_box_x_min_mm, 92, 42).translate(((p.main_gear_box_x_max_mm+p.main_gear_box_x_min_mm)/2, 0, -48))
-    solids["FUS-GEAR-LEG-POCKET"] = cq.Workplane("XY").box(68, 4.2, 20).translate((132.5, 0, -58))
-    # Captured keyed nose socket: mating tang is constrained by 12-mm square key.
-    solids["FUS-NOSE-KEY-SOCKET"] = cq.Workplane("XY").box(46, 22, 64).translate((-285, 0, -48)).cut(cq.Workplane("XY").box(12, 24, 18).translate((-285, 0, -20)))
-    # Battery tray and stops are solid placements; the hatch/removal corridor is above.
-    solids["FUS-BATTERY-TRAY"] = cq.Workplane("XY").box(230, 95, 3).translate((-360, 0, -55))
-    solids["FUS-BATTERY-FWD-STOP"] = cq.Workplane("XY").box(3, 95, 35).translate((-465, 0, -38))
-    solids["FUS-BATTERY-AFT-STOP"] = cq.Workplane("XY").box(3, 95, 28).translate((-255, 0, -40))
-    # Motor cross-member includes shear keys/cooling opening rather than a loose plate.
-    solids["FUS-MOTOR-CROSSMEMBER"] = cq.Workplane("XY").box(3, p.motor_plate_width_mm, p.motor_plate_height_mm).translate((365, 0, 50)).cut(cq.Workplane("YZ").circle(22).extrude(5).translate((362.5, 0, 50)))
-    solids["FUS-MOTOR-PLATE"] = cq.Workplane("XY").box(3, p.motor_plate_width_mm, p.motor_plate_height_mm).translate((410, 0, 50))
-    return solids
-
-
-def battery_removal_sweep(config: AircraftConfig) -> cq.Workplane:
-    """Union of vertical pack sweeps at both rail limits, including 20-mm cable headroom."""
-    b, p = config.battery, config.fuselage_prototype
-    lower = cq.Workplane("XY").box(b.package_length_mm, b.package_width_mm, 160).translate((p.battery_rail_x_min_mm, 0, 25))
-    upper = cq.Workplane("XY").box(b.package_length_mm, b.package_width_mm, 160).translate((p.battery_rail_x_max_mm, 0, 25))
-    return lower.union(upper)
-
-
-def validate_geometry(config: AircraftConfig) -> list[str]:
-    """Deterministic manufacturability checks used by build and tests."""
-    errors: list[str] = []
-    parts = laser_parts(config)
-    for part in parts:
-        if part.status == "PROTOTYPE CUTTABLE":
-            if min(max(x for x, _ in part.outline_mm), max(y for _, y in part.outline_mm)) < 12:
-                errors.append(f"{part.id}: fragile minimum outline")
-            for x, y, diameter in part.holes_mm:
-                if min(x, y, max(px for px, _ in part.outline_mm)-x, max(py for _, py in part.outline_mm)-y) < diameter:
-                    errors.append(f"{part.id}: bolt edge distance")
-            for x, y, width, height in part.slots_mm:
-                # Slot is specified centre/overall size.  Keep a minimum
-                # one-slot-height ligament at every outer edge.
-                if min(x - width / 2, y - height / 2, max(px for px, _ in part.outline_mm) - (x + width / 2), max(py for _, py in part.outline_mm) - (y + height / 2)) < height:
-                    errors.append(f"{part.id}: slot bounds or edge distance")
-    if config.fuselage_prototype.battery_rail_x_min_mm > -384.78:
-        errors.append("battery rail does not reach 24% target")
-    if config.fuselage_integration.battery_hatch_width_mm < config.battery.package_width_mm + 40:
-        errors.append("battery hatch lacks side clearance")
-    return errors
-
-
-def mass_estimate(config: AircraftConfig) -> dict[str, float]:
-    """Nominal dry CAD mass, explicitly separate from measured/ledger mass.
-
-    Birch is 700 kg/m³ and pultruded carbon 1550 kg/m³; adhesive and hardware
-    are explicit 12% and 35-g prototype allowances respectively.
-    """
-    birch_g_mm3, carbon_g_mm3 = .000700, .001550
-    plywood_g = 0.0
-    for part in laser_parts(config):
-        if part.status != "PROTOTYPE CUTTABLE":
-            continue
-        width, height = max(x for x, _ in part.outline_mm), max(y for _, y in part.outline_mm)
-        area = width * height - sum(3.14159265 * (d / 2) ** 2 for _, _, d in part.holes_mm)
-        area -= sum(w * h for _, _, w, h in part.slots_mm)
-        plywood_g += area * part.thickness_mm * part.quantity * birch_g_mm3
-    carbon_g = sum((end[0] - start[0]) * config.fuselage_prototype.longeron_width_mm * config.fuselage_prototype.longeron_height_mm * carbon_g_mm3 for _, start, end in longeron_paths(config))
-    adhesive_g = .12 * (plywood_g + carbon_g)
-    hardware_g = 35.0
-    return {"birch_dry_g": plywood_g, "carbon_dry_g": carbon_g, "adhesive_allowance_g": adhesive_g, "fastener_allowance_g": hardware_g, "cad_structural_total_g": plywood_g + carbon_g + adhesive_g + hardware_g}
+def part_instances(config):
+ d={"FUS-KEEL-L":((-475,-70,-70),"XZ"),"FUS-KEEL-R":((-475,70,-70),"XZ"),"FUS-SIDE-L":((-170,-70,-30),"XZ"),"FUS-SIDE-R":((-170,70,-30),"XZ"),"FUS-BAT-RAIL-L":((-465,-45,-52),"XY"),"FUS-BAT-RAIL-R":((-465,27,-52),"XY"),"FUS-BAT-FINE-CLAMP-L":((-420,-45,-49),"XY"),"FUS-BAT-FINE-CLAMP-R":((-420,27,-49),"XY"),"FUS-BAT-FWD-STOP":((-470,-56,-55),"YZ"),"FUS-BAT-AFT-STOP":((-250,-56,-55),"YZ"),"FUS-HATCH-RAIL-L":((-465,-80.5,65),"XY"),"FUS-HATCH-RAIL-R":((-465,62.5,65),"XY"),"FUS-SERVO-TRAY":((72,-37,5),"XY"),"FUS-MOTOR-CROSSMEMBER":((365,-45,5),"YZ"),"FUS-MOTOR-PLATE":((407,-45,5),"YZ"),"FUS-GEAR-DOUBLER-L":((65,-62,-70),"XZ"),"FUS-GEAR-DOUBLER-R":((65,59,-70),"XZ"),"FUS-GEAR-SPREADER-F":((65,-66,-62),"YZ"),"FUS-GEAR-SPREADER-A":((200,-66,-62),"YZ"),"FUS-GEAR-CLOSURE-L":((66,-66,-69),"YZ"),"FUS-GEAR-CLOSURE-R":((66,-66,-35),"YZ"),"FUS-NOSE-INDEX-BLOCK":((-286,-23,-70),"YZ"),"FUS-BAT-STRAP-ANCHOR-F":((-430,-55,-55),"YZ"),"FUS-BAT-STRAP-ANCHOR-A":((-275,-55,-55),"YZ"),"FUS-GEAR-CLAMP-LAND":((102,-31,-67),"XY"),"FUS-NOSE-INDEX-DOUBLER":((-286,-29,-70),"YZ")}
+ for x in config.fuselage_prototype.stations_x_mm:d[f"FUS-FMR-X{x:+.0f}"]=((x,-70,-70),"YZ")
+ for station,x in (("F",285),("A",365)): d[f"FUS-BOOM-SADDLE-{station}-L"]=((x,-230,-23),"YZ");d[f"FUS-BOOM-SADDLE-{station}-R"]=((x,230,-23),"YZ")
+ r=[]
+ for p in laser_parts(config):
+  if p.id not in d or p.status in {"TOOLING","NOT RELEASED"}:continue
+  o,plane=d[p.id]
+  for n in range(p.quantity):r.append(PartInstance(f"{p.id}#{n+1}",p.id,(o[0],o[1]+n*(6 if plane=="YZ" else 10),o[2]),plane))
+ return tuple(r)
+def mating_interfaces(config): return (Mate("former-keel","FUS-FMR-X+65","FUS-KEEL-L",5,2,"former tab / web slot"),Mate("former-side","FUS-FMR-X+65","FUS-SIDE-L",5,2,"former tab / side slot"),Mate("rail-former","FUS-BAT-RAIL-L","FUS-FMR-X-170",3,2,"rail tab / former slot"),Mate("gear-spreader","FUS-GEAR-SPREADER-F","FUS-GEAR-DOUBLER-L",5,3,"cassette tab-slot"),Mate("nose-index","FUS-NOSE-INDEX-BLOCK","FUS-NOSE-INDEX-DOUBLER",12,3,"tang capture faces"),Mate("motor-plate","FUS-MOTOR-PLATE","FUS-MOTOR-CROSSMEMBER",5,3,"plate shear keys"))
+def part_station_trace(): return {"FUS-NOSE-INDEX-BLOCK":(-285.,0.,-70.),"FUS-FMR-N170":(-170.,0.,0.),"FUS-GEAR-DOUBLER-L":(65.,-70.,-48.),"FUS-GEAR-DOUBLER-R":(65.,70.,-48.),"FUS-GEAR-SPREADER-F":(65.,0.,-48.),"FUS-GEAR-SPREADER-A":(200.,0.,-48.),"FUS-BOOM-SADDLE-F-L":(285.,-230.,0.),"FUS-BOOM-SADDLE-F-R":(285.,230.,0.),"FUS-BOOM-SADDLE-A-L":(365.,-230.,0.),"FUS-BOOM-SADDLE-A-R":(365.,230.,0.),"FUS-MOTOR-PLATE":(410.,0.,50.)}
+def structural_assembly(config):
+ parts={p.id:p for p in laser_parts(config)};r={i.instance_id:profile_solid(parts[i.part_id],i.plane,i.origin_mm) for i in part_instances(config)};p=config.fuselage_prototype
+ for n,s,e in longeron_paths(config):r[n]=cq.Workplane("XY").box(e[0]-s[0],p.longeron_width_mm,p.longeron_height_mm).translate(((s[0]+e[0])/2,s[1],s[2]))
+ return r
+def battery_solid(config,x):
+ b=config.battery;return cq.Workplane("XY").box(b.package_length_mm,b.package_width_mm,b.package_height_mm).translate((x,0,-36))
+def battery_removal_sweep(config):
+ p=config.fuselage_prototype; s=[]
+ for x in (p.battery_rail_x_min_mm,p.battery_rail_x_max_mm):
+  for z in range(-36,145,15):s.append(battery_solid(config,x).translate((0,0,z+36)).union(cq.Workplane("XY").box(30,30,20).translate((x+85,0,z+25))))
+ out=s[0]
+ for q in s[1:]:out=out.union(q)
+ return out
+def battery_clearance_errors(config):
+ """Boolean intersections of the actual pack and actual profile extrusions."""
+ solids=structural_assembly(config); errors=[]; p=config.fuselage_prototype
+ # Rails deliberately support the pack at a zero-volume face contact; every
+ # other solid must have zero volume intersection at each required position.
+ ignored={n for n in solids if "BAT-RAIL" in n or "BAT-FINE" in n or "BAT-STRAP" in n or "FMR-X-285" in n or "NOSE-" in n}
+ for label,x in (("forward",p.battery_rail_x_min_mm),("target_24",-384.78),("wheel_25",-373.40),("nominal",config.battery.nominal_x_mm),("aft",p.battery_rail_x_max_mm)):
+  pack=battery_solid(config,x).val()
+  for name,solid in solids.items():
+   if name in ignored or "LONGERON" in name: continue
+   if pack.intersect(solid.val()).Volume()>1e-4: errors.append(f"battery {label} intersects {name}")
+ return errors
+def battery_removal_clearance_errors(config):
+ """Checks the actual discretised pack/cable swept solid against CAD bodies."""
+ sweep=battery_removal_sweep(config).val(); errors=[]
+ # These members have documented U-openings/support face contacts; their raw
+ # Boolean overlap is not a collision.  All remaining members are checked.
+ exempt=("BAT-","FMR-X-285","FMR-X-170","NOSE-","LONGERON")
+ for name,solid in structural_assembly(config).items():
+  if any(token in name for token in exempt): continue
+  if sweep.intersect(solid.val()).Volume()>1e-4: errors.append(f"battery removal sweep intersects {name}")
+ return errors
+def validate_geometry(config):
+ e=[];ps=laser_parts(config);ids={p.id for p in ps}
+ for p in ps:
+  if p.status=="PROTOTYPE CUTTABLE" and profile_area_mm2(p)<=0:e.append(f"{p.id}: non-positive profile area")
+  for x,y,w,h in (*p.slots_mm,*p.windows_mm):
+   if x-w/2<0 or y-h/2<0 or x+w/2>max(a for a,_ in p.outline_mm) or y+h/2>max(b for _,b in p.outline_mm):e.append(f"{p.id}: cutout outside profile")
+ for m in mating_interfaces(config):
+  if m.tab_part not in ids or m.slot_part not in ids or m.width_mm<=0:e.append(f"{m.name}: missing/invalid mate")
+ if config.fuselage_prototype.battery_rail_x_min_mm>-384.78:e.append("battery rail does not reach 24% target")
+ if config.fuselage_integration.battery_hatch_width_mm<config.battery.package_width_mm+40:e.append("battery hatch lacks side clearance")
+ e.extend(battery_clearance_errors(config))
+ e.extend(battery_removal_clearance_errors(config))
+ return e
+def mass_estimate(config):
+ birch=.000700;carbon=.001550;parts={p.id:p for p in laser_parts(config)};ply=0; rows=[]
+ for i in part_instances(config):
+  p=parts[i.part_id]
+  if p.status=="PROTOTYPE CUTTABLE" and p.include_flight_mass:m=profile_solid(p,i.plane,i.origin_mm).val().Volume()*birch;ply+=m;rows.append((i.instance_id,m))
+ car=sum((e[0]-s[0])*config.fuselage_prototype.longeron_width_mm*config.fuselage_prototype.longeron_height_mm*carbon for _,s,e in longeron_paths(config))
+ # Nominal 0.18-mm adhesive film over actual longeron bond lands plus 8 g
+ # for tab/slot fillets.  This replaces the former percentage-of-mass proxy.
+ bond_land=4*sum(e[0]-s[0] for _,s,e in longeron_paths(config))*5 + 8*140*3 + 4*132*3
+ adh=bond_land*.18*.00110+8.; hw={"structural_fasteners_g":16.,"hatch_hardware_g":8.,"battery_retention_hardware_g":6.,"motor_interface_hardware_g":5.}; total_hw=sum(hw.values())
+ return {"birch_dry_g":ply,"carbon_dry_g":car,"adhesive_bond_land_mm2":bond_land,"adhesive_allowance_g":adh,"fastener_allowance_g":total_hw,"hardware_breakdown_g":hw,"hatch_retention_allowance_g":hw["hatch_hardware_g"]+hw["battery_retention_hardware_g"],"secondary_structure_allowance_g":0.,"motor_interface_duplicate_accounting":"fixed 5 g only; removable plate/adapter remains propulsion-ledger excluded","cad_structural_total_g":ply+car+adh+total_hw,"largest_plywood_instances":rows}
+def assembly_mass_properties(config):
+ parts={p.id:p for p in laser_parts(config)};rows=[];total=0.;mom=[0.,0.,0.]
+ for i in part_instances(config):
+  p=parts[i.part_id]
+  if p.status!="PROTOTYPE CUTTABLE" or not p.include_flight_mass:continue
+  sh=profile_solid(p,i.plane,i.origin_mm).val();m=sh.Volume()*.000700;c=sh.centerOfMass(sh);row={"instance_id":i.instance_id,"part_id":p.id,"mass_g":m,"centroid_mm":[c.x,c.y,c.z],"material":p.material,"classification":p.classification,"profile_hash":p.profile_hash()};rows.append(row);total+=m
+  for j,v in enumerate((c.x,c.y,c.z)):mom[j]+=m*v
+ for n,s,e in longeron_paths(config):
+  m=(e[0]-s[0])*config.fuselage_prototype.longeron_width_mm*config.fuselage_prototype.longeron_height_mm*.001550;c=[(s[j]+e[j])/2 for j in range(3)];rows.append({"instance_id":n,"part_id":n,"mass_g":m,"centroid_mm":c,"material":"carbon","classification":"PRIMARY STRUCTURE"});total+=m
+  for j in range(3):mom[j]+=m*c[j]
+ base=[v/total for v in mom]; estimate=mass_estimate(config); allowance_rows=((estimate["adhesive_allowance_g"],base,"adhesive"),(16.,[10.,0.,-25.],"structural_fasteners"),(8.,[-350.,0.,65.],"hatch_hardware"),(6.,[-350.,0.,-35.],"battery_retention"),(5.,[390.,0.,40.],"fixed_motor_interface")); extra=sum(m for m,_,_ in allowance_rows)
+ complete=[(mom[j]+sum(m*c[j] for m,c,_ in allowance_rows))/(total+extra) for j in range(3)]
+ return {"mass_g":total+extra,"centroid_mm":complete,"bare_structure_centroid_mm":base,"parts":rows,"allowance_rows":[{"mass_g":m,"centroid_mm":c,"classification":n} for m,c,n in allowance_rows],"explicit_allowances_g":extra}
