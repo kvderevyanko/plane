@@ -97,11 +97,13 @@ def test_profile_identity_quantity_and_finite_geometry_centroid():
     assert all(mate.width_mm > 0 for mate in mating_interfaces(config))
 
 
-def test_v3_physical_joint_contract_has_no_orphans_and_method_a_supports_all_rods():
+def test_legacy_v3_joint_metadata_is_not_the_v43_material_joint_gate():
     config = load_aircraft_config(ROOT / "config" / "aircraft.yaml")
-    rows = joint_validation_report(config)
-    assert rows
-    assert all(row["tab_exists"] and row["slot_exists"] and row["nominal_match"] and row["instances_present"] for row in rows)
+    # v3's ``mating_interfaces()/joint_validation_report()`` calls a web
+    # perimeter a tab in metadata.  v4.3 replaces that superseded contract
+    # with JointDefinition-derived retained BRep tongues and receiver voids;
+    # asserting the old metadata rows would conceal the very fake-joint
+    # regression that v4.3 fixes.  Keep unrelated legacy assembly checks here.
     assert dry_assembly_errors(config) == []
     supports = longeron_support_report(config)
     assert len(supports) == 4
@@ -121,12 +123,13 @@ def test_v4_active_skeleton_has_30_world_coordinate_joints_and_no_orphan_feature
     assert all(row["alignment"] and row["ligament_mm"] > 0 for row in skeleton_joint_report(config))
 
 
-def test_v42_joint_definitions_are_the_only_active_profile_operation_owners():
+def test_v43_joint_definitions_own_one_real_web_tongue_and_one_former_receiver():
     config = load_aircraft_config(ROOT / "config" / "aircraft.yaml")
     definitions = joint_definitions(config)
     ownership = joint_geometry_ownership_report(config)
     assert len(definitions) == len(ownership) == 30
-    assert all(row["owner_count"] == 1 and row["former_operation_present"] and row["web_operation_present"]
+    assert all(row["definition_count"] == 1 and row["material_owner_count"] == 1 and row["receiver_count"] == 1
+               and row["former_operation_present"] and row["web_material_retained"]
                for row in ownership)
     # The local datums are transforms of one placed world datum, not raw
     # profile station constants duplicated in the profile builder.
@@ -135,7 +138,7 @@ def test_v42_joint_definitions_are_the_only_active_profile_operation_owners():
         assert part_frame(config, definition.web_instance).local_to_world(definition.web_local_mm) == pytest.approx(definition.center_mm)
 
 
-def test_v42_active_former_web_profiles_are_manufacturable_and_pose_gate_is_plywood_only():
+def test_v43_active_former_web_profiles_are_manufacturable_and_pose_gate_is_plywood_only():
     config = load_aircraft_config(ROOT / "config" / "aircraft.yaml")
     assert all(row["valid"] for row in skeleton_profile_validity_report(config))
     rows = skeleton_assembly_report(config)
@@ -145,6 +148,26 @@ def test_v42_active_former_web_profiles_are_manufacturable_and_pose_gate_is_plyw
     # explicitly deferred next pass.
     assert all("LONGERON" not in moving for row in rows for moving in row["moving_instances"])
     assert skeleton_collision_report(config) == []
+
+
+def test_v43_actual_solids_prove_material_tab_occupancy_attachment_and_bounded_receivers():
+    config = load_aircraft_config(ROOT / "config" / "aircraft.yaml")
+    rows = skeleton_joint_report(config)
+    assert len(rows) == 30
+    assert all(row["material_owner"] == row["web"] and row["receiver"] == row["former"] for row in rows)
+    assert all(row["tab_volume_mm3"] > .01 and row["receiver_void_volume_mm3"] > .01 for row in rows)
+    assert all(row["occupied_volume_mm3"] > .01 and row["occupancy_fraction"] > 0 for row in rows)
+    assert all(row["tab_connected_to_parent"] and row["receiver_bounded"] and row["locating_face_count"] >= 3
+               for row in rows)
+    assert all(row["tab_root_width_mm"] >= 20 and row["minimum_residual_ligament_mm"] >= row["required_residual_ligament_mm"] for row in rows)
+
+
+def test_v43_active_profiles_have_no_unintended_disconnected_solids():
+    config = load_aircraft_config(ROOT / "config" / "aircraft.yaml")
+    parts = {part.id: part for part in laser_parts(config)}
+    for instance in active_skeleton_instances(config):
+        solid = profile_solid(parts[instance.part_id], instance.plane, instance.origin_mm).val()
+        assert len(solid.Solids()) == 1, instance.part_id
 
 
 def test_v4_method_a_represents_actual_5y_by_3z_stock_and_isolated_collision_gate():

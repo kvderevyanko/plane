@@ -81,8 +81,8 @@ def generate(root: Path) -> dict[str, Path]:
         "gear_shim_4p0_stl": root / "build" / "fuselage" / "printable" / "FUS-GEAR-SHIM-4P0-1p0mm.stl",
         "assembly_step": root / "build" / "fuselage" / "step" / "LR1600-fuselage-prototype-v1-assembly.step",
         "assembly_svg": root / "build" / "fuselage" / "drawings" / "LR1600-fuselage-prototype-v1-assembly.svg",
-        "skeleton_v4_report": root / "build" / "fuselage" / "reports" / "skeleton-v4.2-report.json",
-        "skeleton_v4_assembly": root / "build" / "fuselage" / "reports" / "skeleton-v4.2-assembly.md",
+        "skeleton_v4_report": root / "build" / "fuselage" / "reports" / "skeleton-v4.3-report.json",
+        "skeleton_v4_assembly": root / "build" / "fuselage" / "reports" / "skeleton-v4.3-assembly.md",
     }
     _write_sheet(tuple(p for p in parts if p.thickness_mm == 2), paths["laser_2mm"])
     _write_sheet(tuple(p for p in parts if p.thickness_mm == 3 and p.status == "PROTOTYPE CUTTABLE"), paths["laser_3mm"])
@@ -103,7 +103,7 @@ def generate(root: Path) -> dict[str, Path]:
     instance_map = {}
     for instance in part_instances(config):
         instance_map.setdefault(instance.part_id, []).append({"instance_id": instance.instance_id, "origin_mm": instance.origin_mm, "plane": instance.plane})
-    v4 = {"scope": "v4.2 former/web plywood convergence only; longeron saddle subsystem remains unresolved",
+    v4 = {"scope": "v4.3 former/web real material-tongue convergence only; longeron saddle subsystem remains unresolved",
           "active_part_definitions": list(active_skeleton_part_ids(config)),
           "active_part_instances": [instance.__dict__ for instance in active_skeleton_instances(config)],
           "joint_report": skeleton_joint_report(config), "joint_geometry_ownership": joint_geometry_ownership_report(config),
@@ -114,7 +114,7 @@ def generate(root: Path) -> dict[str, Path]:
     paths["manifest"].with_suffix(".json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
     paths["skeleton_v4_report"].parent.mkdir(parents=True, exist_ok=True)
     paths["skeleton_v4_report"].write_text(json.dumps(v4, indent=2) + "\n", encoding="utf-8")
-    paths["skeleton_v4_assembly"].write_text("# LR1600 v4.2 former/web dry-assembly report\n\n"
+    paths["skeleton_v4_assembly"].write_text("# LR1600 v4.3 former/web material-tab dry-assembly report\n\n"
         "Scope: 12 active plywood former/web instances. Longeron saddles remain outside this pass.\n\n"
         + "\n".join(f"- {row['step']}: {row['result']}; insertion {row['insertion_axis']}; "
                      f"sampled poses {row['pose_fractions']}; max forbidden overlap "
