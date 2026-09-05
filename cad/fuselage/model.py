@@ -109,13 +109,27 @@ class AssemblyStep:
 def _rect(w,h): return ((0,0),(w,0),(w,h),(0,h))
 def _active_web_profile_size(family: str) -> tuple[float, float]:
     """One source for active longitudinal-web outlines and joint relief limits."""
-    return (583.,90.5) if family.startswith("SIDE") else (845.,52.)
+    # The keel receives a local 6-mm terminal extension in v4.3.1.  This is
+    # not a station move: it leaves the X=365 joint datum unchanged while
+    # restoring a laser-realistic end ligament after the tongue reliefs.
+    return (583.,90.5) if family.startswith("SIDE") else (851.,52.)
+def _active_web_outline(family: str) -> tuple[tuple[float,float], ...]:
+    width,height=_active_web_profile_size(family)
+    # Side web's first tongue at X=-170 formerly had only a 1.5-mm bridge to
+    # the actual leading contour.  This six-mm local leading extension keeps
+    # all stations fixed while giving that post-boolean bridge 7.5 mm.
+    left=-6. if family.startswith("SIDE") else 0.
+    return ((left,0.),(width,0.),(width,height),(left,height))
 def _web(w,h,margin=13,bays=4):
  gap=8.; each=(w-2*margin-(bays-1)*gap)/bays
  return tuple((margin+i*(each+gap)+each/2,margin+(h-2*margin)/2,each,h-2*margin) for i in range(bays))
 
-def _active_skeleton_placement(config) -> dict[str, tuple[tuple[float,float,float], Literal["XY","XZ","YZ"]]]:
-    """Single editable placement source for the active former/web subset."""
+def active_skeleton_placement_registry(config) -> dict[str, tuple[tuple[float,float,float], Literal["XY","XZ","YZ"]]]:
+    """The sole editable placement registry for active plywood instances.
+
+    Consumers deliberately use this instance-keyed registry directly.  The
+    legacy :func:`part_instances` API is only a computed view of it.
+    """
     d={"FUS-KEEL-L#1":((-476.5,-63.,-68.5),"XZ"), "FUS-KEEL-R#1":((-476.5,65.,-68.5),"XZ"),
        "FUS-SIDE-L#1":((-171.5,-68.,-30.),"XZ"), "FUS-SIDE-R#1":((-171.5,70.,-30.),"XZ")}
     for x in config.fuselage_prototype.stations_x_mm:
@@ -127,7 +141,7 @@ def _active_skeleton_frames(config) -> dict[str, PartFrame]:
     axes={"XZ":((1.,0.,0.),(0.,0.,1.),(0.,-1.,0.)),
           "YZ":((0.,1.,0.),(0.,0.,1.),(1.,0.,0.))}
     return {ident: PartFrame(ident, ident.split("#")[0], origin, *axes[plane])
-            for ident,(origin,plane) in _active_skeleton_placement(config).items()}
+            for ident,(origin,plane) in active_skeleton_placement_registry(config).items()}
 
 def part_frame(config, instance_id: str) -> PartFrame:
     """Return the complete local/world transform for an active plywood part."""
@@ -183,13 +197,13 @@ def laser_parts(config: AircraftConfig) -> tuple[PartDefinition,...]:
     keel_windows=tuple(((a+b)/2+476.5,44., max(18., b-a-7.),16.) for a,b in zip((-475.,-360.,-235.,-110.,15.,155.,250.),(-360.,-235.,-110.,15.,155.,250.,365.)))
     side_windows=tuple(((a+b)/2+171.5,76.,max(18.,b-a-9.),20.) for a,b in zip((-170.,-55.,65.,130.,285.,365.,),(-55.,65.,130.,285.,365.,410.)))
     parts=[
-      P("FUS-KEEL-L",2,1,_rect(*_active_web_profile_size("KEEL")),((15,27,4),(205,27,4),(325,27,4),(460,27,4),(650,27,4),(820,27,4)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","v4.3 lower port web: retained material tongues enter former receivers",slots_mm=keel_slots,windows_mm=keel_windows),
-      P("FUS-KEEL-R",2,1,_rect(*_active_web_profile_size("KEEL")),((15,27,4),(205,27,4),(325,27,4),(460,27,4),(650,27,4),(820,27,4)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","v4.3 lower starboard web: retained material tongues enter former receivers",slots_mm=keel_slots_r,windows_mm=keel_windows),
+      P("FUS-KEEL-L",2,1,_active_web_outline("KEEL"),((15,27,4),(205,27,4),(325,27,4),(460,27,4),(650,27,4),(820,27,4)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","v4.3 lower port web: retained material tongues enter former receivers",slots_mm=keel_slots,windows_mm=keel_windows),
+      P("FUS-KEEL-R",2,1,_active_web_outline("KEEL"),((15,27,4),(205,27,4),(325,27,4),(460,27,4),(650,27,4),(820,27,4)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","v4.3 lower starboard web: retained material tongues enter former receivers",slots_mm=keel_slots_r,windows_mm=keel_windows),
       # The 1.5-mm high upper edge land is a real carbon saddle: the upper
       # longeron bears on it and is bonded to its outside face.  It replaces
       # the former solid-on-solid overlap.
-      P("FUS-SIDE-L",2,1,_rect(*_active_web_profile_size("SIDE")),((150,18,3.2),(270,18,3.2),(405,18,3.2)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","v4.3 port side web: retained material tongues enter former receivers",slots_mm=side_slots,windows_mm=side_windows),
-      P("FUS-SIDE-R",2,1,_rect(*_active_web_profile_size("SIDE")),((150,18,3.2),(270,18,3.2),(405,18,3.2)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","v4.3 starboard side web: retained material tongues enter former receivers",slots_mm=side_slots_r,windows_mm=side_windows),]
+      P("FUS-SIDE-L",2,1,_active_web_outline("SIDE"),((150,18,3.2),(270,18,3.2),(405,18,3.2)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","v4.3 port side web: retained material tongues enter former receivers",slots_mm=side_slots,windows_mm=side_windows),
+      P("FUS-SIDE-R",2,1,_active_web_outline("SIDE"),((150,18,3.2),(270,18,3.2),(405,18,3.2)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","v4.3 starboard side web: retained material tongues enter former receivers",slots_mm=side_slots_r,windows_mm=side_windows),]
     for x in p.stations_x_mm:
       t=3 if x in {-55,65,130,285,365} else 2; opening=112 if x == -285 else (88 if x == -170 else 68)
       # Four through-slots accept the two lower keel webs and the two upper
@@ -245,12 +259,8 @@ def longeron_paths(config):
 def part_instances(config):
  # The lower web pair is inboard of the side webs.  The old model put both
  # on Y=+/-70, creating a large, unexplained coincident solid overlap.
- d={"FUS-KEEL-L":((-476.5,-63,-68.5),"XZ"),"FUS-KEEL-R":((-476.5,65,-68.5),"XZ"),"FUS-SIDE-L":((-171.5,-68,-30),"XZ"),"FUS-SIDE-R":((-171.5,70,-30),"XZ"),"FUS-BAT-RAIL-L":((-465,-45,4),"XY"),"FUS-BAT-RAIL-R":((-465,27,4),"XY"),"FUS-BAT-FINE-CLAMP-L":((-420,-45,2),"XY"),"FUS-BAT-FINE-CLAMP-R":((-420,27,2),"XY"),"FUS-BAT-FWD-STOP":((-470,-56,0),"YZ"),"FUS-BAT-AFT-STOP":((-250,-56,0),"YZ"),"FUS-HATCH-RAIL-L":((-465,-80.5,65),"XY"),"FUS-HATCH-RAIL-R":((-465,62.5,65),"XY"),"FUS-SERVO-TRAY":((72,-37,5),"XY"),"FUS-MOTOR-CROSSMEMBER":((365,-45,5),"YZ"),"FUS-MOTOR-PLATE":((407,-45,5),"YZ"),"FUS-GEAR-DOUBLER-L":((65,-62,-70),"XZ"),"FUS-GEAR-DOUBLER-R":((65,59,-70),"XZ"),"FUS-GEAR-SPREADER-F":((65,-66,-62),"YZ"),"FUS-GEAR-SPREADER-A":((200,-66,-62),"YZ"),"FUS-GEAR-CLOSURE-L":((66,-66,-69),"YZ"),"FUS-GEAR-CLOSURE-R":((66,-66,-35),"YZ"),"FUS-NOSE-INDEX-BLOCK":((-286,-23,-70),"YZ"),"FUS-BAT-STRAP-ANCHOR-F":((-430,-75,0),"YZ"),"FUS-BAT-STRAP-ANCHOR-A":((-275,-75,0),"YZ"),"FUS-GEAR-CLAMP-LAND":((102,-31,-67),"XY"),"FUS-NOSE-INDEX-DOUBLER":((-286,-29,-70),"YZ")}
- for x in config.fuselage_prototype.stations_x_mm:d[f"FUS-FMR-X{x:+.0f}"]=((x,-70,-70),"YZ")
- # Active skeleton placement is owned by _active_skeleton_placement(), which
- # is also the sole origin of PartFrame transforms used by JointDefinition.
- for instance_id,(origin,plane) in _active_skeleton_placement(config).items():
-  d[instance_id.split("#")[0]]=(origin,plane)
+ d={"FUS-BAT-RAIL-L":((-465,-45,4),"XY"),"FUS-BAT-RAIL-R":((-465,27,4),"XY"),"FUS-BAT-FINE-CLAMP-L":((-420,-45,2),"XY"),"FUS-BAT-FINE-CLAMP-R":((-420,27,2),"XY"),"FUS-BAT-FWD-STOP":((-470,-56,0),"YZ"),"FUS-BAT-AFT-STOP":((-250,-56,0),"YZ"),"FUS-HATCH-RAIL-L":((-465,-80.5,65),"XY"),"FUS-HATCH-RAIL-R":((-465,62.5,65),"XY"),"FUS-SERVO-TRAY":((72,-37,5),"XY"),"FUS-MOTOR-CROSSMEMBER":((365,-45,5),"YZ"),"FUS-MOTOR-PLATE":((407,-45,5),"YZ"),"FUS-GEAR-DOUBLER-L":((65,-62,-70),"XZ"),"FUS-GEAR-DOUBLER-R":((65,59,-70),"XZ"),"FUS-GEAR-SPREADER-F":((65,-66,-62),"YZ"),"FUS-GEAR-SPREADER-A":((200,-66,-62),"YZ"),"FUS-GEAR-CLOSURE-L":((66,-66,-69),"YZ"),"FUS-GEAR-CLOSURE-R":((66,-66,-35),"YZ"),"FUS-NOSE-INDEX-BLOCK":((-286,-23,-70),"YZ"),"FUS-BAT-STRAP-ANCHOR-F":((-430,-75,0),"YZ"),"FUS-BAT-STRAP-ANCHOR-A":((-275,-75,0),"YZ"),"FUS-GEAR-CLAMP-LAND":((102,-31,-67),"XY"),"FUS-NOSE-INDEX-DOUBLER":((-286,-29,-70),"YZ")}
+ active=active_skeleton_placement_registry(config)
  for station,x in (("F",285),("A",365)): d[f"FUS-BOOM-SADDLE-{station}-L"]=((x,-230,-23),"YZ");d[f"FUS-BOOM-SADDLE-{station}-R"]=((x,230,-23),"YZ")
  # Explicit physical placements are required for every repeated part.  In
  # particular these are not a convenient generic Y offset: each is a named
@@ -263,6 +273,9 @@ def part_instances(config):
  }
  r=[]
  for p in laser_parts(config):
+  active_instance=f"{p.id}#1"
+  if active_instance in active:
+   r.append(PartInstance(active_instance,p.id,*active[active_instance])); continue
   if p.id not in d or p.status in {"TOOLING","NOT RELEASED"}:continue
   o,plane=d[p.id]
   for n in range(p.quantity):
@@ -352,7 +365,11 @@ def joint_definitions(config) -> tuple[JointDefinition, ...]:
             # Receiver datum lies on the actual 2-mm web mid-plane.  The
             # receiver reaches the outside edge for lateral insertion, but is
             # bounded vertically: the retained 20-mm web segment is the tab.
-            y=((-68.8 if side == "L" else 69.) if is_side else (-64. if side == "L" else 64.))
+            # The port side used -68.8 here while its actual XZ extrusion is
+            # [-70,-68].  That independent 0.2-mm offset left every port tab
+            # clear of its intended locating wall.  Both sides now use the
+            # actual material mid-plane derived from the placement registry.
+            y=((-69. if side == "L" else 69.) if is_side else (-64. if side == "L" else 64.))
             z=15.25 if is_side else -42.5
             former_notch_height=20.
             center=(x + thickness / 2, y, z)
@@ -391,13 +408,26 @@ def skeleton_joints(config) -> tuple[SkeletonJoint, ...]:
     return tuple(SkeletonJoint(j.id,j.tab_id(),j.slot_id(),"web tongue into former bounded lateral receiver")
                  for j in joint_definitions(config))
 
-def joint_receiver_void_solid(config, joint: JointDefinition):
-    """Actual through-thickness subtraction volume in the receiver's frame."""
+def joint_receiver_cut_solid(config, joint: JointDefinition):
+    """Actual open, bounded profile subtraction volume in the receiver."""
     parts={p.id:p for p in laser_parts(config)}
     receiver=parts[joint.receiver_part.split("#")[0]]
     frame=part_frame(config, joint.receiver_part)
     u,v,w,h=joint_profile_operation(joint, "former")
     return cq.Workplane("YZ", origin=frame.origin_mm).center(u,v).rect(w,h).extrude(receiver.thickness_mm)
+
+def joint_receiver_void_solid(config, joint: JointDefinition):
+    """The bounded *locating envelope* within the open receiver cut.
+
+    The cut includes an entry channel so a web can be inserted laterally.
+    Occupancy is measured only against this 2-mm-deep final locating envelope,
+    rather than incorrectly penalising the intentional open entry channel.
+    """
+    receiver=next(p for p in laser_parts(config) if p.id == joint.receiver_part.split("#")[0])
+    frame=part_frame(config, joint.receiver_part)
+    u,v,_=joint.former_local_mm
+    return cq.Workplane("YZ", origin=frame.origin_mm).center(
+        u, v).rect(joint.tab_size_mm[1], joint.tab_size_mm[2]).extrude(receiver.thickness_mm)
 
 def joint_tab_solid(config, joint: JointDefinition):
     """Actual retained owner material which lies in its receiver void."""
@@ -430,15 +460,92 @@ def skeleton_profile_validity_report(config):
     parts={p.id:p for p in laser_parts(config)}; rows=[]
     joint_ops=joint_geometry_ownership_report(config)
     for part_id in active_skeleton_part_ids(config):
-        part=parts[part_id]; max_u=max(u for u,_ in part.outline_mm); max_v=max(v for _,v in part.outline_mm)
+        part=parts[part_id]; min_u=min(u for u,_ in part.outline_mm); max_u=max(u for u,_ in part.outline_mm); min_v=min(v for _,v in part.outline_mm); max_v=max(v for _,v in part.outline_mm)
         bad=[]
         for op in (*part.slots_mm,*part.windows_mm):
             u,v,w,h=op
-            if w <= 0 or h <= 0 or u-w/2 < -1e-6 or v-h/2 < -1e-6 or u+w/2 > max_u+1e-6 or v+h/2 > max_v+1e-6:
+            if w <= 0 or h <= 0 or u-w/2 < min_u-1e-6 or v-h/2 < min_v-1e-6 or u+w/2 > max_u+1e-6 or v+h/2 > max_v+1e-6:
                 bad.append(op)
         rows.append({"part_id":part_id, "valid":not bad, "invalid_operations":bad,
                      "joint_operation_count":sum(1 for r in joint_ops if r["former_instance"].split("#")[0] == part_id or r["web_instance"].split("#")[0] == part_id)})
     return rows
+
+def _web_boundary_ligament_mm(web_solid, tab_solid) -> tuple[float, tuple[float, float, float]]:
+    """Measure a web-root bridge between two *actual post-boolean* 2D edges.
+
+    This intentionally walks profile-boundary edges in the final extruded
+    BRep.  It does not consult a nominal outline, operation coordinate, or a
+    shape bounding-box: the result changes when an adjacent window/relief or
+    terminal contour changes.  The returned point is the closest exterior
+    boundary witness in world coordinates.
+    """
+    tab_box=tab_solid.BoundingBox()
+    candidates=[]
+    for edge in web_solid.Edges():
+        box=edge.BoundingBox()
+        # Profile boundary segments parallel to Z occur twice, once on each
+        # extrusion face.  A segment beyond the tab, overlapping its Z span,
+        # is a real residual bridge witness.
+        z_overlap=min(box.zmax,tab_box.zmax)-max(box.zmin,tab_box.zmin)
+        if box.xlen <= 1e-7 and box.zlen > 1e-7 and z_overlap > 1e-7:
+            if box.xmin > tab_box.xmax + 1e-7:
+                candidates.append((box.xmin-tab_box.xmax,(box.xmin,box.ymin,max(box.zmin,tab_box.zmin))))
+            if box.xmax < tab_box.xmin - 1e-7:
+                candidates.append((tab_box.xmin-box.xmax,(box.xmax,box.ymin,max(box.zmin,tab_box.zmin))))
+    if not candidates:
+        raise ValueError("web ligament has no actual profile-boundary witness")
+    return min(candidates, key=lambda item:item[0])
+
+def _actual_locating_face_pairs(tab, receiver_solid):
+    """Return geometry-derived opposing face pairs with projected overlap."""
+    pairs=[]
+    for tab_face in tab.Faces():
+        tn=tab_face.normalAt()
+        for receiver_face in receiver_solid.Faces():
+            rn=receiver_face.normalAt()
+            if tn.x*rn.x + tn.y*rn.y + tn.z*rn.z > -.99:
+                continue
+            tc=tab_face.Center(); rc=receiver_face.Center()
+            # A planar CAD face's normal direction identifies the coordinate
+            # to compare.  Its face bounding boxes then give actual overlap
+            # on the two remaining axes without asserting metadata contacts.
+            axis=max(range(3), key=lambda i: abs((tn.x,tn.y,tn.z)[i]))
+            tb=tab_face.BoundingBox(); rb=receiver_face.BoundingBox()
+            dims=((tb.xmin,tb.xmax,rb.xmin,rb.xmax),
+                  (tb.ymin,tb.ymax,rb.ymin,rb.ymax),
+                  (tb.zmin,tb.zmax,rb.zmin,rb.zmax))
+            spans=[max(0.,min(a[1],a[3])-max(a[0],a[2])) for n,a in enumerate(dims) if n != axis]
+            area=spans[0]*spans[1]
+            if area > .01:
+                pairs.append({"axis":("X","Y","Z")[axis], "area_mm2":area,
+                              "face_gap_mm":abs((tc.x,tc.y,tc.z)[axis]-(rc.x,rc.y,rc.z)[axis])})
+    return pairs
+
+def _actual_locating_contacts(tab, receiver_solid, tolerance_mm=.01):
+    return [pair for pair in _actual_locating_face_pairs(tab, receiver_solid)
+            if pair["face_gap_mm"] <= tolerance_mm]
+
+def _receiver_boundary_ligament_mm(receiver_solid, void_solid) -> tuple[float, tuple[float, float, float]]:
+    """Nearest retained former-profile boundary around an actual receiver void.
+
+    The former profile lies in YZ.  This scans its final BRep profile edges in
+    that plane and skips the void's own coincident edges, so open entry edges
+    are not falsely reported as a positive ligament.
+    """
+    void=void_solid.BoundingBox(); candidates=[]
+    for edge in receiver_solid.Edges():
+        box=edge.BoundingBox()
+        # Vertical Y=constant profile edges, with overlapping Z interval.
+        if box.ylen <= 1e-7 and box.zlen > 1e-7 and min(box.zmax,void.zmax)-max(box.zmin,void.zmin) > 1e-7:
+            for coordinate, distance in ((box.ymin, void.ymin-box.ymin), (box.ymax, box.ymax-void.ymax)):
+                if distance > 1e-7: candidates.append((distance,(coordinate,box.xmin,max(box.zmin,void.zmin))))
+        # Horizontal Z=constant profile edges, with overlapping Y interval.
+        if box.zlen <= 1e-7 and box.ylen > 1e-7 and min(box.ymax,void.ymax)-max(box.ymin,void.ymin) > 1e-7:
+            for coordinate, distance in ((box.zmin, void.zmin-box.zmin), (box.zmax, box.zmax-void.zmax)):
+                if distance > 1e-7: candidates.append((distance,(box.xmin,max(box.ymin,void.ymin),coordinate)))
+    if not candidates:
+        raise ValueError("receiver ligament has no actual profile-boundary witness")
+    return min(candidates, key=lambda item:item[0])
 
 def skeleton_joint_report(config):
     features={f.id:f for f in skeleton_features(config)}; rows=[]
@@ -447,9 +554,9 @@ def skeleton_joint_report(config):
     for j in skeleton_joints(config):
         definition=next(d for d in joint_definitions(config) if d.id == j.id)
         receiver=parts[definition.receiver_part.split("#")[0]]
-        frame=part_frame(config, definition.receiver_part)
-        u,v,w,h=joint_profile_operation(definition, "former")
-        void=cq.Workplane("YZ", origin=frame.origin_mm).center(u,v).rect(w,h).extrude(receiver.thickness_mm).val()
+        cut=joint_receiver_cut_solid(config, definition).val()
+        void=joint_receiver_void_solid(config, definition).val()
+        receiver_solid=solids[definition.receiver_part].val()
         tab=solids[definition.material_owner_part].val().intersect(void)
         tab_volume=tab.Volume(); void_volume=void.Volume()
         # The two X-normal faces of this actual BRep slice coincide with the
@@ -457,33 +564,61 @@ def skeleton_joint_report(config):
         # attachment from faces, rather than an assumed width×height formula.
         root_area=sum(face.Area() for face in tab.Faces()
                       if abs(face.normalAt().x) > .99)
-        # Actual resulting boundary: nearest non-open receiver boundary is
-        # the top/bottom rail or the inner receiver face.  The rectangular
-        # former contour and central window are both accounted for explicitly.
-        # The approach edge is intentionally open and is not a structural
-        # ligament.  For side joints the nearest *remaining* boundary is the
-        # actual 120-mm central-window edge (u=12/132); for keel joints it is
-        # the lower/upper frame rail.  These are profile boundaries, not a
-        # bounding-box surrogate.
+        u,v,w,h=joint_profile_operation(definition, "former")
+        # Receiver ligament is calculated from the actual profile-operation
+        # boundaries.  Terminal web ligament below is separately calculated
+        # from the post-boolean BRep, where the v4.3 report was previously
+        # blind to the 0.5-mm bridge at +365.
         is_side="SIDE" in definition.web_instance
         inner_ligament=((12.-(u+w/2)) if u <= 72. else ((u-w/2)-132.)) if is_side else float("inf")
         vertical_ligament=min(v-h/2,132.-(v+h/2))
-        ligament=min(inner_ligament, vertical_ligament)
+        # Every tab root, including both side-web leading ends, is measured
+        # against actual post-boolean profile edges.  The +365 keel values
+        # are separately surfaced below because they were the v4.3 blocker.
+        web_boundary_ligament,web_boundary_witness=_web_boundary_ligament_mm(solids[definition.material_owner_part].val(),tab)
+        terminal_ligament=web_boundary_ligament if ("KEEL" in definition.web_instance and definition.id.startswith("SKEL-365-")) else float("inf")
+        terminal_witness=web_boundary_witness if terminal_ligament != float("inf") else None
+        receiver_boundary_ligament,receiver_boundary_witness=_receiver_boundary_ligament_mm(receiver_solid,void)
+        ligament=min(web_boundary_ligament, receiver_boundary_ligament)
         station_x=part_frame(config, definition.former_instance).origin_mm[0]
         required_ligament=6. if station_x in {-55.,65.,130.,200.,285.,365.} else 5.
         occupied=tab_volume
+        pairs=_actual_locating_face_pairs(tab, receiver_solid)
+        contacts=[pair for pair in pairs if pair["face_gap_mm"] <= .01]
+        min_contact=min((c["area_mm2"] for c in contacts), default=0.)
+        max_gap=max((c["face_gap_mm"] for c in contacts), default=float("inf"))
+        tab_box=tab.BoundingBox(); void_box=void.BoundingBox()
+        tab_center=((tab_box.xmin+tab_box.xmax)/2,(tab_box.ymin+tab_box.ymax)/2,(tab_box.zmin+tab_box.zmax)/2)
+        void_center=((void_box.xmin+void_box.xmax)/2,(void_box.ymin+void_box.ymax)/2,(void_box.zmin+void_box.zmax)/2)
+        center_offset=sum((a-b)**2 for a,b in zip(tab_center,void_center))**.5
         rows.append({"joint_id":j.id,"tab":j.tab,"slot":j.slot,"purpose":j.purpose,
           "former":definition.former_instance,"web":definition.web_instance,
           "material_owner":definition.material_owner_part,"receiver":definition.receiver_part,
           "station_x_mm":definition.center_mm[0],"former_local_mm":definition.former_local_mm,
-          "web_local_mm":definition.web_local_mm,"alignment":True,"alignment_error_mm":0.,
+          "web_local_mm":definition.web_local_mm,"alignment":center_offset <= .01,"alignment_error_mm":center_offset,
           "tab_volume_mm3":tab_volume,"tab_root_attachment_area_mm2":root_area,
           "receiver_void_volume_mm3":void_volume,"occupied_volume_mm3":occupied,
           "occupancy_fraction":occupied / void_volume if void_volume else 0.,
           "tab_connected_to_parent":tab_volume > .01 and root_area > .01,
-          "receiver_bounded":h < 132. and inner_ligament > 0,
-          "locating_face_count":3,"tab_width_mm":definition.tab_size_mm[2],
+          # The entry is intentionally open in Y.  Boundedness means the
+          # post-boolean notch has retained vertical material and actual
+          # receiver faces that locate the tab; it is not inferred from a
+          # nominal difference between two tool volumes.
+          "receiver_bounded":h < 132. and inner_ligament > 0 and len(contacts) >= 3,
+          "locating_face_count":len(contacts),"locating_contacts":contacts,
+          "minimum_locating_contact_area_mm2":min_contact,
+          "maximum_locating_face_gap_mm":max_gap,
+          "tab_receiver_center_offset_mm":center_offset,
+          "minimum_lateral_gap_mm":min((c["face_gap_mm"] for c in contacts), default=float("inf")),
+          "maximum_lateral_gap_mm":max_gap,
+          "tab_width_mm":definition.tab_size_mm[2],
           "tab_depth_mm":definition.tab_size_mm[0],"tab_root_width_mm":definition.tab_size_mm[2],
+          "terminal_boundary_ligament_mm":terminal_ligament,
+          "terminal_boundary_witness_mm":terminal_witness,
+          "web_boundary_ligament_mm":web_boundary_ligament,
+          "web_boundary_witness_mm":web_boundary_witness,
+          "receiver_boundary_ligament_mm":receiver_boundary_ligament,
+          "receiver_boundary_witness_mm":receiver_boundary_witness,
           "ligament_mm":ligament,"minimum_residual_ligament_mm":ligament,
           "required_residual_ligament_mm":required_ligament,
           "insertion_axis":features[j.tab].insertion_axis,

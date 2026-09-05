@@ -1,4 +1,5 @@
 from pathlib import Path
+from dataclasses import replace
 
 import pytest
 
@@ -15,7 +16,8 @@ from cad.fuselage.model import (active_skeleton_assembly, active_skeleton_instan
                                 skeleton_joints, joint_definitions,
                                 joint_geometry_ownership_report,
                                 skeleton_profile_validity_report, part_frame,
-                                validate_skeleton_v4)
+                                validate_skeleton_v4, active_skeleton_placement_registry,
+                                joint_receiver_void_solid, _web_boundary_ligament_mm)
 from scripts.config import load_aircraft_config
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -33,9 +35,9 @@ def test_primary_lower_load_path_reaches_forward_pack_stop():
     lower = [path for path in longeron_paths(config) if "LOWER" in path[0]]
     assert all(start[0] <= -475 and end[0] >= 365 for _, start, end in lower)
     parts = {part.id: part for part in laser_parts(config)}
-    # v4.2 locally extends the terminal contour 2 mm so the last placed
-    # former receiving feature remains wholly inside the actual keel profile.
-    assert parts["FUS-KEEL-L"].outline_mm[1][0] == pytest.approx(845)
+    # v4.3.1 extends the terminal contour locally by 6 mm.  The X=365
+    # material tongue therefore retains a measured 6.5-mm end bridge.
+    assert parts["FUS-KEEL-L"].outline_mm[1][0] == pytest.approx(851)
     assert parts["FUS-HATCH-RAIL-L"].classification == "PRIMARY STRUCTURE"
 
 
@@ -160,6 +162,55 @@ def test_v43_actual_solids_prove_material_tab_occupancy_attachment_and_bounded_r
     assert all(row["tab_connected_to_parent"] and row["receiver_bounded"] and row["locating_face_count"] >= 3
                for row in rows)
     assert all(row["tab_root_width_mm"] >= 20 and row["minimum_residual_ligament_mm"] >= row["required_residual_ligament_mm"] for row in rows)
+
+
+def test_v431_terminal_ligament_is_post_boolean_boundary_measurement_and_repair_is_real():
+    config = load_aircraft_config(ROOT / "config" / "aircraft.yaml")
+    rows = {row["joint_id"]: row for row in skeleton_joint_report(config)}
+    for joint_id in ("SKEL-365-KEEL-L", "SKEL-365-KEEL-R"):
+        row = rows[joint_id]
+        assert row["terminal_boundary_ligament_mm"] == pytest.approx(6.5)
+        assert row["terminal_boundary_witness_mm"] is not None
+    # The same post-boolean edge algorithm catches the side-web leading root,
+    # which was 1.5 mm before its local contour extension.
+    for joint_id in ("SKEL--170-SIDE-L", "SKEL--170-SIDE-R"):
+        assert rows[joint_id]["web_boundary_ligament_mm"] == pytest.approx(7.5)
+
+
+def test_v431_post_boolean_boundary_regression_detects_the_old_half_mm_terminal_bridge():
+    config = load_aircraft_config(ROOT / "config" / "aircraft.yaml")
+    definition = next(joint for joint in joint_definitions(config) if joint.id == "SKEL-365-KEEL-L")
+    part = next(part for part in laser_parts(config) if part.id == "FUS-KEEL-L")
+    # Recreate only the rejected v4.3 terminal contour while retaining the
+    # same generated joint reliefs.  The BRep-edge metric must see 0.5 mm;
+    # this guards against a return to nominal/bounding-box report values.
+    rejected = replace(part, outline_mm=((0.,0.),(845.,0.),(845.,52.),(0.,52.)))
+    origin, plane = active_skeleton_placement_registry(config)["FUS-KEEL-L#1"]
+    legacy_web = profile_solid(rejected, plane, origin).val()
+    legacy_tab = legacy_web.intersect(joint_receiver_void_solid(config, definition).val())
+    assert _web_boundary_ligament_mm(legacy_web, legacy_tab)[0] == pytest.approx(.5)
+
+
+def test_v431_port_feature_midplanes_and_contacts_are_geometry_derived():
+    config = load_aircraft_config(ROOT / "config" / "aircraft.yaml")
+    rows = skeleton_joint_report(config)
+    port = [row for row in rows if "SIDE-L" in row["joint_id"]]
+    assert len(port) == 7
+    assert all(row["occupancy_fraction"] == pytest.approx(1.0) for row in port)
+    assert all(row["alignment_error_mm"] <= .01 and row["minimum_lateral_gap_mm"] <= .01 for row in port)
+    assert all(row["locating_face_count"] >= 3 and row["minimum_locating_contact_area_mm2"] > 0 for row in rows)
+    assert all(row["web_boundary_ligament_mm"] > 0 and row["receiver_boundary_ligament_mm"] > 0
+               and row["web_boundary_witness_mm"] and row["receiver_boundary_witness_mm"] for row in rows)
+
+
+def test_v431_active_placement_has_one_registry_and_legacy_view_derives_from_it():
+    config = load_aircraft_config(ROOT / "config" / "aircraft.yaml")
+    registry = active_skeleton_placement_registry(config)
+    legacy = {instance.instance_id: (instance.origin_mm, instance.plane) for instance in part_instances(config)}
+    assert set(registry) <= set(legacy)
+    assert all(legacy[instance_id] == placement for instance_id, placement in registry.items())
+    assert all(part_frame(config, instance_id).origin_mm == placement[0]
+               for instance_id, placement in registry.items())
 
 
 def test_v43_active_profiles_have_no_unintended_disconnected_solids():
