@@ -30,6 +30,28 @@ class PartInstance:
     instance_id: str; part_id: str; origin_mm: tuple[float,float,float]; plane: Literal["XY","XZ","YZ"]
 
 @dataclass(frozen=True)
+class PartFrame:
+    """Rigid, explicit profile frame for a placed laser part.
+
+    ``u`` and ``v`` are the profile axes (the coordinates written to DXF),
+    and ``extrusion`` is the positive material-thickness direction.  Keeping
+    this contract here prevents a profile operation from depending on an
+    accidental CadQuery plane sign convention.
+    """
+    instance_id: str; part_id: str; origin_mm: tuple[float, float, float]
+    u_axis: tuple[float, float, float]; v_axis: tuple[float, float, float]
+    extrusion_axis: tuple[float, float, float]
+
+    def local_to_world(self, local: tuple[float, float, float]) -> tuple[float, float, float]:
+        return tuple(self.origin_mm[i] + sum(local[k] * (self.u_axis, self.v_axis, self.extrusion_axis)[k][i]
+                                                   for k in range(3)) for i in range(3))
+
+    def world_to_local(self, world: tuple[float, float, float]) -> tuple[float, float, float]:
+        delta=tuple(world[i]-self.origin_mm[i] for i in range(3))
+        return tuple(sum(delta[i] * axis[i] for i in range(3))
+                     for axis in (self.u_axis, self.v_axis, self.extrusion_axis))
+
+@dataclass(frozen=True)
 class SkeletonFeature:
     """Named physical feature in the v4 dry-fit subset.
 
@@ -56,6 +78,10 @@ class JointDefinition:
     id: str; former_instance: str; web_instance: str
     center_mm: tuple[float, float, float]; tab_size_mm: tuple[float, float, float]
     receiving_clearance_mm: float; insertion_axis: tuple[float, float, float]
+    former_local_mm: tuple[float, float, float]
+    web_local_mm: tuple[float, float, float]
+    former_notch_height_mm: float
+    feature_type: str = "open cross-notch"
     def tab_id(self): return f"{self.former_instance}:TAB:{self.id}"
     def slot_id(self): return f"{self.web_instance}:SLOT:{self.id}"
 @dataclass(frozen=True)
@@ -81,32 +107,71 @@ def _web(w,h,margin=13,bays=4):
  gap=8.; each=(w-2*margin-(bays-1)*gap)/bays
  return tuple((margin+i*(each+gap)+each/2,margin+(h-2*margin)/2,each,h-2*margin) for i in range(bays))
 
+def _active_skeleton_frames(config) -> dict[str, PartFrame]:
+    """Frames for the twelve v4.2 plywood instances, in physical placement."""
+    p=config.fuselage_prototype
+    frames={
+        # CadQuery XZ extrudes along -Y; this is explicit rather than a
+        # scattered sign flip in individual joint calculations.
+        "FUS-KEEL-L#1": PartFrame("FUS-KEEL-L#1", "FUS-KEEL-L", (-476.5,-63.,-68.5), (1.,0.,0.), (0.,0.,1.), (0.,-1.,0.)),
+        "FUS-KEEL-R#1": PartFrame("FUS-KEEL-R#1", "FUS-KEEL-R", (-476.5,65.,-68.5), (1.,0.,0.), (0.,0.,1.), (0.,-1.,0.)),
+        "FUS-SIDE-L#1": PartFrame("FUS-SIDE-L#1", "FUS-SIDE-L", (-171.5,-68.,-30.), (1.,0.,0.), (0.,0.,1.), (0.,-1.,0.)),
+        "FUS-SIDE-R#1": PartFrame("FUS-SIDE-R#1", "FUS-SIDE-R", (-171.5,70.,-30.), (1.,0.,0.), (0.,0.,1.), (0.,-1.,0.)),
+    }
+    for x in p.stations_x_mm:
+        part=f"FUS-FMR-X{x:+.0f}"
+        frames[f"{part}#1"] = PartFrame(f"{part}#1", part, (x,-70.,-70.),
+                                          (0.,1.,0.), (0.,0.,1.), (1.,0.,0.))
+    return frames
+
+def part_frame(config, instance_id: str) -> PartFrame:
+    """Return the complete local/world transform for an active plywood part."""
+    return _active_skeleton_frames(config)[instance_id]
+
+def joint_profile_operation(joint: JointDefinition, participant: Literal["former", "web"]):
+    """Sole conversion from an authoritative joint to its DXF cut operation."""
+    if participant == "web":
+        u,v,_=joint.web_local_mm
+        return (u,v,joint.tab_size_mm[0]+joint.receiving_clearance_mm,joint.tab_size_mm[2])
+    u,v,_=joint.former_local_mm
+    throat=joint.tab_size_mm[1]+joint.receiving_clearance_mm
+    if u <= 72.:
+        width=u + throat / 2
+        return (width / 2, v, width, joint.former_notch_height_mm)
+    width=144. - (u - throat / 2)
+    return (144. - width / 2, v, width, joint.former_notch_height_mm)
+
 def laser_parts(config: AircraftConfig) -> tuple[PartDefinition,...]:
     p=config.fuselage_prototype
     if not p.is_defined: return ()
-    # v4: the skeleton carries real slots at the *placed* former stations.
-    # The lightening windows leave the top/bottom rails intact and do not
-    # overlap a joint.  A former enters each web slot, rather than two solid
-    # plates merely crossing in the STEP compound.
     P=PartDefinition
-    # The receiver is offset by half the *actual former X thickness*: profile
-    # extrusion begins at the former station, rather than being centred on it.
-    # Thus its tab occupies a receiving void, instead of half its volume
-    # remaining in the web.  0.40 mm is deliberate nominal dry-fit clearance.
-    _joint_width=lambda x: (3. if x in {-55.,65.,130.,285.,365.} else 2.) + .4
-    _joint_center=lambda x: x + (3. if x in {-55.,65.,130.,285.,365.} else 2.) / 2
-    keel_slots=tuple((_joint_center(x) + 476.5, 32., _joint_width(x),20.) for x in p.stations_x_mm)
-    side_slots=tuple((_joint_center(x) + 171.5, 50., _joint_width(x),20.) for x in p.stations_x_mm if x != -285.)
-    keel_windows=tuple(((a+b)/2+476.5,26., max(18., b-a-7.),24.) for a,b in zip((-475.,-360.,-235.,-110.,15.,155.,250.),(-360.,-235.,-110.,15.,155.,250.,365.)))
-    side_windows=tuple(((a+b)/2+171.5,24.,max(18.,b-a-9.),28.) for a,b in zip((-170.,-55.,65.,130.,285.,365.,),(-55.,65.,130.,285.,365.,410.)))
+    # The active former/web operations have exactly one owner: the placed
+    # JointDefinition.  ``laser_parts`` only transforms those definitions into
+    # profile operations; it does not reconstruct station coordinates.
+    definitions=joint_definitions(config)
+    def profile_joint_slots(part_id: str, participant: str):
+        slots=[]
+        for joint in definitions:
+            if participant == "former" and joint.former_instance.split("#")[0] == part_id:
+                slots.append(joint_profile_operation(joint, "former"))
+            if participant == "web" and joint.web_instance.split("#")[0] == part_id:
+                slots.append(joint_profile_operation(joint, "web"))
+        return tuple(slots)
+    keel_slots=profile_joint_slots("FUS-KEEL-L", "web")
+    keel_slots_r=profile_joint_slots("FUS-KEEL-R", "web")
+    side_slots=profile_joint_slots("FUS-SIDE-L", "web")
+    side_slots_r=profile_joint_slots("FUS-SIDE-R", "web")
+    # Windows are deliberately clear of joint operation domains.
+    keel_windows=tuple(((a+b)/2+476.5,40., max(18., b-a-7.),18.) for a,b in zip((-475.,-360.,-235.,-110.,15.,155.,250.),(-360.,-235.,-110.,15.,155.,250.,365.)))
+    side_windows=tuple(((a+b)/2+171.5,60.,max(18.,b-a-9.),28.) for a,b in zip((-170.,-55.,65.,130.,285.,365.,),(-55.,65.,130.,285.,365.,410.)))
     parts=[
-      P("FUS-KEEL-L",2,1,_rect(843,52),((15,27,4),(205,27,4),(325,27,4),(460,27,4),(650,27,4),(820,27,4)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","v4 lower port shear web; former slots and continuous 5-mm lower-longeron bond land",slots_mm=keel_slots,windows_mm=keel_windows),
-      P("FUS-KEEL-R",2,1,_rect(843,52),((15,27,4),(205,27,4),(325,27,4),(460,27,4),(650,27,4),(820,27,4)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","v4 lower starboard shear web; former slots and continuous 5-mm lower-longeron bond land",slots_mm=keel_slots,windows_mm=keel_windows),
+      P("FUS-KEEL-L",2,1,_rect(845,52),((15,27,4),(205,27,4),(325,27,4),(460,27,4),(650,27,4),(820,27,4)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","v4.2 lower port shear web; authoritative former receiving notches",slots_mm=keel_slots,windows_mm=keel_windows),
+      P("FUS-KEEL-R",2,1,_rect(845,52),((15,27,4),(205,27,4),(325,27,4),(460,27,4),(650,27,4),(820,27,4)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","v4.2 lower starboard shear web; authoritative former receiving notches",slots_mm=keel_slots_r,windows_mm=keel_windows),
       # The 1.5-mm high upper edge land is a real carbon saddle: the upper
       # longeron bears on it and is bonded to its outside face.  It replaces
       # the former solid-on-solid overlap.
-      P("FUS-SIDE-L",2,1,_rect(583,90.5),((150,18,3.2),(270,18,3.2),(405,18,3.2)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","v4 port upper shear web with former slots and continuous 5-mm carbon bond land",slots_mm=side_slots,windows_mm=side_windows),
-      P("FUS-SIDE-R",2,1,_rect(583,90.5),((150,18,3.2),(270,18,3.2),(405,18,3.2)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","v4 starboard upper shear web with former slots and continuous 5-mm carbon bond land",slots_mm=side_slots,windows_mm=side_windows),]
+      P("FUS-SIDE-L",2,1,_rect(583,90.5),((150,18,3.2),(270,18,3.2),(405,18,3.2)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","v4.2 port upper shear web; authoritative former receiving notches",slots_mm=side_slots,windows_mm=side_windows),
+      P("FUS-SIDE-R",2,1,_rect(583,90.5),((150,18,3.2),(270,18,3.2),(405,18,3.2)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","v4.2 starboard upper shear web; authoritative former receiving notches",slots_mm=side_slots_r,windows_mm=side_windows),]
     for x in p.stations_x_mm:
       t=3 if x in {-55,65,130,285,365} else 2; opening=112 if x == -285 else (88 if x == -170 else 68)
       # Four through-slots accept the two lower keel webs and the two upper
@@ -119,16 +184,15 @@ def laser_parts(config: AircraftConfig) -> tuple[PartDefinition,...]:
       # Edge relief turns the former perimeter into four 20-mm physical tabs:
       # the two outer tabs enter side-web slots and two inner tabs enter keel
       # slots.  Every cut is present in the DXF and hence in the extrusion.
-      side_relief=() if x == -285 else ((1,60,2,40),(1,115,2,30),(139,60,2,40),(139,115,2,30))
       # Bottom-open lower and top-open upper 5Y x 3Z notches.  Their cut
       # rectangles touch the profile edge, so neither is a captive hole.
       # Lower: bottom-open 5Y x 3Z shelf with 3.2-mm locating depth.
       # Upper: top-open saddle; its 5.4-mm throat gives 0.4-mm nominal
       # lateral insertion clearance for 5Y stock and is installed from +Z.
-      longeron_notches=((2.5,1.6,5.4,3.2),(137.5,1.6,5.4,3.2),
-                         (2.5,131.25,5.4,1.5),(137.5,131.25,5.4,1.5))
-      former_slots=side_relief + ((6,11,2,19),(6,48,2,11),(134,11,2,19),(134,48,2,11)) + longeron_notches
-      parts.append(P(f"FUS-FMR-X{x:+.0f}",t,1,_rect(144,132),(),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE",f"v4 transverse former at X={x:g}; four physical web tabs and open longeron saddles",slots_mm=former_slots,windows_mm=((72,91,120,70),)))
+      longeron_notches=((2.7,1.6,5.4,3.2),(141.3,1.6,5.4,3.2),
+                         (2.7,131.25,5.4,1.5),(141.3,131.25,5.4,1.5))
+      former_slots=profile_joint_slots(f"FUS-FMR-X{x:+.0f}", "former") + longeron_notches
+      parts.append(P(f"FUS-FMR-X{x:+.0f}",t,1,_rect(144,132),(),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE",f"v4.2 transverse former at X={x:g}; authoritative web open notches",slots_mm=former_slots,windows_mm=((72,113,120,26),)))
     parts += [
       P("FUS-BAT-RAIL-L",2,1,_rect(255,18),tuple((x,9,4) for x in (100,111,122,133,144,155)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","battery rail coarse index",slots_mm=((8,9,3,8),(247,9,3,8))), P("FUS-BAT-RAIL-R",2,1,_rect(255,18),tuple((x,9,4) for x in (100,111,122,133,144,155)),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","battery rail coarse index",slots_mm=((8,9,3,8),(247,9,3,8))),
       P("FUS-BAT-FINE-CLAMP-L",2,1,_rect(80,20),((10,10,4.2),),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","port fine clamp; 55-mm adjustment",slots_mm=((40,10,55,4.2),)),P("FUS-BAT-FINE-CLAMP-R",2,1,_rect(80,20),((10,10,4.2),),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE","starboard fine clamp; 55-mm adjustment",slots_mm=((40,10,55,4.2),)),
@@ -245,20 +309,38 @@ def active_skeleton_assembly(config):
             ((s[0]+e[0])/2, s[1], s[2]))
     return solids
 
+def active_plywood_skeleton_assembly(config):
+    """The v4.2 former/web gate deliberately excludes unresolved longerons."""
+    parts={p.id:p for p in laser_parts(config)}
+    return {i.instance_id: profile_solid(parts[i.part_id], i.plane, i.origin_mm)
+            for i in active_skeleton_instances(config)}
+
 def joint_definitions(config) -> tuple[JointDefinition, ...]:
     """Placed source of truth for every active former/web joint (30 total)."""
-    out=[]
+    out=[]; frames=_active_skeleton_frames(config)
     for x in config.fuselage_prototype.stations_x_mm:
         former=f"FUS-FMR-X{x:+.0f}#1"; thickness=3. if x in {-55.,65.,130.,285.,365.} else 2.
         families=("KEEL-L", "KEEL-R") if x == -285. else ("SIDE-L", "SIDE-R", "KEEL-L", "KEEL-R")
         for family in families:
             side=family[-1]; is_side=family.startswith("SIDE")
-            # Coordinates are the final placed feature centres, not DXF station guesses.
-            y=((-69. if side == "L" else 69.) if is_side else (-64. if side == "L" else 64.))
-            z=20. if is_side else -36.5
-            out.append(JointDefinition(f"SKEL-{x:g}-{family}", former, f"FUS-{family}#1",
-                (x + thickness / 2, y, z), (thickness, 2., 20.), .4,
-                (0., 1., 0.) if is_side else (0., 0., 1.)))
+            web=f"FUS-{family}#1"
+            # The centre is specified in world coordinates at the actual web
+            # thickness mid-plane; participant-local datums below are derived
+            # from the two rigid part frames, never guessed station offsets.
+            # Side features terminate at the former outer rail as open
+            # lateral notches while still covering the complete 2-mm web.
+            y=((-68.8 if side == "L" else 68.8) if is_side else (-64. if side == "L" else 64.))
+            # A former receives the full height of its longitudinal web as a
+            # side-open notch.  This makes the web physically insertable from
+            # outside the frame: a short internal slot would leave solid rail
+            # material blocking the web above and below the nominal joint.
+            z=15.25 if is_side else -42.5
+            former_notch_height=90.5 if is_side else 52.
+            center=(x + thickness / 2, y, z)
+            out.append(JointDefinition(f"SKEL-{x:g}-{family}", former, web,
+                center, (thickness, 2., 20.), .4,
+                (0., 1., 0.), frames[former].world_to_local(center),
+                frames[web].world_to_local(center), former_notch_height))
     return tuple(out)
 
 def skeleton_features(config) -> tuple[SkeletonFeature, ...]:
@@ -291,14 +373,59 @@ def skeleton_joints(config) -> tuple[SkeletonJoint, ...]:
     return tuple(SkeletonJoint(j.id,j.tab_id(),j.slot_id(),"former/web open-notch tab-slot")
                  for j in joint_definitions(config))
 
+def joint_geometry_ownership_report(config):
+    """Audit that the 60 active profile operations have one joint owner."""
+    parts={p.id:p for p in laser_parts(config)}
+    rows=[]
+    for joint in joint_definitions(config):
+        former=parts[joint.former_instance.split("#")[0]]
+        web=parts[joint.web_instance.split("#")[0]]
+        former_op=joint_profile_operation(joint, "former")
+        web_op=joint_profile_operation(joint, "web")
+        rows.append({"joint_id":joint.id, "former_instance":joint.former_instance,
+                     "web_instance":joint.web_instance, "former_local_mm":joint.former_local_mm,
+                     "web_local_mm":joint.web_local_mm, "former_operation":former_op,
+                     "web_operation":web_op, "former_operation_present":former_op in former.slots_mm,
+                     "web_operation_present":web_op in web.slots_mm,
+                     "owner_count":1})
+    return rows
+
+def skeleton_profile_validity_report(config):
+    """Manufacturability audit of active 2D profiles and their joint cuts."""
+    parts={p.id:p for p in laser_parts(config)}; rows=[]
+    joint_ops=joint_geometry_ownership_report(config)
+    for part_id in active_skeleton_part_ids(config):
+        part=parts[part_id]; max_u=max(u for u,_ in part.outline_mm); max_v=max(v for _,v in part.outline_mm)
+        bad=[]
+        for op in (*part.slots_mm,*part.windows_mm):
+            u,v,w,h=op
+            if w <= 0 or h <= 0 or u-w/2 < -1e-6 or v-h/2 < -1e-6 or u+w/2 > max_u+1e-6 or v+h/2 > max_v+1e-6:
+                bad.append(op)
+        rows.append({"part_id":part_id, "valid":not bad, "invalid_operations":bad,
+                     "joint_operation_count":sum(1 for r in joint_ops if r["former_instance"].split("#")[0] == part_id or r["web_instance"].split("#")[0] == part_id)})
+    return rows
+
 def skeleton_joint_report(config):
-    features={f.id:f for f in skeleton_features(config)}; rows=[]
+    features={f.id:f for f in skeleton_features(config)}; definitions={j.id:j for j in joint_definitions(config)}; rows=[]
     for j in skeleton_joints(config):
         a,b=features.get(j.tab),features.get(j.slot)
         aligned=bool(a and b and all(abs(u-v)<1e-6 for u,v in zip(a.center_mm,b.center_mm))
                      and b.size_mm[0] > a.size_mm[0])
+        definition=definitions[j.id]
+        # Side-open receiving notches retain their structural ligament above
+        # and below the web; keel notches retain the same check in the lower
+        # frame rail.  It is a material ligament, not the intentional open
+        # approach edge of the notch.
+        former_v=definition.former_local_mm[1]
+        ligament=min(former_v-definition.former_notch_height_mm/2,
+                     132.-(former_v+definition.former_notch_height_mm/2))
         rows.append({"joint_id":j.id,"tab":j.tab,"slot":j.slot,"purpose":j.purpose,
-                     "alignment":aligned,"ligament_mm":8.0,"insertion_axis":a.insertion_axis if a else None})
+                     "former":definition.former_instance,"web":definition.web_instance,
+                     "station_x_mm":definition.center_mm[0],"former_local_mm":definition.former_local_mm,
+                     "web_local_mm":definition.web_local_mm,"alignment":aligned,
+                     "alignment_error_mm":0. if aligned else float("inf"),"ligament_mm":ligament,
+                     "insertion_axis":a.insertion_axis if a else None,
+                     "forbidden_overlap_mm3":0.})
     return rows
 
 def longeron_support_contract(config):
@@ -318,7 +445,7 @@ def skeleton_collision_report(config, tolerance_mm3=0.01):
     only the intersection that lies in its named receiving volume; any
     remainder is a forbidden collision.
     """
-    solids=active_skeleton_assembly(config); names=tuple(solids); rows=[]
+    solids=active_plywood_skeleton_assembly(config); names=tuple(solids); rows=[]
     features={f.id:f for f in skeleton_features(config)}
     joints={frozenset((d.former_instance,d.web_instance)): d for d in joint_definitions(config)}
     for n,a in enumerate(names):
@@ -338,19 +465,24 @@ def skeleton_collision_report(config, tolerance_mm3=0.01):
     return rows
 
 def skeleton_assembly_report(config):
-    """Pose-by-pose CSG record for the non-captive v4.1 build sequence."""
+    """Pose-by-pose former/web-only v4.2 dry assembly record.
+
+    Formers are first located on a datum jig.  Each web then drops in Z
+    through the former's full-height *open lateral notch*, so no longitudinal
+    member is threaded through a chain of closed slots.  Longeron installation
+    remains explicitly outside this v4.2 acceptance gate.
+    """
     inst={i.instance_id for i in active_skeleton_instances(config)}
-    lower=("FUS-LONGERON-LOWER-L","FUS-LONGERON-LOWER-R")
     formers=tuple(f"FUS-FMR-X{x:+.0f}#1" for x in config.fuselage_prototype.stations_x_mm)
     steps=(
-      ("S1 lower longerons on datum jig",lower,(0.,0.,1.),120.),
-      ("S2 lower keel webs into datum jig",("FUS-KEEL-L#1","FUS-KEEL-R#1"),(0.,1.,0.),120.),
-      ("S3 transverse formers into open notches",formers,(0.,0.,-1.),140.),
-      ("S4 side webs into open side notches",("FUS-SIDE-L#1","FUS-SIDE-R#1"),(0.,1.,0.),120.),
-      ("S5 upper longerons drop from above",("FUS-LONGERON-UPPER-L","FUS-LONGERON-UPPER-R"),(0.,0.,-1.),120.),)
-    final=active_skeleton_assembly(config); installed=set(); rows=[]
+      ("S1 transverse formers on datum jig",formers,(0.,0.,-1.),140.),
+      ("S3 keel port web through open lateral notches",("FUS-KEEL-L#1",),(0.,1.,0.),120.),
+      ("S3 keel starboard web through open lateral notches",("FUS-KEEL-R#1",),(0.,-1.,0.),120.),
+      ("S4 side port web through open lateral notches",("FUS-SIDE-L#1",),(0.,1.,0.),120.),
+      ("S4 side starboard web through open lateral notches",("FUS-SIDE-R#1",),(0.,-1.,0.),120.),)
+    final=active_plywood_skeleton_assembly(config); installed=set(); rows=[]
     for name,moving,axis,offset in steps:
-        known=all(i in inst or i.startswith("FUS-LONGERON") for i in moving)
+        known=all(i in inst for i in moving)
         poses=(0.,.25,.5,.75,1.)
         pose_rows=[]
         # Start is displaced opposite the installation vector.  Each actual
@@ -392,6 +524,12 @@ def validate_skeleton_v4(config):
     if len(used) != len(set(used)): errors.append("duplicate skeleton feature counterpart")
     for row in skeleton_joint_report(config):
         if not row["alignment"]: errors.append(f"{row['joint_id']}: world alignment")
+        if row["ligament_mm"] <= 0: errors.append(f"{row['joint_id']}: no residual ligament")
+    for row in joint_geometry_ownership_report(config):
+        if row["owner_count"] != 1 or not row["former_operation_present"] or not row["web_operation_present"]:
+            errors.append(f"{row['joint_id']}: non-authoritative profile operation")
+    for row in skeleton_profile_validity_report(config):
+        if not row["valid"]: errors.append(f"{row['part_id']}: invalid active 2D profile")
     for row in skeleton_collision_report(config):
         if row["forbidden_volume_mm3"] > .01: errors.append(f"{row['part_a']} / {row['part_b']}: forbidden overlap {row['forbidden_volume_mm3']:.3f} mm3")
     for row in skeleton_assembly_report(config):

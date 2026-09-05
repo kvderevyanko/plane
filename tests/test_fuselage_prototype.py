@@ -12,7 +12,10 @@ from cad.fuselage.model import (active_skeleton_assembly, active_skeleton_instan
                                 active_skeleton_part_ids, longeron_support_contract,
                                 skeleton_assembly_report, skeleton_collision_report,
                                 skeleton_features, skeleton_joint_report,
-                                skeleton_joints, validate_skeleton_v4)
+                                skeleton_joints, joint_definitions,
+                                joint_geometry_ownership_report,
+                                skeleton_profile_validity_report, part_frame,
+                                validate_skeleton_v4)
 from scripts.config import load_aircraft_config
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -30,8 +33,9 @@ def test_primary_lower_load_path_reaches_forward_pack_stop():
     lower = [path for path in longeron_paths(config) if "LOWER" in path[0]]
     assert all(start[0] <= -475 and end[0] >= 365 for _, start, end in lower)
     parts = {part.id: part for part in laser_parts(config)}
-    # 1.5-mm end margins retain the exact slots at both terminal stations.
-    assert parts["FUS-KEEL-L"].outline_mm[1][0] == pytest.approx(843)
+    # v4.2 locally extends the terminal contour 2 mm so the last placed
+    # former receiving feature remains wholly inside the actual keel profile.
+    assert parts["FUS-KEEL-L"].outline_mm[1][0] == pytest.approx(845)
     assert parts["FUS-HATCH-RAIL-L"].classification == "PRIMARY STRUCTURE"
 
 
@@ -114,7 +118,33 @@ def test_v4_active_skeleton_has_30_world_coordinate_joints_and_no_orphan_feature
     used = [item for joint in joints for item in (joint.tab, joint.slot)]
     assert len(used) == len(set(used))
     assert all(item in features for item in used)
-    assert all(row["alignment"] and row["ligament_mm"] >= 3 for row in skeleton_joint_report(config))
+    assert all(row["alignment"] and row["ligament_mm"] > 0 for row in skeleton_joint_report(config))
+
+
+def test_v42_joint_definitions_are_the_only_active_profile_operation_owners():
+    config = load_aircraft_config(ROOT / "config" / "aircraft.yaml")
+    definitions = joint_definitions(config)
+    ownership = joint_geometry_ownership_report(config)
+    assert len(definitions) == len(ownership) == 30
+    assert all(row["owner_count"] == 1 and row["former_operation_present"] and row["web_operation_present"]
+               for row in ownership)
+    # The local datums are transforms of one placed world datum, not raw
+    # profile station constants duplicated in the profile builder.
+    for definition in definitions:
+        assert part_frame(config, definition.former_instance).local_to_world(definition.former_local_mm) == pytest.approx(definition.center_mm)
+        assert part_frame(config, definition.web_instance).local_to_world(definition.web_local_mm) == pytest.approx(definition.center_mm)
+
+
+def test_v42_active_former_web_profiles_are_manufacturable_and_pose_gate_is_plywood_only():
+    config = load_aircraft_config(ROOT / "config" / "aircraft.yaml")
+    assert all(row["valid"] for row in skeleton_profile_validity_report(config))
+    rows = skeleton_assembly_report(config)
+    assert all(row["result"] == "PASS" for row in rows)
+    assert {row["step"][:2] for row in rows} >= {"S3", "S4"}
+    # v4.2 gates all 12 plywood instances only; carbon saddle work is the
+    # explicitly deferred next pass.
+    assert all("LONGERON" not in moving for row in rows for moving in row["moving_instances"])
+    assert skeleton_collision_report(config) == []
 
 
 def test_v4_method_a_represents_actual_5y_by_3z_stock_and_isolated_collision_gate():

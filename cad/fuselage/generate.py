@@ -19,6 +19,8 @@ from cad.fuselage.model import (LaserPart, assembly_mass_properties,
                                 active_skeleton_part_ids, active_skeleton_instances,
                                 skeleton_joint_report, skeleton_collision_report,
                                 skeleton_assembly_report, longeron_support_contract,
+                                joint_geometry_ownership_report,
+                                skeleton_profile_validity_report,
                                 validate_skeleton_v4)
 from scripts.config import load_aircraft_config
 
@@ -79,8 +81,8 @@ def generate(root: Path) -> dict[str, Path]:
         "gear_shim_4p0_stl": root / "build" / "fuselage" / "printable" / "FUS-GEAR-SHIM-4P0-1p0mm.stl",
         "assembly_step": root / "build" / "fuselage" / "step" / "LR1600-fuselage-prototype-v1-assembly.step",
         "assembly_svg": root / "build" / "fuselage" / "drawings" / "LR1600-fuselage-prototype-v1-assembly.svg",
-        "skeleton_v4_report": root / "build" / "fuselage" / "reports" / "skeleton-v4-report.json",
-        "skeleton_v4_assembly": root / "build" / "fuselage" / "reports" / "skeleton-v4-assembly.md",
+        "skeleton_v4_report": root / "build" / "fuselage" / "reports" / "skeleton-v4.2-report.json",
+        "skeleton_v4_assembly": root / "build" / "fuselage" / "reports" / "skeleton-v4.2-assembly.md",
     }
     _write_sheet(tuple(p for p in parts if p.thickness_mm == 2), paths["laser_2mm"])
     _write_sheet(tuple(p for p in parts if p.thickness_mm == 3 and p.status == "PROTOTYPE CUTTABLE"), paths["laser_3mm"])
@@ -101,20 +103,23 @@ def generate(root: Path) -> dict[str, Path]:
     instance_map = {}
     for instance in part_instances(config):
         instance_map.setdefault(instance.part_id, []).append({"instance_id": instance.instance_id, "origin_mm": instance.origin_mm, "plane": instance.plane})
-    v4 = {"scope": "basic skeleton + four 5x3 carbon longerons only; complete fuselage NOT RELEASED",
+    v4 = {"scope": "v4.2 former/web plywood convergence only; longeron saddle subsystem remains unresolved",
           "active_part_definitions": list(active_skeleton_part_ids(config)),
           "active_part_instances": [instance.__dict__ for instance in active_skeleton_instances(config)],
-          "joint_report": skeleton_joint_report(config), "longeron_support_contract": longeron_support_contract(config),
+          "joint_report": skeleton_joint_report(config), "joint_geometry_ownership": joint_geometry_ownership_report(config),
+          "profile_validity": skeleton_profile_validity_report(config), "longeron_support_contract": longeron_support_contract(config),
           "collision_report": skeleton_collision_report(config), "assembly_report": skeleton_assembly_report(config),
           "validation_errors": validate_skeleton_v4(config)}
     summary = {"status": "PROTOTYPE V4 SKELETON SUBSYSTEM — PENDING INDEPENDENT REVIEW; COMPLETE FUSELAGE NOT RELEASED", "geometry_contract": "DXF profile == STEP extrusion == geometry mass profile", "battery_rail_usable_centres_mm": [config.fuselage_prototype.battery_rail_x_min_mm, config.fuselage_prototype.battery_rail_x_max_mm], "part_station_trace_mm": part_station_trace(), "part_definitions": definitions, "part_instances": instance_map, "assembly_components": list(assembly), "mating_interfaces": [mate.__dict__ for mate in mating_interfaces(config)], "joint_validation": joint_validation_report(config), "dry_assembly_errors": dry_assembly_errors(config), "assembly_sequence": [step.__dict__ for step in assembly_sequence(config)], "longeron_support_report": longeron_support_report(config), "gear_leg_specimens": gear_leg_specimens(), "nose_tang_envelope": nose_tang_envelope(), "battery_removal_sweep_bbox_mm": [battery_removal_sweep(config).val().BoundingBox().xlen, battery_removal_sweep(config).val().BoundingBox().ylen, battery_removal_sweep(config).val().BoundingBox().zlen], "cad_mass_estimate_g": mass_estimate(config), "cad_mass_properties": assembly_mass_properties(config), "longerons": [{"id": n, "start_mm": a, "end_mm": b} for n, a, b in longeron_paths(config)], "skeleton_v4": v4}
     paths["manifest"].with_suffix(".json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
     paths["skeleton_v4_report"].parent.mkdir(parents=True, exist_ok=True)
     paths["skeleton_v4_report"].write_text(json.dumps(v4, indent=2) + "\n", encoding="utf-8")
-    paths["skeleton_v4_assembly"].write_text("# LR1600 v4 skeleton dry-assembly report\n\n"
-        "Scope: active skeleton plus four 5Y x 3Z carbon longerons only. Complete fuselage remains NOT RELEASED.\n\n"
+    paths["skeleton_v4_assembly"].write_text("# LR1600 v4.2 former/web dry-assembly report\n\n"
+        "Scope: 12 active plywood former/web instances. Longeron saddles remain outside this pass.\n\n"
         + "\n".join(f"- {row['step']}: {row['result']}; insertion {row['insertion_axis']}; "
-                     f"offset poses {row['discrete_offsets_mm']} mm." for row in v4["assembly_report"]) + "\n", encoding="utf-8")
+                     f"sampled poses {row['pose_fractions']}; max forbidden overlap "
+                     f"{max(p['forbidden_collision_mm3'] for p in row['poses']):.3f} mm3."
+                     for row in v4["assembly_report"]) + "\n", encoding="utf-8")
     paths["battery_dummy_stl"].parent.mkdir(parents=True, exist_ok=True)
     exporters.export(_battery_dummy(config), str(paths["battery_dummy_stl"]))
     exporters.export(_prop_gauge(config), str(paths["prop_gauge_stl"]))
