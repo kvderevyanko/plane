@@ -44,6 +44,20 @@ class SkeletonFeature:
 @dataclass(frozen=True)
 class SkeletonJoint:
     id: str; tab: str; slot: str; purpose: str
+
+@dataclass(frozen=True)
+class JointDefinition:
+    """One placed former/web feature, from which both counterpart IDs derive.
+
+    ``receiving_clearance_mm`` is nominal assembly clearance, not kerf.  The
+    receiving box is expressed in world axes so it cannot silently drift from
+    a part placement or extrusion direction.
+    """
+    id: str; former_instance: str; web_instance: str
+    center_mm: tuple[float, float, float]; tab_size_mm: tuple[float, float, float]
+    receiving_clearance_mm: float; insertion_axis: tuple[float, float, float]
+    def tab_id(self): return f"{self.former_instance}:TAB:{self.id}"
+    def slot_id(self): return f"{self.web_instance}:SLOT:{self.id}"
 @dataclass(frozen=True)
 class Mate:
     """A physical, nominal (kerf-free) joint.
@@ -75,8 +89,14 @@ def laser_parts(config: AircraftConfig) -> tuple[PartDefinition,...]:
     # overlap a joint.  A former enters each web slot, rather than two solid
     # plates merely crossing in the STEP compound.
     P=PartDefinition
-    keel_slots=tuple((x + 476.5, 32., 3. if x in {-55.,65.,130.,285.,365.} else 2.,20.) for x in p.stations_x_mm)
-    side_slots=tuple((x + 171.5, 50., 3. if x in {-55.,65.,130.,285.,365.} else 2.,20.) for x in p.stations_x_mm if x != -285.)
+    # The receiver is offset by half the *actual former X thickness*: profile
+    # extrusion begins at the former station, rather than being centred on it.
+    # Thus its tab occupies a receiving void, instead of half its volume
+    # remaining in the web.  0.40 mm is deliberate nominal dry-fit clearance.
+    _joint_width=lambda x: (3. if x in {-55.,65.,130.,285.,365.} else 2.) + .4
+    _joint_center=lambda x: x + (3. if x in {-55.,65.,130.,285.,365.} else 2.) / 2
+    keel_slots=tuple((_joint_center(x) + 476.5, 32., _joint_width(x),20.) for x in p.stations_x_mm)
+    side_slots=tuple((_joint_center(x) + 171.5, 50., _joint_width(x),20.) for x in p.stations_x_mm if x != -285.)
     keel_windows=tuple(((a+b)/2+476.5,26., max(18., b-a-7.),24.) for a,b in zip((-475.,-360.,-235.,-110.,15.,155.,250.),(-360.,-235.,-110.,15.,155.,250.,365.)))
     side_windows=tuple(((a+b)/2+171.5,24.,max(18.,b-a-9.),28.) for a,b in zip((-170.,-55.,65.,130.,285.,365.,),(-55.,65.,130.,285.,365.,410.)))
     parts=[
@@ -102,7 +122,11 @@ def laser_parts(config: AircraftConfig) -> tuple[PartDefinition,...]:
       side_relief=() if x == -285 else ((1,60,2,40),(1,115,2,30),(139,60,2,40),(139,115,2,30))
       # Bottom-open lower and top-open upper 5Y x 3Z notches.  Their cut
       # rectangles touch the profile edge, so neither is a captive hole.
-      longeron_notches=((2.5,1.5,5,3),(137.5,1.5,5,3),(2.5,130.5,5,3),(137.5,130.5,5,3))
+      # Lower: bottom-open 5Y x 3Z shelf with 3.2-mm locating depth.
+      # Upper: top-open saddle; its 5.4-mm throat gives 0.4-mm nominal
+      # lateral insertion clearance for 5Y stock and is installed from +Z.
+      longeron_notches=((2.5,1.6,5.4,3.2),(137.5,1.6,5.4,3.2),
+                         (2.5,131.25,5.4,1.5),(137.5,131.25,5.4,1.5))
       former_slots=side_relief + ((6,11,2,19),(6,48,2,11),(134,11,2,19),(134,48,2,11)) + longeron_notches
       parts.append(P(f"FUS-FMR-X{x:+.0f}",t,1,_rect(144,132),(),"PRIMARY STRUCTURE","PROTOTYPE CUTTABLE",f"v4 transverse former at X={x:g}; four physical web tabs and open longeron saddles",slots_mm=former_slots,windows_mm=((72,91,120,70),)))
     parts += [
@@ -221,19 +245,33 @@ def active_skeleton_assembly(config):
             ((s[0]+e[0])/2, s[1], s[2]))
     return solids
 
+def joint_definitions(config) -> tuple[JointDefinition, ...]:
+    """Placed source of truth for every active former/web joint (30 total)."""
+    out=[]
+    for x in config.fuselage_prototype.stations_x_mm:
+        former=f"FUS-FMR-X{x:+.0f}#1"; thickness=3. if x in {-55.,65.,130.,285.,365.} else 2.
+        families=("KEEL-L", "KEEL-R") if x == -285. else ("SIDE-L", "SIDE-R", "KEEL-L", "KEEL-R")
+        for family in families:
+            side=family[-1]; is_side=family.startswith("SIDE")
+            # Coordinates are the final placed feature centres, not DXF station guesses.
+            y=((-69. if side == "L" else 69.) if is_side else (-64. if side == "L" else 64.))
+            z=20. if is_side else -36.5
+            out.append(JointDefinition(f"SKEL-{x:g}-{family}", former, f"FUS-{family}#1",
+                (x + thickness / 2, y, z), (thickness, 2., 20.), .4,
+                (0., 1., 0.) if is_side else (0., 0., 1.)))
+    return tuple(out)
+
 def skeleton_features(config) -> tuple[SkeletonFeature, ...]:
     """Physical v4 tabs, slots and 5x3-mm open saddles in world coordinates."""
     out=[]; p=config.fuselage_prototype
-    for x in p.stations_x_mm:
-        f=f"FUS-FMR-X{x:+.0f}#1"; t=3. if x in {-55.,65.,130.,285.,365.} else 2.
-        # Former material tabs occupy the voids cut in the longitudinal web.
-        if x != -285.:
-            for side,y in (("L",-69.),("R",69.)):
-                out.append(SkeletonFeature(f"{f}:TAB-SIDE-{side}",f,"tab",(x,y,20.),(t,2.,20.),(1.,0.,0.)))
-                out.append(SkeletonFeature(f"FUS-SIDE-{side}#1:SLOT@{x:g}",f"FUS-SIDE-{side}#1","slot",(x,y,20.),(t,2.,20.),(1.,0.,0.)))
-        for side,y in (("L",-64.),("R",64.)):
-            out.append(SkeletonFeature(f"{f}:TAB-KEEL-{side}",f,"tab",(x,y,-36.5),(t,2.,20.),(0.,0.,1.)))
-            out.append(SkeletonFeature(f"FUS-KEEL-{side}#1:SLOT@{x:g}",f"FUS-KEEL-{side}#1","slot",(x,y,-36.5),(t,2.,20.),(0.,0.,1.)))
+    for joint in joint_definitions(config):
+        out.append(SkeletonFeature(joint.tab_id(),joint.former_instance,"tab",joint.center_mm,
+                                   joint.tab_size_mm,joint.insertion_axis))
+        # Receiving volume is wider only along the actual former extrusion X.
+        receiving=(joint.tab_size_mm[0] + joint.receiving_clearance_mm,
+                   joint.tab_size_mm[1], joint.tab_size_mm[2])
+        out.append(SkeletonFeature(joint.slot_id(),joint.web_instance,"slot",joint.center_mm,
+                                   receiving,joint.insertion_axis))
     for name,start,end in longeron_paths(config):
         side="L" if name.endswith("-L") else "R"; lower="LOWER" in name
         support=f"FUS-KEEL-{side}#1" if lower else f"FUS-SIDE-{side}#1"
@@ -250,21 +288,15 @@ def skeleton_features(config) -> tuple[SkeletonFeature, ...]:
     return tuple(out)
 
 def skeleton_joints(config) -> tuple[SkeletonJoint, ...]:
-    joints=[]
-    for x in config.fuselage_prototype.stations_x_mm:
-        f=f"FUS-FMR-X{x:+.0f}#1"
-        families=("KEEL-L","KEEL-R") if x == -285. else ("SIDE-L","SIDE-R","KEEL-L","KEEL-R")
-        for family in families:
-            joints.append(SkeletonJoint(f"SKEL-{x:g}-{family}",f"{f}:TAB-{family}",
-                f"FUS-{family}#1:SLOT@{x:g}","former/web shear tab-slot"))
-    return tuple(joints)
+    return tuple(SkeletonJoint(j.id,j.tab_id(),j.slot_id(),"former/web open-notch tab-slot")
+                 for j in joint_definitions(config))
 
 def skeleton_joint_report(config):
     features={f.id:f for f in skeleton_features(config)}; rows=[]
     for j in skeleton_joints(config):
         a,b=features.get(j.tab),features.get(j.slot)
         aligned=bool(a and b and all(abs(u-v)<1e-6 for u,v in zip(a.center_mm,b.center_mm))
-                     and a.size_mm == b.size_mm)
+                     and b.size_mm[0] > a.size_mm[0])
         rows.append({"joint_id":j.id,"tab":j.tab,"slot":j.slot,"purpose":j.purpose,
                      "alignment":aligned,"ligament_mm":8.0,"insertion_axis":a.insertion_axis if a else None})
     return rows
@@ -280,35 +312,74 @@ def longeron_support_contract(config):
     return report
 
 def skeleton_collision_report(config, tolerance_mm3=0.01):
-    """Feature-level v4 collision gate; resolved bays are intentionally absent."""
+    """CSG collision gate with *bounded*, feature-level permitted regions.
+
+    There is deliberately no part-pair mate exemption.  A joint can permit
+    only the intersection that lies in its named receiving volume; any
+    remainder is a forbidden collision.
+    """
     solids=active_skeleton_assembly(config); names=tuple(solids); rows=[]
-    permitted={frozenset((j.tab.split(":")[0], j.slot.split(":")[0])): j.id for j in skeleton_joints(config)}
+    features={f.id:f for f in skeleton_features(config)}
+    joints={frozenset((d.former_instance,d.web_instance)): d for d in joint_definitions(config)}
     for n,a in enumerate(names):
         for b in names[n+1:]:
             volume=solids[a].val().intersect(solids[b].val()).Volume()
             if volume > tolerance_mm3:
-                contact=permitted.get(frozenset((a,b)), "UNEXPLAINED")
-                rows.append({"part_a":a,"part_b":b,"intersection_mm3":volume,"contact_id":contact})
+                joint=joints.get(frozenset((a,b)))
+                allowed=0.
+                if joint:
+                    f=features[joint.slot_id()]
+                    receiver=cq.Workplane("XY").box(*f.size_mm).translate(f.center_mm).val()
+                    allowed=solids[a].val().intersect(solids[b].val()).intersect(receiver).Volume()
+                forbidden=max(0.,volume-allowed)
+                rows.append({"part_a":a,"part_b":b,"contact_id":joint.id if joint else "UNEXPLAINED",
+                             "overlap_volume_mm3":volume,"allowed_volume_mm3":allowed,
+                             "forbidden_volume_mm3":forbidden,"intersection_mm3":forbidden})
     return rows
 
 def skeleton_assembly_report(config):
-    """Deterministic Method-A record; poses are deliberately discrete, not a solver."""
+    """Pose-by-pose CSG record for the non-captive v4.1 build sequence."""
     inst={i.instance_id for i in active_skeleton_instances(config)}
     lower=("FUS-LONGERON-LOWER-L","FUS-LONGERON-LOWER-R")
     formers=tuple(f"FUS-FMR-X{x:+.0f}#1" for x in config.fuselage_prototype.stations_x_mm)
     steps=(
-      ("A1 lower longerons on datum jig",lower,(1.,0.,0.),120.),
-      ("A2 formers descend around lower longerons",formers,(0.,0.,-1.),140.),
-      ("A3 keel webs thread +X",("FUS-KEEL-L#1","FUS-KEEL-R#1"),(1.,0.,0.),140.),
-      ("A4 side webs thread +X",("FUS-SIDE-L#1","FUS-SIDE-R#1"),(1.,0.,0.),140.),
-      ("A5 upper longerons thread +X",("FUS-LONGERON-UPPER-L","FUS-LONGERON-UPPER-R"),(1.,0.,0.),180.),
-      ("A6 no closure rails in active subset",(),(0.,0.,1.),0.),)
-    rows=[]
+      ("S1 lower longerons on datum jig",lower,(0.,0.,1.),120.),
+      ("S2 lower keel webs into datum jig",("FUS-KEEL-L#1","FUS-KEEL-R#1"),(0.,1.,0.),120.),
+      ("S3 transverse formers into open notches",formers,(0.,0.,-1.),140.),
+      ("S4 side webs into open side notches",("FUS-SIDE-L#1","FUS-SIDE-R#1"),(0.,1.,0.),120.),
+      ("S5 upper longerons drop from above",("FUS-LONGERON-UPPER-L","FUS-LONGERON-UPPER-R"),(0.,0.,-1.),120.),)
+    final=active_skeleton_assembly(config); installed=set(); rows=[]
     for name,moving,axis,offset in steps:
         known=all(i in inst or i.startswith("FUS-LONGERON") for i in moving)
+        poses=(0.,.25,.5,.75,1.)
+        pose_rows=[]
+        # Start is displaced opposite the installation vector.  Each actual
+        # BRep is translated for every sample and intersected with every body
+        # installed in earlier steps.  This intentionally does not credit a
+        # whole-part pair as a mate.
+        for fraction in poses:
+            displacement=tuple(-v * offset * (1. - fraction) for v in axis)
+            forbidden=0.
+            for moving_id in moving:
+                moved=final[moving_id].translate(displacement).val()
+                for fixed_id in installed:
+                    overlap=moved.intersect(final[fixed_id].val()).Volume()
+                    if overlap <= .01: continue
+                    joint=next((d for d in joint_definitions(config)
+                                if frozenset((d.former_instance,d.web_instance)) == frozenset((moving_id,fixed_id))),None)
+                    allowed=0.
+                    if joint and fraction == 1.:
+                        receiver=next(f for f in skeleton_features(config) if f.id == joint.slot_id())
+                        allowed=moved.intersect(final[fixed_id].val()).intersect(
+                            cq.Workplane("XY").box(*receiver.size_mm).translate(receiver.center_mm).val()).Volume()
+                    forbidden += max(0., overlap - allowed)
+            pose_rows.append({"fraction":fraction,"translation_mm":displacement,
+                              "forbidden_collision_mm3":forbidden})
         rows.append({"step":name,"moving_instances":moving,"insertion_axis":axis,"start_offset_mm":offset,
-                     "discrete_offsets_mm":(offset,offset/2,20.,0.),"known_instances":known,
-                     "result":"PASS" if known else "FAIL","adhesive":"after dry alignment"})
+                     "pose_fractions":poses,"sampled_pose_count":len(poses),"known_instances":known,
+                     "poses":pose_rows,"result":"PASS" if known and all(p["forbidden_collision_mm3"] <= .01 for p in pose_rows) else "FAIL",
+                     "adhesive":"after dry alignment"})
+        installed.update(moving)
     return rows
 
 def validate_skeleton_v4(config):
@@ -322,7 +393,7 @@ def validate_skeleton_v4(config):
     for row in skeleton_joint_report(config):
         if not row["alignment"]: errors.append(f"{row['joint_id']}: world alignment")
     for row in skeleton_collision_report(config):
-        if row["contact_id"] == "UNEXPLAINED": errors.append(f"{row['part_a']} / {row['part_b']}: unexplained overlap {row['intersection_mm3']:.3f} mm3")
+        if row["forbidden_volume_mm3"] > .01: errors.append(f"{row['part_a']} / {row['part_b']}: forbidden overlap {row['forbidden_volume_mm3']:.3f} mm3")
     for row in skeleton_assembly_report(config):
         if row["result"] != "PASS": errors.append(f"{row['step']}: insertion failure")
     return errors
@@ -428,7 +499,12 @@ def validate_geometry(config):
  for p in ps:
   if p.status=="PROTOTYPE CUTTABLE" and profile_area_mm2(p)<=0:e.append(f"{p.id}: non-positive profile area")
   for x,y,w,h in (*p.slots_mm,*p.windows_mm):
-   if x-w/2<0 or y-h/2<0 or x+w/2>max(a for a,_ in p.outline_mm) or y+h/2>max(b for _,b in p.outline_mm):e.append(f"{p.id}: cutout outside profile")
+   # Edge-touching rectangles are intentional open assembly notches.  Only a
+   # feature extending beyond the profile by more than numerical tolerance is
+   # invalid; a closed interior slot must remain wholly in its profile.
+   eps=1e-6; max_x=max(a for a,_ in p.outline_mm); max_y=max(b for _,b in p.outline_mm)
+   if x-w/2 < -eps or y-h/2 < -eps or x+w/2 > max_x+eps or y+h/2 > max_y+eps:
+    e.append(f"{p.id}: cutout outside profile")
  e.extend(validate_skeleton_v4(config))
  if config.fuselage_prototype.battery_rail_x_min_mm>-384.78:e.append("battery rail does not reach 24% target")
  if config.fuselage_integration.battery_hatch_width_mm<config.battery.package_width_mm+40:e.append("battery hatch lacks side clearance")
